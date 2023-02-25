@@ -1,5 +1,5 @@
+use super::data::AppState;
 use crate::handlers::route;
-use crate::internal::AppState;
 use actix_web::{
     dev::Server,
     middleware::{Compress, NormalizePath},
@@ -27,10 +27,7 @@ pub fn run(address: &str) -> io::Result<Server> {
     //     .run()
     //     .await
 
-    let server = HttpServer::new(app)
-        .keep_alive(Duration::from_secs(60))
-        .bind(address)?
-        .run();
+    let server = HttpServer::new(app).keep_alive(Duration::from_secs(60)).bind(address)?.run();
 
     Ok(server)
 }
@@ -47,10 +44,7 @@ pub fn run_with_listener(listener: TcpListener) -> io::Result<Server> {
             .configure(route)
     };
 
-    let server = HttpServer::new(app)
-        .keep_alive(Duration::from_secs(60))
-        .listen(listener)?
-        .run();
+    let server = HttpServer::new(app).keep_alive(Duration::from_secs(60)).listen(listener)?.run();
 
     Ok(server)
 }

@@ -1,4 +1,4 @@
-use crate::internal::AppState;
+use crate::internal::data::AppState;
 use actix_web::{
     web::{self, get, ServiceConfig},
     HttpResponse,

@@ -33,7 +33,7 @@ cargo add uuid --features=v4,serde
 
 cargo add anyhow@1 chrono@0.4 futures-util@0.3 serde_json@1 \
   structopt@0.3 thiserror@1 config@0.13 futures@0.3 \
-  derive_more@0.99 once_cell@1
+  derive_more@0.99 once_cell@1 num_cpus@1
 
 cargo add sqlx --features=runtime-actix-rustls,macros,postgres,uuid,chrono,migrate,offline
 
