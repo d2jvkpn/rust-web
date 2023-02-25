@@ -65,8 +65,8 @@ where
         req.extensions_mut().insert(request_id);
 
         req.headers_mut().insert(
-            HeaderName::from_lowercase(b"x-version").unwrap(),
-            HeaderValue::from_str("0.1.2").unwrap(),
+            HeaderName::from_lowercase(b"x-simple-logger-request-id").unwrap(),
+            HeaderValue::from_str(request_id.to_string().as_str()).unwrap(),
         );
 
         let fut = self.service.call(req);
@@ -75,8 +75,8 @@ where
             let mut res = fut.await?;
 
             res.headers_mut().insert(
-                HeaderName::from_lowercase(b"x-message").unwrap(),
-                HeaderValue::from_str("Hello, world!").unwrap(),
+                HeaderName::from_lowercase(b"x-simple-logger-version").unwrap(),
+                HeaderValue::from_str("0.1.2").unwrap(),
             );
 
             let end: DateTime<Local> = Local::now();
