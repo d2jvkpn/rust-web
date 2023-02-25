@@ -3,6 +3,7 @@ mod internal;
 mod middlewares;
 mod utils;
 
+use internal::load_config;
 use std::io;
 use structopt::StructOpt;
 
@@ -30,6 +31,13 @@ struct Opts {
 async fn main() -> io::Result<()> {
     let opts = Opts::from_args();
     let address = format!("{}:{}", opts.addr, opts.port);
+
+    let mut config = load_config(&opts.config)
+        .unwrap_or_else(|e| panic!("read configuration {}: {:?}", &opts.config, e));
+
+    config.configuration = opts.config;
+    config.threads = opts.threads;
+    config.release = opts.release;
 
     internal::startup_v1::run(&address)?.await
 }
