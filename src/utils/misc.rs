@@ -4,6 +4,7 @@ pub fn number_of_threads() -> io::Result<usize> {
     Ok(thread::available_parallelism()?.get())
 }
 
+// return (cpus, threads)
 pub fn number_of_cpus() -> (usize, usize) {
     (num_cpus::get_physical(), num_cpus::get())
 }

@@ -36,8 +36,14 @@ async fn main() -> io::Result<()> {
         .unwrap_or_else(|e| panic!("read configuration {}: {:?}", &opts.config, e));
 
     config.configuration = opts.config;
-    config.threads = opts.threads;
     config.release = opts.release;
+
+    config.threads = opts.threads;
+    let (cpus, _) = utils::number_of_cpus();
+    if config.threads == 0 || config.threads > cpus {
+        config.threads = cpus;
+    }
+    dbg!(&config);
 
     internal::startup_v1::run(&address)?.await
 }

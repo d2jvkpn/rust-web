@@ -29,7 +29,7 @@ git remote add origin git@github.com:d2jvkpn/rust-web.git
 cargo add actix-web@4 actix-rt@2 actix-service@2
 cargo add tokio@1 --features=full
 cargo add serde@1 --features=derive
-cargo add uuid --features=v4,serde
+cargo add uuid@1 --features=v4,serde
 
 cargo add anyhow@1 chrono@0.4 futures-util@0.3 serde_json@1 \
   structopt@0.3 thiserror@1 config@0.13 futures@0.3 \
@@ -37,7 +37,7 @@ cargo add anyhow@1 chrono@0.4 futures-util@0.3 serde_json@1 \
 
 cargo add sqlx --features=runtime-actix-rustls,macros,postgres,uuid,chrono,migrate,offline
 
-cargo add --dev reqwest
+cargo add --dev reqwest@0.11
 
 cat Cargo.toml
 
