@@ -1,8 +1,12 @@
 use super::data::AppState;
-use crate::handlers::route;
+use crate::{
+    handlers::route,
+    middlewares::{no_route, SimpleLogger},
+};
 use actix_web::{
     dev::Server,
-    middleware::{Compress, NormalizePath},
+    http::StatusCode,
+    middleware::{Compress, ErrorHandlers, NormalizePath},
     web, App, HttpServer,
 };
 use std::{io, net::TcpListener, time::Duration};
@@ -16,6 +20,8 @@ pub fn run(address: &str) -> io::Result<Server> {
     let app = move || {
         App::new()
             .app_data(app_data.clone())
+            .wrap(ErrorHandlers::new().handler(StatusCode::NOT_FOUND, no_route))
+            .wrap(SimpleLogger {})
             .wrap(Compress::default())
             .wrap(NormalizePath::default())
             .configure(route)
@@ -39,6 +45,8 @@ pub fn run_with_listener(listener: TcpListener) -> io::Result<Server> {
     let app = move || {
         App::new()
             .app_data(app_data.clone())
+            .wrap(ErrorHandlers::new().handler(StatusCode::NOT_FOUND, no_route))
+            .wrap(SimpleLogger {})
             .wrap(Compress::default())
             .wrap(NormalizePath::default())
             .configure(route)

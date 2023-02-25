@@ -1,5 +1,6 @@
 mod handlers;
 mod internal;
+mod middlewares;
 mod utils;
 
 use std::io;
