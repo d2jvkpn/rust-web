@@ -7,9 +7,7 @@ use serde_json::json;
 use uuid::Uuid;
 
 async fn health_check(request_id: ReqData<Uuid>) -> HttpResponse {
-    let request_id = request_id.into_inner();
-
-    HttpResponse::Ok().json(json!({"code": 0, "msg": "ok", "requestId": request_id}))
+    HttpResponse::Ok().json(json!({"code": 0, "msg": "ok", "requestId": rquest_id.into_inner()}))
 }
 
 async fn health_check_v2(app_state: Data<AppState>, request_id: ReqData<Uuid>) -> HttpResponse {
