@@ -6,8 +6,12 @@ use actix_web::{
 use serde_json::json;
 use uuid::Uuid;
 
-async fn health_check(request_id: ReqData<Uuid>) -> HttpResponse {
-    HttpResponse::Ok().json(json!({"code": 0, "msg": "ok", "requestId": rquest_id.into_inner()}))
+async fn health_check() -> HttpResponse {
+    HttpResponse::Ok().finish()
+}
+
+async fn health_check_v1(request_id: ReqData<Uuid>) -> HttpResponse {
+    HttpResponse::Ok().json(json!({"code": 0, "msg": "ok", "requestId": request_id.into_inner()}))
 }
 
 async fn health_check_v2(app_state: Data<AppState>, request_id: ReqData<Uuid>) -> HttpResponse {
@@ -21,7 +25,9 @@ async fn health_check_v2(app_state: Data<AppState>, request_id: ReqData<Uuid>) -
 }
 
 fn open(cfg: &mut ServiceConfig) {
-    cfg.route("/healthz", get().to(health_check)).route("/healthz_v2", get().to(health_check_v2));
+    cfg.route("/healthz", get().to(health_check))
+        .route("healthz_v1", get().to(health_check_v1))
+        .route("/healthz_v2", get().to(health_check_v2));
 }
 
 pub fn route(cfg: &mut ServiceConfig) {

@@ -1,4 +1,4 @@
 mod handlers;
-mod internal;
+pub mod internal;
 mod middlewares;
 pub mod utils;
