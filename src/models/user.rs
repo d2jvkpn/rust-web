@@ -82,6 +82,14 @@ impl CreateUser {
 }
 
 #[derive(Deserialize, Debug, Clone)]
+pub struct QueryUser {
+    pub id: i32,
+    pub phone: Option<String>,
+    pub email: Option<String>,
+    pub x_name: Option<String>,
+}
+
+#[derive(Deserialize, Debug, Clone)]
 pub struct UpdateUser {
     // pub phone: Option<String>,
     // pub email: Option<String>,
