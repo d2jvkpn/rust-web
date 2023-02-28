@@ -1,11 +1,11 @@
 mod helpers;
 
 use actix_web::http::StatusCode;
-use helpers::spawn_app_v1;
+use helpers::spawn_app_without_db;
 
 #[tokio::test]
 async fn health_check() {
-    let address = spawn_app_v1().await;
+    let address = spawn_app_without_db().await;
 
     let client = reqwest::Client::new();
     // Act
@@ -20,7 +20,7 @@ async fn health_check() {
 
 #[tokio::test]
 async fn not_exists() {
-    let address = spawn_app_v1().await;
+    let address = spawn_app_without_db().await;
 
     let client = reqwest::Client::new();
     // Act

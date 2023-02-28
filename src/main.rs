@@ -1,9 +1,12 @@
+mod db;
 mod handlers;
 mod internal;
 mod middlewares;
+mod models;
 mod utils;
 
 use internal::load_config;
+use sqlx::PgPool;
 use std::io;
 use structopt::StructOpt;
 
@@ -14,7 +17,7 @@ struct Opts {
     #[structopt(long, default_value = "configs/local.yaml", help = "configuration file path")]
     config: String,
 
-    #[structopt(long = "address", default_value = "0.0.0.0", help = "http server address")]
+    #[structopt(long = "address", default_value = "127.0.0.1", help = "http server address")]
     addr: String,
 
     #[structopt(long, default_value = "3000", help = "http server port")]
@@ -45,5 +48,9 @@ async fn main() -> io::Result<()> {
     }
     dbg!(&config);
 
-    internal::startup_v1::run(&address)?.await
+    let pool = PgPool::connect(&config.database.to_string())
+        .await
+        .expect("Failed to connect to Postgres.");
+
+    internal::startup::run(&address, pool)?.await
 }

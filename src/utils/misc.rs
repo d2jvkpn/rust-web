@@ -39,23 +39,23 @@ mod tests {
     }
 
     #[test]
-    fn t_update_option_field() {
+    fn t_update_option() {
         let mut a = Some("A");
         let mut b = Some("B");
 
-        update_option_field(&mut a, &mut b);
+        update_option(&mut a, &mut b);
         assert_eq!(a, Some("B"));
         assert_eq!(b, None);
 
         let mut a = Some("A");
         let mut b = None;
-        update_option_field(&mut a, &mut b);
+        update_option(&mut a, &mut b);
         assert_eq!(a, Some("A"));
         assert_eq!(b, None);
 
         let mut a = None;
         let mut b = Some("B");
-        update_option_field(&mut a, &mut b);
+        update_option(&mut a, &mut b);
         assert_eq!(a, Some("B"));
         assert_eq!(b, None);
     }

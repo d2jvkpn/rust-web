@@ -9,11 +9,12 @@ use actix_web::{
     middleware::{Compress, ErrorHandlers, NormalizePath},
     web, App, HttpServer,
 };
+use sqlx::PgPool;
 use std::{io, net::TcpListener, time::Duration};
 
 #[allow(dead_code)]
-pub fn run(address: &str) -> io::Result<Server> {
-    let app_data = web::Data::new(AppState::new());
+pub fn run(address: &str, pool: PgPool) -> io::Result<Server> {
+    let app_data = web::Data::new(AppState::new(pool));
 
     println!("=== Http Server is listening on {address:?}");
 
@@ -39,8 +40,8 @@ pub fn run(address: &str) -> io::Result<Server> {
 }
 
 #[allow(dead_code)]
-pub fn run_with_listener(listener: TcpListener) -> io::Result<Server> {
-    let app_data = web::Data::new(AppState::new());
+pub fn run_with_listener(listener: TcpListener, pool: PgPool) -> io::Result<Server> {
+    let app_data = web::Data::new(AppState::new(pool));
 
     let app = move || {
         App::new()
