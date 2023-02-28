@@ -1,11 +1,7 @@
 use super::validation::*;
 use crate::utils::{update_option, update_value};
 use chrono::{DateTime, Utc};
-use once_cell::sync::Lazy;
-use regex::Regex;
 use serde::{Deserialize, Serialize};
-
-static RE_DATE: Lazy<Regex> = Lazy::new(|| Regex::new(r"^\d{4}-\d{2}-\d{2}$").unwrap());
 
 #[derive(Deserialize, Serialize, Debug, Clone, sqlx::Type)]
 #[serde(rename_all = "camelCase")]
@@ -46,12 +42,6 @@ impl User {
     }
 
     pub fn update(&mut self, mut item: UpdateUser) -> Result<bool, &str> {
-        if let Some(v) = &item.birthday {
-            if !RE_DATE.is_match(&v) {
-                return Err("invalid birthday");
-            }
-        }
-
         let updated = update_value(&mut self.name, &mut item.name)
             || update_option(&mut self.birthday, &mut item.birthday);
 
@@ -86,9 +76,7 @@ impl CreateUser {
         valid_name(self.name.as_str())?;
 
         if let Some(v) = &self.birthday {
-            if !RE_DATE.is_match(&v) {
-                return Err("invalid birthday");
-            }
+            valid_birthday(v)?;
         }
 
         Ok(())
@@ -103,3 +91,17 @@ pub struct UpdateUser {
     pub birthday: Option<String>,
 }
 // TODO: validation
+
+impl UpdateUser {
+    pub fn valid(&self) -> Result<(), &str> {
+        if let Some(v) = &self.name {
+            valid_name(v)?;
+        }
+
+        if let Some(v) = &self.birthday {
+            valid_birthday(v)?;
+        }
+
+        Ok(())
+    }
+}

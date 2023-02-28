@@ -14,7 +14,7 @@ pub async fn post_new_user(pool: &PgPool, item: CreateUser) -> Result<User, Erro
         r#"INSERT INTO users
           (status, role, phone, email, name, birthday) VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING
-		  id, status AS "status!: Status", role AS "role!: Role",
+		  id, status AS "status: Status", role AS "role: Role",
 		  phone, email, name, birthday, created_at, updated_at"#,
         Status::OK as Status,
         Role::Member as Role,
@@ -27,10 +27,7 @@ pub async fn post_new_user(pool: &PgPool, item: CreateUser) -> Result<User, Erro
     .await
     {
         Ok(v) => return Ok(v),
-        Err(e) => {
-            dbg!(&e);
-            e
-        }
+        Err(e) => e,
     };
 
     if utils::db_error_code(&err) == Some("23505".into()) {
