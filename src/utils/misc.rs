@@ -9,7 +9,7 @@ pub fn number_of_cpus() -> (usize, usize) {
     (num_cpus::get_physical(), num_cpus::get())
 }
 
-pub fn update_option_field<T>(a: &mut Option<T>, b: &mut Option<T>) -> bool {
+pub fn update_option<T>(a: &mut Option<T>, b: &mut Option<T>) -> bool {
     if b.is_none() {
         return false;
     }
@@ -17,7 +17,7 @@ pub fn update_option_field<T>(a: &mut Option<T>, b: &mut Option<T>) -> bool {
     true
 }
 
-pub fn update_from_option<T>(a: &mut T, b: &mut Option<T>) -> bool {
+pub fn update_value<T>(a: &mut T, b: &mut Option<T>) -> bool {
     if b.is_none() {
         return false;
     }

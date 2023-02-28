@@ -12,16 +12,15 @@ $$LANGUAGE plpgsql;
 -- drop function updated_at cascade;
 
 CREATE TABLE users (
-  id       serial       PRIMARY KEY,
-  status   user_status  DEFAULT 'ok',
-  role     user_role    NOT NULL,
-  phone    varchar(20)  DEFAULT NULL UNIQUE,
-  email    varchar(128) DEFAULT NULL UNIQUE,
-  name     varchar(32)  NOT NULL,
-  birthday char(10)     NOT NULL DEFAULT '',
-
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
+  id          serial        PRIMARY KEY,
+  status      user_status   NOT NULL,
+  role        user_role     NOT NULL,
+  phone       varchar(20)   DEFAULT NULL UNIQUE,
+  email       varchar(128)  DEFAULT NULL UNIQUE,
+  name        varchar(32)   NOT NULL,
+  birthday    char(10)      DEFAULT NULL,
+  created_at  timestamptz   NOT NULL DEFAULT now(),
+  updated_at  timestamptz   NOT NULL DEFAULT now()
 );
 
 -- ALTER TABLE users ADD CONSTRAINT name UNIQUE(name);
