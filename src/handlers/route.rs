@@ -5,8 +5,8 @@ fn open(cfg: &mut ServiceConfig) {
     let open = scope("/open")
         .route("/user/register", post().to(post_new_user))
         .route("/user/update/{user_id}", post().to(update_user_details))
-        .route("/user/update_v2/{user_id}", post().to(update_user_details_v2))
-        .route("/user/update_v3", post().to(update_user_details_v3));
+        .route("/user/update_v2a/{user_id}", post().to(update_user_details_v2))
+        .route("/user/update_v2b", post().to(update_user_details_v3));
 
     cfg.route("/healthz", get().to(health_check))
         .route("healthz_v1", get().to(health_check_v1))

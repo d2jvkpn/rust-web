@@ -23,7 +23,7 @@ pub async fn update_user_details(
         .map(|v| Ok(Data(v).into()))?
 }
 
-pub async fn update_user_details_v2(
+pub async fn update_user_details_v2a(
     app_state: web::Data<AppState>,
     user_id: web::Path<i32>,
     item: web::Json<UpdateUser>,
@@ -33,7 +33,7 @@ pub async fn update_user_details_v2(
     Ok(HttpResponse::Ok().content_type(ContentType::json()).body(OK_JSON))
 }
 
-pub async fn update_user_details_v3(
+pub async fn update_user_details_v2b(
     app_state: web::Data<AppState>,
     query_user: web::Query<QueryUser>,
     item: web::Json<UpdateUser>,

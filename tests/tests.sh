@@ -16,8 +16,8 @@ curl -i -X POST -H "content-type: application/json" $addr/open/user/update/4 \
 curl -i -X POST -H "content-type: application/json" $addr/open/user/update/4 \
   -d '{"name": "RoverRover", "birthday": "2006-01-02"}'
 
-curl -i -X POST -H "content-type: application/json" $addr/open/user/update_v2/4 \
+curl -i -X POST -H "content-type: application/json" $addr/open/user/update_v2a/4 \
   -d '{"name": "RoverRover", "birthday": "2006-01-02"}'
 
-curl -i -X POST -H "content-type: application/json" $addr/open/user/update_v3?id=4 \
+curl -i -X POST -H "content-type: application/json" $addr/open/user/update_v2b?id=4 \
   -d '{"name": "RoverRover", "birthday": "2006-01-02"}'
