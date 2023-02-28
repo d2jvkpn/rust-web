@@ -1,9 +1,9 @@
+use super::validation::*;
 use crate::utils::{update_option, update_value};
 use chrono::{DateTime, Utc};
 use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use validator::{validate_email, validate_phone};
 
 static RE_DATE: Lazy<Regex> = Lazy::new(|| Regex::new(r"^\d{4}-\d{2}-\d{2}$").unwrap());
 
@@ -47,7 +47,7 @@ impl User {
 
     pub fn update(&mut self, mut item: UpdateUser) -> Result<bool, &str> {
         if let Some(v) = &item.birthday {
-            if !RE_DATE.is_match(v) {
+            if !RE_DATE.is_match(&v) {
                 return Err("invalid birthday");
             }
         }
@@ -76,31 +76,17 @@ impl CreateUser {
         }
 
         if let Some(v) = &self.phone {
-            if v.len() > 20 {
-                return Err("the length of phone excceds 20");
-            }
-            if !validate_phone(v) {
-                return Err("invalid phone numer");
-            }
+            valid_phone(v)?;
         }
 
         if let Some(v) = &self.email {
-            if v.len() > 128 {
-                return Err("the length of email excceds 20");
-            }
-            if !validate_email(v) {
-                return Err("email contains forbidden characters".into());
-            }
+            valid_email(v)?;
         }
 
-        if self.name.is_empty() {
-            return Err("name is empty");
-        } else if self.name.len() > 32 {
-            return Err("the length of name exceeds 32");
-        }
+        valid_name(self.name.as_str())?;
 
         if let Some(v) = &self.birthday {
-            if !RE_DATE.is_match(v) {
+            if !RE_DATE.is_match(&v) {
                 return Err("invalid birthday");
             }
         }
