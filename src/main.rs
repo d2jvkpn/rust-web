@@ -10,7 +10,6 @@ use sqlx::PgPool;
 use std::io;
 use structopt::StructOpt;
 
-#[allow(dead_code)]
 #[derive(Debug, StructOpt)]
 #[structopt(name = "rust-web", about = "a rust web app")]
 struct Opts {

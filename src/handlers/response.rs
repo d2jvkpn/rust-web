@@ -12,11 +12,10 @@ use thiserror;
 // type MyResult<T> = Result<Data<T>, Error>;
 pub const OK_JSON: &str = r#"{"code":0,"msg":"ok"}"#;
 
-#[allow(dead_code)]
-pub enum Result {
-    Ok(HttpResponse),
-    Err(Error),
-}
+// pub enum Result {
+//     Ok(HttpResponse),
+//     Err(Error),
+// }
 // from std::result::Result<T, Error> -> Result
 
 //#[derive(Serialize)]

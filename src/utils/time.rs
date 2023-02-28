@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use chrono::{Local, SecondsFormat};
 
 fn now() -> String {

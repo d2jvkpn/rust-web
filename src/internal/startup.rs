@@ -12,7 +12,6 @@ use actix_web::{
 use sqlx::PgPool;
 use std::{io, net::TcpListener, time::Duration};
 
-#[allow(dead_code)]
 pub fn run(address: &str, pool: PgPool) -> io::Result<Server> {
     let app_data = web::Data::new(AppState::new(pool));
 
