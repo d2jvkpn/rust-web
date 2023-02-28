@@ -77,5 +77,6 @@ pub async fn update_user_details(
     .await?;
 
     // WARNING: user.updated_at is unchange
+    // ?? return part of user only
     Ok(user)
 }
