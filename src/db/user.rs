@@ -30,7 +30,8 @@ pub async fn post_new_user(pool: &PgPool, item: CreateUser) -> Result<User, Erro
         Err(e) => e,
     };
 
-    if utils::db_error_code(&err) == Some("23505".into()) {
+    // dbg!(&err);
+    if utils::pg_already_exists(&err) {
         Err(Error::AlreadyExists)
     } else {
         Err(Error::DBError(err))
@@ -67,16 +68,57 @@ pub async fn update_user_details(
         return Err(Error::NoChanges);
     }
 
-    sqlx::query!(
+    let err = match sqlx::query!(
         "UPDATE users SET name = $1, birthday = $2 WHERE id = $3",
         user.name,
         user.birthday,
         user.id
     )
     .execute(pool)
-    .await?;
+    .await
+    {
+        Ok(_) => return Ok(user),
+        Err(e) => e,
+    };
 
     // WARNING: user.updated_at is unchange
     // ?? return part of user only
-    Ok(user)
+    if utils::pg_not_found(&err) {
+        Err(Error::NotFound("user not found".into()))
+    } else {
+        Err(err.into())
+    }
+}
+
+// Update course details v2
+pub async fn update_user_details_v2(
+    pool: &PgPool,
+    user_id: i32,
+    update_user: UpdateUser,
+) -> Result<(), Error> {
+    if user_id <= 0 {
+        return Err(Error::InvalidArgument("invalid user_id".into()));
+    }
+    if let Err(e) = update_user.valid() {
+        return Err(Error::InvalidArgument(e.to_string()));
+    }
+
+    let err = match sqlx::query!(
+        "UPDATE users SET name = $1, birthday = $2 WHERE id = $3 RETURNING id",
+        update_user.name,
+        update_user.birthday,
+        user_id,
+    )
+    .fetch_one(pool)
+    .await
+    {
+        Ok(_) => return Ok(()),
+        Err(e) => e,
+    };
+
+    if utils::pg_not_found(&err) {
+        Err(Error::NotFound("user not found".into()))
+    } else {
+        Err(err.into())
+    }
 }
