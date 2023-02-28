@@ -14,7 +14,7 @@ pub enum Status {
 
 #[derive(Deserialize, Serialize, Debug, Clone, sqlx::Type)]
 #[serde(rename_all = "camelCase")]
-#[sqlx(type_name = "user_role", rename_all = "lowercase")] // type_name: enum type name in postgres, rename_all = "snake_case"
+#[sqlx(type_name = "user_role", rename_all = "snake_case")] // type_name: enum type name in postgres, rename_all = "snake_case"
 pub enum Role {
     Admin,
     Leader,
