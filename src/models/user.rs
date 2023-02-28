@@ -41,11 +41,9 @@ impl User {
         0
     }
 
-    pub fn update(&mut self, mut item: UpdateUser) -> Result<bool, &str> {
-        let updated = update_value(&mut self.name, &mut item.name)
-            || update_option(&mut self.birthday, &mut item.birthday);
-
-        Ok(updated)
+    pub fn update(&mut self, mut item: UpdateUser) -> bool {
+        update_value(&mut self.name, &mut item.name)
+            || update_option(&mut self.birthday, &mut item.birthday)
     }
 }
 

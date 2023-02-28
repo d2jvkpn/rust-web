@@ -9,18 +9,44 @@ pub fn number_of_cpus() -> (usize, usize) {
     (num_cpus::get_physical(), num_cpus::get())
 }
 
-pub fn update_option<T>(a: &mut Option<T>, b: &mut Option<T>) -> bool {
-    if b.is_none() {
-        return false;
-    }
+pub fn update_option<T: std::cmp::PartialEq>(a: &mut Option<T>, b: &mut Option<T>) -> bool {
+    //if b.is_none() {
+    //    return false;
+    //}
+    //*a = b.take();
+    //true
+
+    let val = match b {
+        None => return false,
+        Some(v) => v,
+    };
+
+    if let Some(v) = a {
+        if v == val {
+            return false;
+        }
+    };
+
     *a = b.take();
     true
 }
 
-pub fn update_value<T>(a: &mut T, b: &mut Option<T>) -> bool {
-    if b.is_none() {
+pub fn update_value<T: std::cmp::PartialEq>(a: &mut T, b: &mut Option<T>) -> bool {
+    //if b.is_none() {
+    //    return false;
+    //}
+    //*a = b.take().unwrap();
+    // true
+
+    let val = match b {
+        None => return false,
+        Some(v) => v,
+    };
+
+    if a == val {
         return false;
     }
+
     *a = b.take().unwrap();
     true
 }
