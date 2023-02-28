@@ -13,13 +13,10 @@ pub fn db_error_code(err: &SQLxError) -> Option<String> {
 pub fn pg_already_exists(err: &SQLxError) -> bool {
     match db_error_code(err) {
         None => false,
-        Some(v) => v == "23505".to_string(),
+        Some(v) => v == *"23505",
     }
 }
 
 pub fn pg_not_found(err: &SQLxError) -> bool {
-    match err {
-        SQLxError::RowNotFound => true,
-        _ => false,
-    }
+    matches!(err, SQLxError::RowNotFound)
 }

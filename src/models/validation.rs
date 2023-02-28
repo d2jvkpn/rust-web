@@ -20,7 +20,7 @@ pub fn valid_email(v: &str) -> Result<(), &str> {
         return Err("the length of email excceds 20");
     }
     if !validate_email(v) {
-        return Err("email contains forbidden characters".into());
+        return Err("email contains forbidden characters");
     }
 
     Ok(())
@@ -36,9 +36,9 @@ pub fn valid_name(v: &str) -> Result<(), &str> {
 }
 
 pub fn valid_birthday(v: &str) -> Result<(), &str> {
-    if !RE_DATE.is_match(&v) {
+    if !RE_DATE.is_match(v) {
         return Err("invalid birthday");
     }
 
-    return Ok(());
+    Ok(())
 }
