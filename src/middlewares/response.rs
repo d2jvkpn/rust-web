@@ -145,8 +145,14 @@ impl ResponseError for Error {
     }
 
     fn error_response(&self) -> HttpResponse {
+        let mut x_error = self.code().to_string();
+        let msg = format!("{}", self);
+        x_error.push_str(", ");
+        x_error.push_str(&msg);
+
         HttpResponse::build(self.status_code())
-            .json(json!({"code": self.code(),"msg": format!("{}", self)}))
+            .append_header(("x-error", x_error))
+            .json(json!({"code": self.code(),"msg":msg}))
     }
 }
 

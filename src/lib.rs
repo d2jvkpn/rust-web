@@ -1,6 +1,7 @@
-pub mod db;
+mod db;
 mod handlers;
+mod models;
+
 pub mod internal;
-mod middlewares;
-pub mod models;
+pub mod middlewares;
 pub mod utils;

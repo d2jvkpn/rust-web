@@ -1,9 +1,9 @@
 use crate::{
-    handlers::response::Error,
-    models::user::{CreateUser, Role, Status, UpdateUser, User},
+    middlewares::{response::Error, QueryPage, QueryResult},
+    models::user::*,
     utils,
 };
-use sqlx::PgPool;
+use sqlx::{PgPool, QueryBuilder};
 
 pub async fn post_new_user(pool: &PgPool, item: CreateUser) -> Result<User, Error> {
     item.valid().map_err(|e| Error::InvalidArgument(e.to_string()))?;
@@ -108,6 +108,112 @@ pub async fn update_user_details_v2(
         update_user.name,
         update_user.birthday,
         user_id,
+    )
+    .fetch_one(pool)
+    .await
+    {
+        Ok(_) => return Ok(()),
+        Err(e) => e,
+    };
+
+    if utils::pg_not_found(&err) {
+        Err(Error::NotFound("user not found".into()))
+    } else {
+        Err(err.into())
+    }
+}
+
+#[allow(dead_code)]
+pub async fn query_users(pool: &PgPool, mut page: QueryPage) -> Result<QueryResult<User>, Error> {
+    page.check(("id", &["id", "name", "email"]))
+        .map_err(|e| Error::InvalidArgument(e.to_string()))?;
+
+    let mut result = QueryResult::new();
+
+    result.items = sqlx::query_as!(
+        User,
+        r#"SELECT id, status AS "status: Status", role AS "role: Role",
+        phone, email, name, birthday, created_at, updated_at
+        FROM users ORDER BY id ASC LIMIT $1 OFFSET $2"#,
+        page.page_size,
+        page.page_size * (page.page_no - 1),
+    )
+    .fetch_all(pool)
+    .await?;
+
+    Ok(result)
+}
+
+pub async fn query_users_v2(
+    pool: &PgPool,
+    mut page: QueryPage,
+) -> Result<QueryResult<User>, Error> {
+    page.check(("id", &["id", "name", "email"]))
+        .map_err(|e| Error::InvalidArgument(e.to_string()))?;
+
+    //
+    // dbg!(&page);
+    let mut result = QueryResult::new();
+
+    if page.page_no == 1 {
+        match sqlx::query!("SELECT COUNT(id) FROM users").fetch_one(pool).await {
+            Ok(v) => result.total = v.count.unwrap_or(0),
+            Err(e) => return Err(e.into()),
+        };
+    }
+
+    // not need to using 'status AS "status: Status", role AS "role: Role"' with QueryBuilder, ??
+    let mut query = QueryBuilder::new(r#"SELECT * FROM users ORDER BY "#);
+    query.push(page.order_by); // using push_bind will make "order by" inefficiency
+    query.push(if page.asc { " ASC" } else { " DESC" });
+
+    query.push(" LIMIT ");
+    query.push_bind(page.page_size);
+    query.push(" OFFSET ");
+    query.push_bind(page.page_size * (page.page_no - 1));
+
+    //
+    result.items = query.build_query_as().fetch_all(pool).await?;
+    Ok(result)
+}
+
+pub async fn find_user(pool: &PgPool, match_user: MatchUser) -> Result<User, Error> {
+    match_user.valid().map_err(|e| Error::InvalidArgument(e.to_string()))?;
+
+    let mut query = QueryBuilder::new(r#"SELECT * FROM users WHERE "#);
+    if let Some(v) = match_user.id {
+        query.push("id = ");
+        query.push_bind(v);
+    } else if let Some(v) = match_user.phone {
+        query.push("phone = ");
+        query.push_bind(v);
+    } else if let Some(v) = match_user.email {
+        query.push("email = ");
+        query.push_bind(v);
+    }
+    query.push(" LIMIT 1");
+
+    match query.build_query_as().fetch_one(pool).await {
+        Ok(v) => Ok(v),
+        Err(e) => Err(e.into()),
+    }
+}
+
+pub async fn update_user_status(pool: &PgPool, match_user: MatchUser) -> Result<(), Error> {
+    let id = match match_user.id {
+        Some(v) => v,
+        None => return Err(Error::InvalidArgument("missing id".into())),
+    };
+
+    let status = match match_user.status {
+        Some(v) => v,
+        None => return Err(Error::InvalidArgument("missing status".into())),
+    };
+
+    let err = match sqlx::query!(
+        "UPDATE users SET status = $1 WHERE id = $2 RETURNING id",
+        status as Status,
+        id,
     )
     .fetch_one(pool)
     .await

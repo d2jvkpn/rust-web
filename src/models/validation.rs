@@ -17,7 +17,7 @@ pub fn valid_phone(v: &str) -> Result<(), &str> {
 
 pub fn valid_email(v: &str) -> Result<(), &str> {
     if v.len() > 128 {
-        return Err("the length of email excceds 20");
+        return Err("the length of email excceds 128");
     }
     if !validate_email(v) {
         return Err("email contains forbidden characters");
@@ -37,8 +37,8 @@ pub fn valid_name(v: &str) -> Result<(), &str> {
 
 pub fn valid_birthday(v: &str) -> Result<(), &str> {
     if !RE_DATE.is_match(v) {
-        return Err("invalid birthday");
+        Err("invalid birthday")
+    } else {
+        Ok(())
     }
-
-    Ok(())
 }

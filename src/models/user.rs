@@ -3,9 +3,10 @@ use crate::utils::{update_option, update_value};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+// sqlx type_name: enum type name in postgres, rename_all = "snake_case"
 #[derive(Deserialize, Serialize, Debug, Clone, sqlx::Type)]
 #[serde(rename_all = "camelCase")]
-#[sqlx(type_name = "user_status", rename_all = "lowercase")] // type_name: enum type name in postgres, rename_all = "snake_case"
+#[sqlx(type_name = "user_status", rename_all = "lowercase")]
 pub enum Status {
     OK,
     Blocked,
@@ -14,7 +15,7 @@ pub enum Status {
 
 #[derive(Deserialize, Serialize, Debug, Clone, sqlx::Type)]
 #[serde(rename_all = "camelCase")]
-#[sqlx(type_name = "user_role", rename_all = "snake_case")] // type_name: enum type name in postgres, rename_all = "snake_case"
+#[sqlx(type_name = "user_role", rename_all = "snake_case")]
 pub enum Role {
     Admin,
     Leader,
@@ -82,11 +83,21 @@ impl CreateUser {
 }
 
 #[derive(Deserialize, Debug, Clone)]
-pub struct QueryUser {
-    pub id: i32,
+pub struct MatchUser {
+    pub id: Option<i32>,
     pub phone: Option<String>,
     pub email: Option<String>,
-    pub x_name: Option<String>,
+    pub status: Option<Status>,
+}
+
+impl MatchUser {
+    pub fn valid(&self) -> Result<(), &str> {
+        if self.id.is_none() && self.phone.is_none() && self.email.is_none() {
+            return Err("miss parameter");
+        }
+
+        Ok(())
+    }
 }
 
 #[derive(Deserialize, Debug, Clone)]

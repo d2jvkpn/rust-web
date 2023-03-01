@@ -56,7 +56,7 @@ where
         let request_id = Uuid::new_v4();
 
         let base = format!(
-            "started_at: {}, method: {}, path: {:?}, request_id: {request_id}",
+            "started_at: {}, method: {}, path: {:?}",
             start.to_rfc3339_opts(SecondsFormat::Millis, true),
             req.method(),
             req.path()
@@ -65,26 +65,28 @@ where
         req.extensions_mut().insert(request_id);
 
         req.headers_mut().insert(
-            HeaderName::from_lowercase(b"x-simple-logger-request-id").unwrap(),
+            HeaderName::from_lowercase(b"x-request-id").unwrap(),
             HeaderValue::from_str(request_id.to_string().as_str()).unwrap(),
         );
 
         let fut = self.service.call(req);
 
         Box::pin(async move {
-            let mut res = fut.await?;
+            let res = fut.await?;
+            let x_error = res.headers().get("x-error");
 
-            res.headers_mut().insert(
-                HeaderName::from_lowercase(b"x-simple-logger-version").unwrap(),
-                HeaderValue::from_str("0.1.2").unwrap(),
-            );
+            // let mut res = fut.await?;
+            //
+            // res.headers_mut().insert(
+            //    HeaderName::from_lowercase(b"x-simple-logger-version").unwrap(),
+            //    HeaderValue::from_str("0.1.2").unwrap(),
+            // );
 
             let end: DateTime<Local> = Local::now();
             let elapsed = end.signed_duration_since(start).num_microseconds().unwrap_or(0);
 
             println!(
-                "<- {}, elapsed: {:.3}ms, status: {}",
-                base,
+                "<- {base}, elapsed: {:.3}ms, status: {}, request_id: {request_id}, x-error: {x_error:?}",
                 (elapsed as f64) / 1e3,
                 &res.status().as_u16(),
             );

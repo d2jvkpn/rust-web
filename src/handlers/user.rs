@@ -1,8 +1,11 @@
 use crate::{
-    db,
-    handlers::response::{Data, Error, OK_JSON},
+    db::user as db_user,
     internal::AppState,
-    models::user::{CreateUser, QueryUser, UpdateUser},
+    middlewares::{
+        response::{Data, Error, OK_JSON},
+        QueryPage,
+    },
+    models::user::*,
 };
 use actix_web::{http::header::ContentType, web, HttpResponse};
 
@@ -10,7 +13,7 @@ pub async fn post_new_user(
     app_state: web::Data<AppState>,
     item: web::Json<CreateUser>,
 ) -> Result<HttpResponse, Error> {
-    db::user::post_new_user(&app_state.pool, item.into_inner()).await.map(|v| Ok(Data(v).into()))?
+    db_user::post_new_user(&app_state.pool, item.into_inner()).await.map(|v| Ok(Data(v).into()))?
 }
 
 pub async fn update_user_details(
@@ -18,7 +21,7 @@ pub async fn update_user_details(
     user_id: web::Path<i32>,
     item: web::Json<UpdateUser>,
 ) -> Result<HttpResponse, Error> {
-    db::user::update_user_details(&app_state.pool, *user_id, item.into_inner())
+    db_user::update_user_details(&app_state.pool, *user_id, item.into_inner())
         .await
         .map(|v| Ok(Data(v).into()))?
 }
@@ -28,17 +31,45 @@ pub async fn update_user_details_v2a(
     user_id: web::Path<i32>,
     item: web::Json<UpdateUser>,
 ) -> Result<HttpResponse, Error> {
-    db::user::update_user_details_v2(&app_state.pool, *user_id, item.into_inner()).await?;
+    db_user::update_user_details_v2(&app_state.pool, *user_id, item.into_inner()).await?;
 
     Ok(HttpResponse::Ok().content_type(ContentType::json()).body(OK_JSON))
 }
 
 pub async fn update_user_details_v2b(
+    match_user: web::Query<MatchUser>,
     app_state: web::Data<AppState>,
-    query_user: web::Query<QueryUser>,
     item: web::Json<UpdateUser>,
 ) -> Result<HttpResponse, Error> {
-    db::user::update_user_details_v2(&app_state.pool, query_user.id, item.into_inner()).await?;
+    db_user::update_user_details_v2(&app_state.pool, match_user.id.unwrap_or(0), item.into_inner())
+        .await?;
 
     Ok(HttpResponse::Ok().content_type(ContentType::json()).body(OK_JSON))
+}
+
+pub async fn query_users(
+    app_state: web::Data<AppState>,
+    query_page: web::Query<QueryPage>,
+) -> Result<HttpResponse, Error> {
+    db_user::query_users_v2(&app_state.pool, query_page.into_inner())
+        .await
+        .map(|v| Ok(Data(v).into()))?
+}
+
+pub async fn find_user(
+    app_state: web::Data<AppState>,
+    match_user: web::Query<MatchUser>,
+) -> Result<HttpResponse, Error> {
+    db_user::find_user(&app_state.pool, match_user.into_inner())
+        .await
+        .map(|v| Ok(Data(v).into()))?
+}
+
+pub async fn update_user_status(
+    app_state: web::Data<AppState>,
+    match_user: web::Query<MatchUser>,
+) -> Result<HttpResponse, Error> {
+    db_user::update_user_status(&app_state.pool, match_user.into_inner())
+        .await
+        .map(|v| Ok(Data(v).into()))?
 }
