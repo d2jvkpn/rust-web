@@ -3,7 +3,7 @@ use crate::middlewares::{health_check, health_check_v1, health_check_v2};
 use actix_web::web::{get, post, scope, ServiceConfig};
 
 fn open(cfg: &mut ServiceConfig) {
-    let open = scope("/open")
+    let open = scope("/api/open")
         .route("/user/register", post().to(post_new_user))
         .route("/user/update/{user_id}", post().to(update_user_details))
         .route("/user/update_v2a/{user_id}", post().to(update_user_details_v2a))

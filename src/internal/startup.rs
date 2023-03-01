@@ -1,12 +1,12 @@
 use super::data::AppState;
 use crate::{
     handlers::route,
-    middlewares::{no_route, SimpleLogger},
+    middlewares::{no_route, Logger, SimpleLogger},
 };
 use actix_web::{
     dev::Server,
     http::StatusCode,
-    middleware::{Compress, ErrorHandlers, NormalizePath},
+    middleware::{Compress, ErrorHandlers},
     web, App, HttpServer,
 };
 use sqlx::PgPool;
@@ -21,9 +21,8 @@ pub fn run(address: &str, pool: PgPool) -> io::Result<Server> {
         App::new()
             .app_data(app_data.clone())
             .wrap(ErrorHandlers::new().handler(StatusCode::NOT_FOUND, no_route))
-            .wrap(SimpleLogger {})
+            .wrap(Logger {})
             .wrap(Compress::default())
-            .wrap(NormalizePath::default())
             .configure(route)
     };
 
@@ -48,7 +47,6 @@ pub fn run_with_listener(listener: TcpListener, pool: PgPool) -> io::Result<Serv
             .wrap(ErrorHandlers::new().handler(StatusCode::NOT_FOUND, no_route))
             .wrap(SimpleLogger {})
             .wrap(Compress::default())
-            .wrap(NormalizePath::default())
             .configure(route)
     };
 

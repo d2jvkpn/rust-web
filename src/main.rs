@@ -6,6 +6,7 @@ mod models;
 mod utils;
 
 use internal::load_config;
+use log::LevelFilter;
 use sqlx::PgPool;
 use std::io;
 use structopt::StructOpt;
@@ -39,6 +40,12 @@ async fn main() -> io::Result<()> {
 
     config.configuration = opts.config;
     config.release = opts.release;
+
+    if opts.release {
+        utils::init_logger("logs/rust-web.log", LevelFilter::Info).unwrap();
+    } else {
+        utils::init_logger("logs/rust-web.log", LevelFilter::Debug).unwrap();
+    }
 
     config.threads = opts.threads;
     let (cpus, _) = utils::number_of_cpus();
