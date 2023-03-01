@@ -7,8 +7,8 @@ mod utils;
 
 use internal::load_config;
 use log::LevelFilter;
-use sqlx::PgPool;
-use std::io;
+use sqlx::{postgres::PgConnectOptions, ConnectOptions, PgPool};
+use std::{io, str::FromStr};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
@@ -54,9 +54,16 @@ async fn main() -> io::Result<()> {
     }
     dbg!(&config);
 
-    let pool = PgPool::connect(&config.database.to_string())
-        .await
-        .expect("Failed to connect to Postgres.");
+    // let pool = PgPool::connect(&config.database.to_string())
+    //     .await
+    //    .expect("Failed to connect to Postgres.");
+
+    let options = PgConnectOptions::from_str(&config.database.to_string())
+        .unwrap()
+        .disable_statement_logging()
+        .clone();
+
+    let pool = PgPool::connect_with(options).await.unwrap();
 
     internal::startup::run(&address, pool)?.await
 }
