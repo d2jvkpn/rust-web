@@ -67,9 +67,16 @@ pub async fn find_user(
 
 pub async fn update_user_status(
     app_state: web::Data<AppState>,
-    match_user: web::Query<MatchUser>,
+    uus: web::Query<UpdateUserStatus>,
 ) -> Result<HttpResponse, Error> {
-    db_user::update_user_status(&app_state.pool, match_user.into_inner())
+    db_user::update_user_status(&app_state.pool, uus.into_inner())
         .await
         .map(|v| Ok(Data(v).into()))?
+}
+
+pub async fn user_login(
+    app_state: web::Data<AppState>,
+    login: web::Json<UserLogin>,
+) -> Result<HttpResponse, Error> {
+    db_user::user_login(&app_state.pool, login.into_inner()).await.map(|v| Ok(Data(v).into()))?
 }

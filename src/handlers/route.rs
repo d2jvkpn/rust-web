@@ -5,6 +5,7 @@ use actix_web::web::{get, post, scope, ServiceConfig};
 fn open(cfg: &mut ServiceConfig) {
     let open = scope("/api/open")
         .route("/user/register", post().to(post_new_user))
+        .route("/user/login", post().to(user_login))
         .route("/user/update/{user_id}", post().to(update_user_details))
         .route("/user/update_v2a/{user_id}", post().to(update_user_details_v2a))
         .route("/user/update_v2b", post().to(update_user_details_v2b))

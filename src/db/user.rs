@@ -3,25 +3,30 @@ use crate::{
     models::user::*,
     utils,
 };
+use bcrypt::{hash, verify, DEFAULT_COST};
 use sqlx::{PgPool, QueryBuilder};
 
 pub async fn post_new_user(pool: &PgPool, item: CreateUser) -> Result<User, Error> {
     item.valid().map_err(|e| Error::InvalidArgument(e.to_string()))?;
 
+    let password = hash(item.password, DEFAULT_COST).map_err(|_| Error::Unknown)?;
+
     // TODO: supporting enum convert between postgresql and rust in sqlx
     let err = match sqlx::query_as!(
         User,
         r#"INSERT INTO users
-          (status, role, phone, email, name, birthday) VALUES ($1, $2, $3, $4, $5, $6)
-		RETURNING
-		  id, status AS "status: Status", role AS "role: Role",
-		  phone, email, name, birthday, created_at, updated_at"#,
+          (status, role, phone, email, name, birthday, password)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING
+          id, status AS "status: Status", role AS "role: Role",
+          phone, email, name, birthday, created_at, updated_at"#,
         Status::OK as Status,
         Role::Member as Role,
         item.phone,
         item.email,
         item.name,
         item.birthday,
+        password,
     )
     .fetch_one(pool)
     .await
@@ -55,8 +60,8 @@ pub async fn update_user_details(
     let mut user = sqlx::query_as!(
         User,
         r#"SELECT id, status AS "status: Status", role AS "role: Role",
-		  phone, email, name, birthday, created_at, updated_at
-		FROM users WHERE id = $1"#,
+          phone, email, name, birthday, created_at, updated_at
+        FROM users WHERE id = $1"#,
         user_id
     )
     .fetch_one(pool)
@@ -193,27 +198,23 @@ pub async fn find_user(pool: &PgPool, match_user: MatchUser) -> Result<User, Err
     }
     query.push(" LIMIT 1");
 
-    match query.build_query_as().fetch_one(pool).await {
-        Ok(v) => Ok(v),
-        Err(e) => Err(e.into()),
+    let err = match query.build_query_as().fetch_one(pool).await {
+        Ok(v) => return Ok(v),
+        Err(e) => e,
+    };
+
+    if utils::pg_not_found(&err) {
+        Err(Error::NotFound("user not found".into()))
+    } else {
+        Err(err.into())
     }
 }
 
-pub async fn update_user_status(pool: &PgPool, match_user: MatchUser) -> Result<(), Error> {
-    let id = match match_user.id {
-        Some(v) => v,
-        None => return Err(Error::InvalidArgument("missing id".into())),
-    };
-
-    let status = match match_user.status {
-        Some(v) => v,
-        None => return Err(Error::InvalidArgument("missing status".into())),
-    };
-
+pub async fn update_user_status(pool: &PgPool, uus: UpdateUserStatus) -> Result<(), Error> {
     let err = match sqlx::query!(
         "UPDATE users SET status = $1 WHERE id = $2 RETURNING id",
-        status as Status,
-        id,
+        uus.status as Status,
+        uus.id,
     )
     .fetch_one(pool)
     .await
@@ -226,5 +227,54 @@ pub async fn update_user_status(pool: &PgPool, match_user: MatchUser) -> Result<
         Err(Error::NotFound("user not found".into()))
     } else {
         Err(err.into())
+    }
+}
+
+pub async fn user_login(pool: &PgPool, login: UserLogin) -> Result<User, Error> {
+    login.valid().map_err(|e| Error::InvalidArgument(e.into()))?;
+
+    let mut query = QueryBuilder::new(r#"SELECT * FROM users WHERE "#);
+    if let Some(v) = login.phone {
+        query.push("phone = ");
+        query.push_bind(v);
+    } else if let Some(v) = login.email {
+        query.push("email = ");
+        query.push_bind(v);
+    }
+    query.push(" LIMIT 1");
+
+    let user: UserPassword = match query.build_query_as().fetch_one(pool).await {
+        Ok(v) => v,
+        Err(e) => {
+            if utils::pg_not_found(&e) {
+                return Err(Error::NotFound("user not found".into()));
+            } else {
+                return Err(e.into());
+            }
+        }
+    };
+
+    // dbg!(&user);
+    let m = verify(login.password, &user.password).map_err(|_| Error::Unknown)?;
+    if !m {
+        return Err(Error::Unauthenticated);
+    }
+
+    // TODO: provide token
+    Ok(user.user)
+}
+
+#[cfg(test)]
+mod tests {
+    use bcrypt::{hash, verify, DEFAULT_COST};
+
+    #[test]
+    fn t_bcrypt() {
+        let password = hash("123456", DEFAULT_COST).unwrap();
+        let m = verify("123456", &password).unwrap();
+        assert!(m);
+
+        let m = verify("123456aaa", &password).unwrap();
+        assert!(!m);
     }
 }

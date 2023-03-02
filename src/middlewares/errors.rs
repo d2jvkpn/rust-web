@@ -7,7 +7,7 @@ use actix_web::{
 
 // https://docs.rs/actix-web/latest/actix_web/middleware/struct.ErrorHandlers.html
 // https://github.com/actix/actix-web/discussions/2564
-pub fn no_route<B>(sr: ServiceResponse<B>) -> actix_web::Result<ErrorHandlerResponse<B>> {
+pub fn no_route_error<B>(sr: ServiceResponse<B>) -> actix_web::Result<ErrorHandlerResponse<B>> {
     // http::header::CONTENT_TYPE, http::header::HeaderValue
     // sr.response_mut().headers_mut().insert(CONTENT_TYPE, HeaderValue::from_static("Error"));
     // Ok(ErrorHandlerResponse::Response(sr.map_into_left_body()))

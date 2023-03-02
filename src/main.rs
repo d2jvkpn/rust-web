@@ -55,16 +55,16 @@ async fn main() -> io::Result<()> {
     }
     dbg!(&config);
 
-    // let pool = PgPool::connect(&config.database.to_string())
-    //     .await
-    //    .expect("Failed to connect to Postgres.");
+    let pool = if config.release {
+        let options = PgConnectOptions::from_str(&config.database.to_string())
+            .unwrap()
+            .disable_statement_logging()
+            .clone();
 
-    let options = PgConnectOptions::from_str(&config.database.to_string())
-        .unwrap()
-        .disable_statement_logging()
-        .clone();
-
-    let pool = PgPool::connect_with(options).await.unwrap();
+        PgPool::connect_with(options).await.unwrap()
+    } else {
+        PgPool::connect(&config.database.to_string()).await.expect("Failed to connect to Postgres.")
+    };
 
     internal::startup::run(&address, pool)?.await
 }

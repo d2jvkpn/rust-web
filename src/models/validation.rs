@@ -2,7 +2,7 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use validator::validate_email; // validate_phone
 
-static RE_DATE: Lazy<Regex> = Lazy::new(|| Regex::new(r"^\d{4}-\d{2}-\d{2}$").unwrap());
+static RE_DATE: Lazy<Regex> = Lazy::new(|| Regex::new(r"^\d{4,}-\d{2}-\d{2}$").unwrap());
 
 pub fn valid_phone(v: &str) -> Result<(), &str> {
     if v.len() > 20 {
@@ -40,5 +40,47 @@ pub fn valid_birthday(v: &str) -> Result<(), &str> {
         Err("invalid birthday")
     } else {
         Ok(())
+    }
+}
+
+// TODO: using regexp
+pub fn valid_password(password: &str) -> Result<(), &str> {
+    if password.len() < 8 {
+        return Err("the length of password is less than 8");
+    }
+    if password.len() > 32 {
+        return Err("the length of password exceeds 32");
+    }
+
+    let special_chars = "!@#$%^&*";
+
+    let (mut digits, mut specials) = (0, 0);
+    let (mut lowers, mut uppers) = (0, 0);
+
+    for c in password.chars() {
+        match c {
+            c if c.is_ascii_digit() => digits += 1,
+            c if c.is_lowercase() => lowers += 1,
+            c if c.is_uppercase() => uppers += 1,
+            c if special_chars.contains(c) => specials += 1,
+            _ => return Err("password contains invalid chars"),
+        }
+    }
+
+    if digits * lowers * uppers * specials > 0 {
+        Ok(())
+    } else {
+        Err("password must contains digits, lowercases, uppercase and !@#$%^&*")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn t_valid_password() {
+        assert!(valid_password("1aA00000@x").is_ok());
+        assert!(valid_password("1aA00000&").is_ok());
     }
 }

@@ -3,6 +3,7 @@ use crate::utils::{update_option, update_value};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+// user structure
 // sqlx type_name: enum type name in postgres, rename_all = "snake_case"
 #[derive(Deserialize, Serialize, Debug, Clone, sqlx::Type)]
 #[serde(rename_all = "camelCase")]
@@ -48,6 +49,7 @@ impl User {
     }
 }
 
+// create user query
 #[derive(Deserialize, Serialize, Debug, Clone, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateUser {
@@ -55,6 +57,7 @@ pub struct CreateUser {
     pub email: Option<String>,
     pub name: String,
     pub birthday: Option<String>,
+    pub password: String,
 }
 
 impl CreateUser {
@@ -78,16 +81,18 @@ impl CreateUser {
             valid_birthday(v)?;
         }
 
+        valid_password(&self.password)?;
+
         Ok(())
     }
 }
 
+// match user query
 #[derive(Deserialize, Debug, Clone)]
 pub struct MatchUser {
     pub id: Option<i32>,
     pub phone: Option<String>,
     pub email: Option<String>,
-    pub status: Option<Status>,
 }
 
 impl MatchUser {
@@ -100,6 +105,40 @@ impl MatchUser {
     }
 }
 
+// update user status query
+#[derive(Deserialize, Debug, Clone)]
+pub struct UpdateUserStatus {
+    pub id: i32,
+    pub status: Status,
+}
+
+// user login
+#[derive(Deserialize, Debug, Clone)]
+pub struct UserLogin {
+    pub phone: Option<String>,
+    pub email: Option<String>,
+    pub password: String,
+}
+
+impl UserLogin {
+    pub fn valid(&self) -> Result<(), &str> {
+        if self.phone.is_none() && self.email.is_none() {
+            return Err("miss parameter");
+        }
+
+        Ok(())
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone, sqlx::FromRow)]
+#[serde(rename_all = "camelCase")]
+pub struct UserPassword {
+    pub password: String,
+    #[sqlx(flatten)]
+    pub user: User,
+}
+
+// update user body
 #[derive(Deserialize, Debug, Clone)]
 pub struct UpdateUser {
     // pub phone: Option<String>,

@@ -1,7 +1,7 @@
 use super::data::AppState;
 use crate::{
     handlers::route,
-    middlewares::{no_route, Logger, SimpleLogger},
+    middlewares::{no_route_error, Logger, SimpleLogger},
 };
 use actix_web::{
     dev::Server,
@@ -20,7 +20,7 @@ pub fn run(address: &str, pool: PgPool) -> io::Result<Server> {
     let app = move || {
         App::new()
             .app_data(app_data.clone())
-            .wrap(ErrorHandlers::new().handler(StatusCode::NOT_FOUND, no_route))
+            .wrap(ErrorHandlers::new().handler(StatusCode::NOT_FOUND, no_route_error))
             .wrap(Logger {})
             .wrap(Compress::default())
             .configure(route)
@@ -44,7 +44,7 @@ pub fn run_with_listener(listener: TcpListener, pool: PgPool) -> io::Result<Serv
     let app = move || {
         App::new()
             .app_data(app_data.clone())
-            .wrap(ErrorHandlers::new().handler(StatusCode::NOT_FOUND, no_route))
+            .wrap(ErrorHandlers::new().handler(StatusCode::NOT_FOUND, no_route_error))
             .wrap(SimpleLogger {})
             .wrap(Compress::default())
             .configure(route)

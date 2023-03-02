@@ -71,7 +71,7 @@ async fn prepare_test_db(dsn: Database) -> PgPool {
     }
 
     // create a temporary db
-    let dbname = "/rust_web__test_".to_owned() + &Uuid::new_v4().to_string();
+    let dbname = "rust_web__test_".to_owned() + &Uuid::new_v4().to_string();
     let test_db = dsn.conn.clone() + "/" + &dbname;
 
     conn.execute(format!(r#"CREATE DATABASE "{}";"#, &dbname).as_str())
