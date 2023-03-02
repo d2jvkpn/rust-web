@@ -9,7 +9,7 @@ use log4rs::{
     filter::threshold::ThresholdFilter,
 };
 
-pub fn init_logger(file_path: &str, level: log::LevelFilter) -> anyhow::Result<()> {
+pub fn init_logger(file_path: &str, level: log::LevelFilter, console: bool) -> anyhow::Result<()> {
     // if let Err(e) = fs::remove_dir_all("logs") {
     //     if e.kind() != io::ErrorKind::NotFound {
     //         return Err(Error::new(e).context("remove logs/"));
@@ -30,19 +30,30 @@ pub fn init_logger(file_path: &str, level: log::LevelFilter) -> anyhow::Result<(
 
     // Log Trace level output to file where trace is the default level
     // and the programmatically specified level to stderr.
-    let config = Config::builder()
-        .appender(
-            Appender::builder()
-                .filter(Box::new(ThresholdFilter::new(level)))
-                .build("logfile", Box::new(logfile)),
-        )
-        .appender(
-            Appender::builder()
-                .filter(Box::new(ThresholdFilter::new(level)))
-                .build("stderr", Box::new(stderr)),
-        )
-        .build(Root::builder().appender("logfile").appender("stderr").build(LevelFilter::Trace))
-        .map_err(|e| Error::new(e).context("log4rs config builder"))?;
+    let config = if console {
+        Config::builder()
+            .appender(
+                Appender::builder()
+                    .filter(Box::new(ThresholdFilter::new(level)))
+                    .build("logfile", Box::new(logfile)),
+            )
+            .appender(
+                Appender::builder()
+                    .filter(Box::new(ThresholdFilter::new(level)))
+                    .build("stderr", Box::new(stderr)),
+            )
+            .build(Root::builder().appender("logfile").appender("stderr").build(LevelFilter::Trace))
+            .map_err(|e| Error::new(e).context("log4rs config builder"))?
+    } else {
+        Config::builder()
+            .appender(
+                Appender::builder()
+                    .filter(Box::new(ThresholdFilter::new(level)))
+                    .build("stderr", Box::new(stderr)),
+            )
+            .build(Root::builder().appender("logfile").appender("stderr").build(LevelFilter::Trace))
+            .map_err(|e| Error::new(e).context("log4rs config builder"))?
+    };
 
     // Use this to change log levels at runtime.
     // This means you can change the default log level to trace

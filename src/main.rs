@@ -41,10 +41,11 @@ async fn main() -> io::Result<()> {
     config.configuration = opts.config;
     config.release = opts.release;
 
+    let log_file = format!("logs/{}.log", env!("CARGO_PKG_NAME"));
     if opts.release {
-        utils::init_logger("logs/rust-web.log", LevelFilter::Info).unwrap();
+        utils::init_logger(&log_file, LevelFilter::Info, false).unwrap();
     } else {
-        utils::init_logger("logs/rust-web.log", LevelFilter::Debug).unwrap();
+        utils::init_logger(&log_file, LevelFilter::Debug, true).unwrap();
     }
 
     config.threads = opts.threads;

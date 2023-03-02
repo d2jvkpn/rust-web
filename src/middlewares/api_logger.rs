@@ -6,6 +6,7 @@ use actix_web::{
 };
 use chrono::{DateTime, Local};
 use futures_util::future::LocalBoxFuture;
+use log::{error, info, warn};
 use serde::Serialize;
 use serde_json::json;
 use std::future::{self, Ready};
@@ -89,11 +90,11 @@ where
             record.elapsed = format!("{:.3}ms", (elapsed as f64) / 1e3);
 
             if record.status >= 500 {
-                log::error!("{}", json!(record));
+                error!("{}", json!(record));
             } else if record.status >= 400 {
-                log::warn!("{}", json!(record));
+                warn!("{}", json!(record));
             } else {
-                log::info!("{}", json!(record));
+                info!("{}", json!(record));
             }
 
             Ok(res)

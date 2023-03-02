@@ -1,10 +1,10 @@
 #![allow(dead_code)]
 
+use log::LevelFilter;
 use rust_web::{
     internal::{load_config, startup::run_with_listener, Database},
     utils,
 };
-
 // use sqlx::{Connection, PgConnection};
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
@@ -37,6 +37,13 @@ pub async fn spawn_app_create_db() -> String {
     let (listener, port) = utils::tcp_listener_with_random_port("127.0.0.1:0").unwrap();
 
     let config = load_config("configs/local.yaml").expect("Failed to read configuration");
+
+    utils::init_logger(
+        format!("logs/{}.test.log", env!("CARGO_PKG_NAME")).as_str(),
+        LevelFilter::Debug,
+        true,
+    )
+    .unwrap();
 
     let pool = prepare_test_db(config.database).await;
 
