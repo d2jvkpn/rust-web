@@ -27,7 +27,7 @@ structopt = "0.3"
 thiserror = "1"
 tokio = { version = "1", features = ["full"] }
 uuid = { version = "1", features = ["v4", "serde"] }
-validator = { version = "0.16", features = ["phone"] }
+validator = { version = "0.16" }
 
 [dev-dependencies]
 reqwest = "0.11"

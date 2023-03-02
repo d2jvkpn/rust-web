@@ -1,6 +1,6 @@
 use once_cell::sync::Lazy;
 use regex::Regex;
-use validator::{validate_email, validate_phone};
+use validator::validate_email; // validate_phone
 
 static RE_DATE: Lazy<Regex> = Lazy::new(|| Regex::new(r"^\d{4}-\d{2}-\d{2}$").unwrap());
 
@@ -8,9 +8,9 @@ pub fn valid_phone(v: &str) -> Result<(), &str> {
     if v.len() > 20 {
         return Err("the length of phone excceds 20");
     }
-    if !validate_phone(v) {
-        return Err("invalid phone numer");
-    }
+    // if !validate_phone(v) {
+    //     return Err("invalid phone numer");
+    // }
 
     Ok(())
 }
