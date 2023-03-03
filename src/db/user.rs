@@ -1,4 +1,5 @@
 use crate::{
+    internal::settings::{Config, JwtPayload},
     middlewares::{response::Error, QueryPage, QueryResult},
     models::user::*,
     utils,
@@ -230,7 +231,7 @@ pub async fn update_user_status(pool: &PgPool, uus: UpdateUserStatus) -> Result<
     }
 }
 
-pub async fn user_login(pool: &PgPool, login: UserLogin) -> Result<User, Error> {
+pub async fn user_login(pool: &PgPool, login: UserLogin) -> Result<UserAndToken, Error> {
     login.valid().map_err(|e| Error::InvalidArgument(e.into()))?;
 
     let mut query = QueryBuilder::new(r#"SELECT * FROM users WHERE "#);
@@ -243,25 +244,26 @@ pub async fn user_login(pool: &PgPool, login: UserLogin) -> Result<User, Error> 
     }
     query.push(" LIMIT 1");
 
-    let user: UserPassword = match query.build_query_as().fetch_one(pool).await {
+    let upassword: UserAndPassword = match query.build_query_as().fetch_one(pool).await {
         Ok(v) => v,
         Err(e) => {
             if utils::pg_not_found(&e) {
                 return Err(Error::NotFound("user not found".into()));
             } else {
                 return Err(e.into());
-            }
+            };
         }
     };
 
     // dbg!(&user);
-    let m = verify(login.password, &user.password).map_err(|_| Error::Unknown)?;
-    if !m {
-        return Err(Error::Unauthenticated);
+    if verify(login.password, &upassword.password).map_err(|_| Error::Unknown)? {
+        return Err(Error::Unauthenticated("user not found or incorrect password".into()));
     }
 
-    // TODO: provide token
-    Ok(user.user)
+    let playload = JwtPayload { user_id: upassword.user.id, ..Default::default() };
+    let token = Config::jwt_sign(playload)?;
+
+    Ok(UserAndToken { user: upassword.user, token })
 }
 
 #[cfg(test)]

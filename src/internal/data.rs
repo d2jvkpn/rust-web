@@ -2,6 +2,7 @@ use chrono::{Local, SecondsFormat};
 use sqlx::PgPool;
 use std::sync::Mutex;
 
+// App State
 pub struct AppState {
     pub started_at: String,
     pub health_check_response: String,

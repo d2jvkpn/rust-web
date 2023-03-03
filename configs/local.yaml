@@ -1,3 +1,7 @@
 database:
   conn: postgres://hello:world@127.0.0.1:5432
   db: rust_web
+
+jwt:
+  key: 1234567890
+  alive_mins: 15

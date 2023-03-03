@@ -112,7 +112,7 @@ pub struct UpdateUserStatus {
     pub status: Status,
 }
 
-// user login
+// user login and token
 #[derive(Deserialize, Debug, Clone)]
 pub struct UserLogin {
     pub phone: Option<String>,
@@ -132,10 +132,16 @@ impl UserLogin {
 
 #[derive(Deserialize, Serialize, Debug, Clone, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
-pub struct UserPassword {
-    pub password: String,
+pub struct UserAndPassword {
     #[sqlx(flatten)]
     pub user: User,
+    pub password: String,
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct UserAndToken {
+    pub user: User,
+    pub token: String,
 }
 
 // update user body

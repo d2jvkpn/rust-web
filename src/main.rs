@@ -5,7 +5,7 @@ mod middlewares;
 mod models;
 mod utils;
 
-use internal::load_config;
+use internal::{load_config, settings};
 use log::LevelFilter;
 use sqlx::{postgres::PgConnectOptions, ConnectOptions, PgPool};
 use std::{io, str::FromStr};
@@ -65,6 +65,8 @@ async fn main() -> io::Result<()> {
     } else {
         PgPool::connect(&config.database.to_string()).await.expect("Failed to connect to Postgres.")
     };
+
+    settings::Config::set(config).unwrap();
 
     internal::startup::run(&address, pool)?.await
 }

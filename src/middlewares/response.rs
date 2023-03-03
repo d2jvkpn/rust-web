@@ -82,6 +82,10 @@ pub enum Error {
     #[error("aboort")]
     Aborted,
 
+    // 13
+    #[error("internal: {0}")]
+    Internal(String),
+
     // 13 01
     #[error("database error")]
     DBError(SQLxError),
@@ -91,8 +95,8 @@ pub enum Error {
     ActixError(ActixError),
 
     // 16
-    #[error("unauthenticated")]
-    Unauthenticated,
+    #[error("unauthenticated: {0}")]
+    Unauthenticated(String),
 
     // 1001
     #[error("no changes")]
@@ -118,9 +122,10 @@ impl Error {
             Self::PermissionDenied => 7,
             Self::ResourceExhausted => 8,
             Self::Aborted => 10,
+            Self::Internal(_) => 13,
             Self::DBError(_) => 1301,
             Self::ActixError(_) => 1302,
-            Self::Unauthenticated => 16,
+            Self::Unauthenticated(_) => 16,
             Self::NoChanges => 1001,
         }
     }
@@ -138,8 +143,9 @@ impl ResponseError for Error {
             Self::PermissionDenied => StatusCode::FORBIDDEN,
             Self::ResourceExhausted => StatusCode::INTERNAL_SERVER_ERROR,
             Self::Aborted => StatusCode::NOT_ACCEPTABLE,
+            Self::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::DBError(_) | Self::ActixError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::Unauthenticated => StatusCode::UNAUTHORIZED,
+            Self::Unauthenticated(_) => StatusCode::UNAUTHORIZED,
             Self::NoChanges => StatusCode::NOT_ACCEPTABLE,
         }
     }
