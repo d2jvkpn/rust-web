@@ -45,4 +45,7 @@ curl -i -X GET "$address/api/open/user/update_status?id=30&status=blocked"
 
 ####
 curl -i -X POST -H "content-type: application/json" "$address/api/open/user/login" \
-  -d '{"email": "bob@users.noreply.github.com", "password": "12QWas!@"}'
+  -d '{"email": "d2jvkpn@users.noreply.github.com", "password": "12QWas!@"}'
+
+curl -i -X POST -H "content-type: application/json" "$address/api/open/user/login" \
+  -d '{"email": "alice@users.noreply.github.com", "password": "12QWas!@"}'

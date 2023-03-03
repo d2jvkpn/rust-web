@@ -11,6 +11,7 @@ pub async fn post_new_user(pool: &PgPool, item: CreateUser) -> Result<User, Erro
     item.valid().map_err(|e| Error::InvalidArgument(e.to_string()))?;
 
     let password = hash(item.password, DEFAULT_COST).map_err(|_| Error::Unknown)?;
+    dbg!(&password);
 
     // TODO: supporting enum convert between postgresql and rust in sqlx
     let err = match sqlx::query_as!(
@@ -255,8 +256,7 @@ pub async fn user_login(pool: &PgPool, login: UserLogin) -> Result<UserAndToken,
         }
     };
 
-    // dbg!(&user);
-    if verify(login.password, &upassword.password).map_err(|_| Error::Unknown)? {
+    if !verify(login.password, &upassword.password).map_err(|_| Error::Unknown)? {
         return Err(Error::Unauthenticated("user not found or incorrect password".into()));
     }
 
@@ -278,5 +278,15 @@ mod tests {
 
         let m = verify("123456aaa", &password).unwrap();
         assert!(!m);
+
+        let password = hash("12QWas!@", DEFAULT_COST).unwrap();
+        dbg!(&password);
+        let m = verify("12QWas!@", &password).unwrap();
+        assert!(m);
+
+        let m = verify("12QWas!@", "$2b$12$QnMtKFokkQbxZ8vATa2PU.b2IkTPd8QDumYdgpWsMGNKeX5IOONUW")
+            .unwrap();
+
+        assert!(m);
     }
 }
