@@ -77,13 +77,13 @@ impl FromRequest for JwtPayload {
     type Future = Ready<Result<Self, Self::Error>>;
 
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
-        let msg = "You are not logged in, please provide token".to_string();
+        let msg = "a1::you are not logged in, please provide token".to_string();
         let value = match req.headers().get(http::header::AUTHORIZATION) {
             Some(v) => v,
             None => return ready(Err(Error::Unauthenticated(msg))),
         };
 
-        let msg = "a1::invalid token".to_string();
+        let msg = "a2::invalid token".to_string();
         let token = match value.to_str() {
             Ok(v) => v,
             Err(_) => return ready(Err(Error::Unauthenticated(msg))),
@@ -95,7 +95,7 @@ impl FromRequest for JwtPayload {
         };
 
         if payload.iat > Utc::now().timestamp() {
-            return ready(Err(Error::Unauthenticated("a2::token expired".into())));
+            return ready(Err(Error::Unauthenticated("a3::token expired".into())));
         }
 
         req.extensions_mut().insert(payload.clone());
