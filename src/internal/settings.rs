@@ -1,5 +1,5 @@
 use super::configuration::{Configuration, Jwt};
-use crate::middlewares::response::Error;
+use crate::{middlewares::response::Error, models::user::Role};
 use actix_web::{dev::Payload, http, FromRequest, HttpMessage, HttpRequest};
 use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
@@ -10,7 +10,7 @@ use std::future::{ready, Ready};
 pub struct Config(Configuration);
 static CONFIG_INSTANCE: OnceCell<Config> = OnceCell::new();
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct JwtPayload {
     // pub iss: String, // issuer
@@ -18,6 +18,7 @@ pub struct JwtPayload {
     pub user_id: i32,
     pub iat: i64, // issued at
     pub exp: i64, // expiry
+    pub role: Role,
 }
 
 impl Config {
@@ -57,7 +58,7 @@ impl Config {
 
     pub fn jwt_verify(token: String) -> Result<JwtPayload, Error> {
         if !token.starts_with("Bearer ") {
-            return Err(Error::Unauthenticated("invalid token b1".to_string()));
+            return Err(Error::Unauthenticated("b1::invalid token".to_string()));
         }
 
         let jwt = Config::get_jwt().ok_or(Error::Internal("jwt is unset".into()))?;
@@ -65,7 +66,7 @@ impl Config {
 
         // TokenData<JwtPayload> { header, claims }
         let data = decode::<JwtPayload>(&token[7..], &key, &Validation::default())
-            .map_err(|_| Error::Unauthenticated("invalid token b2".to_string()))?;
+            .map_err(|_| Error::Unauthenticated("b2::invalid token".to_string()))?;
 
         Ok(data.claims)
     }
@@ -76,23 +77,26 @@ impl FromRequest for JwtPayload {
     type Future = Ready<Result<Self, Self::Error>>;
 
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
+        let msg = "You are not logged in, please provide token".to_string();
         let value = match req.headers().get(http::header::AUTHORIZATION) {
             Some(v) => v,
-            None => {
-                let msg = "You are not logged in, please provide token".to_string();
-                return ready(Err(Error::Unauthenticated(msg)));
-            }
+            None => return ready(Err(Error::Unauthenticated(msg))),
         };
 
+        let msg = "a1::invalid token".to_string();
         let token = match value.to_str() {
             Ok(v) => v,
-            Err(_) => return ready(Err(Error::Unauthenticated("invalid token a1".to_string()))),
+            Err(_) => return ready(Err(Error::Unauthenticated(msg))),
         };
 
         let payload = match Config::jwt_verify(token.to_string()) {
             Ok(v) => v,
             Err(e) => return ready(Err(e)),
         };
+
+        if payload.iat > Utc::now().timestamp() {
+            return ready(Err(Error::Unauthenticated("a2::token expired".into())));
+        }
 
         req.extensions_mut().insert(payload.clone());
         ready(Ok(payload))

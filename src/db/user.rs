@@ -260,7 +260,12 @@ pub async fn user_login(pool: &PgPool, login: UserLogin) -> Result<UserAndToken,
         return Err(Error::Unauthenticated("user not found or incorrect password".into()));
     }
 
-    let playload = JwtPayload { user_id: upassword.user.id, ..Default::default() };
+    let playload = JwtPayload {
+        user_id: upassword.user.id,
+        iat: 0,
+        exp: 0,
+        role: upassword.user.role.clone(),
+    };
     let token = Config::jwt_sign(playload)?;
 
     Ok(UserAndToken { user: upassword.user, token })

@@ -152,7 +152,7 @@ impl ResponseError for Error {
 
     fn error_response(&self) -> HttpResponse {
         let msg = format!("{}", self);
-        let x_error = format!("code={}; msg={}", self.code(), msg);
+        let x_error = format!("code={}; msg={:?}", self.code(), msg);
 
         HttpResponse::build(self.status_code())
             .append_header(("x-error", x_error))
