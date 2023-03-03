@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::future::{ready, Ready};
 
 pub struct Config(Configuration);
-static CONFIG_INSTANCE: OnceCell<Config> = OnceCell::new();
+static OC_CONFIG: OnceCell<Config> = OnceCell::new();
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -24,11 +24,11 @@ pub struct JwtPayload {
 impl Config {
     pub fn set(configuration: Configuration) -> Result<(), &'static str> {
         // convert Result<(), Config>
-        CONFIG_INSTANCE.set(Self(configuration)).map_err(|_| "can't set configuration")
+        OC_CONFIG.set(Self(configuration)).map_err(|_| "can't set configuration")
     }
 
     fn get() -> Option<&'static Config> {
-        CONFIG_INSTANCE.get()
+        OC_CONFIG.get()
     }
 
     fn get_jwt() -> Option<&'static Jwt> {
@@ -45,11 +45,13 @@ impl Config {
 
     pub fn jwt_sign(mut data: JwtPayload) -> Result<String, Error> {
         let jwt = Config::get_jwt().ok_or(Error::Internal("jwt is unset".into()))?;
+
         let now = Utc::now();
         data.iat = now.timestamp();
         data.exp = (now + Duration::minutes(jwt.alive_mins as i64)).timestamp();
 
         let key = EncodingKey::from_secret(jwt.key.as_ref());
+
         let token =
             encode(&Header::default(), &data, &key).map_err(|e| Error::Internal(e.to_string()))?;
 
