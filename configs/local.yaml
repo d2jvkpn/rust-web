@@ -4,4 +4,4 @@ database:
 
 jwt:
   key: 1234567890
-  alive_mins: 15
+  alive_mins: 30

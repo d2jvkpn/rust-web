@@ -1,15 +1,14 @@
 use crate::{
     db::user as db_user,
-    internal::AppState,
-    middlewares::{
-        response::{Data, Error, OK_JSON},
-        QueryPage,
-    },
+    internal::{settings::JwtPayload, AppState},
+    middlewares::response::{Data, Error, OK_JSON},
+    middlewares::QueryPage,
     models::user::*,
 };
 use actix_web::{http::header::ContentType, web, HttpResponse};
 
 pub async fn update_user_details(
+    _: JwtPayload,
     app_state: web::Data<AppState>,
     user_id: web::Path<i32>,
     item: web::Json<UpdateUser>,
@@ -20,6 +19,7 @@ pub async fn update_user_details(
 }
 
 pub async fn update_user_details_v2a(
+    _: JwtPayload,
     app_state: web::Data<AppState>,
     user_id: web::Path<i32>,
     item: web::Json<UpdateUser>,
@@ -30,6 +30,7 @@ pub async fn update_user_details_v2a(
 }
 
 pub async fn update_user_details_v2b(
+    _: JwtPayload,
     match_user: web::Query<MatchUser>,
     app_state: web::Data<AppState>,
     item: web::Json<UpdateUser>,
@@ -41,6 +42,7 @@ pub async fn update_user_details_v2b(
 }
 
 pub async fn query_users(
+    _: JwtPayload,
     app_state: web::Data<AppState>,
     query_page: web::Query<QueryPage>,
 ) -> Result<HttpResponse, Error> {
@@ -50,6 +52,7 @@ pub async fn query_users(
 }
 
 pub async fn find_user(
+    _: JwtPayload,
     app_state: web::Data<AppState>,
     match_user: web::Query<MatchUser>,
 ) -> Result<HttpResponse, Error> {
@@ -59,6 +62,7 @@ pub async fn find_user(
 }
 
 pub async fn update_user_status(
+    _: JwtPayload,
     app_state: web::Data<AppState>,
     uus: web::Query<UpdateUserStatus>,
 ) -> Result<HttpResponse, Error> {

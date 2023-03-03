@@ -18,6 +18,7 @@ fn open(cfg: &mut ServiceConfig) {
 pub fn auth(cfg: &mut ServiceConfig) {
     use super::user_auth::*;
 
+    // TODO: impls an middleware instead using "_: JwtPayload" in handlers
     let auth = scope("/api/auth")
         .route("/user/update/{user_id}", post().to(update_user_details))
         .route("/user/update_v2a/{user_id}", post().to(update_user_details_v2a))
@@ -31,4 +32,5 @@ pub fn auth(cfg: &mut ServiceConfig) {
 
 pub fn route(cfg: &mut ServiceConfig) {
     open(cfg);
+    auth(cfg);
 }

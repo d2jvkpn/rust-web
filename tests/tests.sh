@@ -47,5 +47,11 @@ curl -i -X GET "$address/api/open/user/update_status?id=30&status=blocked"
 curl -i -X POST -H "content-type: application/json" "$address/api/open/user/login" \
   -d '{"email": "d2jvkpn@users.noreply.github.com", "password": "12QWas!@"}'
 
-curl -i -X POST -H "content-type: application/json" "$address/api/open/user/login" \
-  -d '{"email": "alice@users.noreply.github.com", "password": "12QWas!@"}'
+token="Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjQwLCJpYXQiOjE2Nzc4NTgyODUsImV4cCI6MTY3Nzg2MDA4NX0.IqIQVQbvrnN0llzc9YeCvwBcQH9m7Ry7E3VKN4G1ydU"
+
+curl -i -X POST -H "content-type: application/json" $address/api/auth/user/update/40 \
+  -d '{"name": "Rover", "birthday": "2006-01-02"}'
+
+curl -i -X POST -H "content-type: application/json" -H "Authorization: $token" \
+  $address/api/auth/user/update/40 \
+  -d '{"name": "Rover", "birthday": "2006-01-02"}'

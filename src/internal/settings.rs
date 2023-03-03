@@ -1,6 +1,6 @@
 use super::configuration::{Configuration, Jwt};
 use crate::middlewares::response::Error;
-use actix_web::{dev::Payload, http, FromRequest, HttpRequest};
+use actix_web::{dev::Payload, http, FromRequest, HttpMessage, HttpRequest};
 use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use once_cell::sync::OnceCell;
@@ -10,7 +10,7 @@ use std::future::{ready, Ready};
 pub struct Config(Configuration);
 static CONFIG_INSTANCE: OnceCell<Config> = OnceCell::new();
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct JwtPayload {
     // pub iss: String, // issuer
@@ -94,7 +94,7 @@ impl FromRequest for JwtPayload {
             Err(e) => return ready(Err(e)),
         };
 
-        // req.extensions_mut().insert(payload);
+        req.extensions_mut().insert(payload.clone());
         ready(Ok(payload))
     }
 }
