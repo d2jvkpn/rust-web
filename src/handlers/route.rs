@@ -1,4 +1,7 @@
-use crate::middlewares::{health_check, health_check_v1, health_check_v2};
+use crate::{
+    internal::auth_jwt,
+    middlewares::{health_check, health_check_v1, health_check_v2},
+};
 use actix_web::web::{get, post, scope, ServiceConfig};
 
 fn open(cfg: &mut ServiceConfig) {
@@ -15,11 +18,25 @@ fn open(cfg: &mut ServiceConfig) {
     cfg.service(open);
 }
 
-pub fn auth(cfg: &mut ServiceConfig) {
-    use super::user_auth::*;
+pub fn auth_01(cfg: &mut ServiceConfig) {
+    use super::user_auth_01::*;
 
-    // TODO: impls an middleware instead using "_: JwtPayload" in handlers
     let auth = scope("/api/auth")
+        .route("/user/update/{user_id}", post().to(update_user_details))
+        .route("/user/update_v2a/{user_id}", post().to(update_user_details_v2a))
+        .route("/user/update_v2b", post().to(update_user_details_v2b))
+        .route("/user/query", get().to(query_users))
+        .route("/user/find", get().to(find_user))
+        .route("/user/update_status", get().to(update_user_status));
+
+    cfg.service(auth);
+}
+
+pub fn auth_02(cfg: &mut ServiceConfig) {
+    use super::user_auth_02::*;
+
+    let auth = scope("/api/auth")
+        .wrap(auth_jwt::Auth {})
         .route("/user/update/{user_id}", post().to(update_user_details))
         .route("/user/update_v2a/{user_id}", post().to(update_user_details_v2a))
         .route("/user/update_v2b", post().to(update_user_details_v2b))
@@ -32,5 +49,5 @@ pub fn auth(cfg: &mut ServiceConfig) {
 
 pub fn route(cfg: &mut ServiceConfig) {
     open(cfg);
-    auth(cfg);
+    auth_02(cfg);
 }

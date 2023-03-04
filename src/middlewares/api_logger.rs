@@ -9,7 +9,7 @@ use futures_util::future::LocalBoxFuture;
 use log::{error, info, warn};
 use serde::Serialize;
 use serde_json::json;
-use std::future::{self, Ready};
+use std::future::{ready, Ready};
 use uuid::Uuid;
 
 // There are two steps in middleware processing.
@@ -34,7 +34,7 @@ where
     type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
-        future::ready(Ok(LoggerMiddleware { service }))
+        ready(Ok(LoggerMiddleware { service }))
     }
 }
 

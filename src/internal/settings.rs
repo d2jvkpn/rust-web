@@ -1,6 +1,6 @@
 use super::configuration::{Configuration, Jwt};
 use crate::{middlewares::response::Error, models::user::Role};
-use actix_web::{dev::Payload, http, FromRequest, HttpMessage, HttpRequest};
+use actix_web::{dev::Payload, http::header::AUTHORIZATION, FromRequest, HttpMessage, HttpRequest};
 use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use once_cell::sync::OnceCell;
@@ -15,9 +15,9 @@ static OC_CONFIG: OnceCell<Config> = OnceCell::new();
 pub struct JwtPayload {
     // pub iss: String, // issuer
     // pub sub: String, // subject
-    pub user_id: i32,
     pub iat: i64, // issued at
     pub exp: i64, // expiry
+    pub user_id: i32,
     pub role: Role,
 }
 
@@ -80,7 +80,7 @@ impl FromRequest for JwtPayload {
 
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
         let msg = "a1::you are not logged in, please provide token".to_string();
-        let value = match req.headers().get(http::header::AUTHORIZATION) {
+        let value = match req.headers().get(AUTHORIZATION) {
             Some(v) => v,
             None => return ready(Err(Error::Unauthenticated(msg))),
         };
