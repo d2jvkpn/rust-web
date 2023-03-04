@@ -18,7 +18,7 @@ fn open(cfg: &mut ServiceConfig) {
     cfg.service(open);
 }
 
-pub fn auth_01(cfg: &mut ServiceConfig) {
+pub fn auth_iter1(cfg: &mut ServiceConfig) {
     use super::user_auth_01::*;
 
     let auth = scope("/api/auth")
@@ -32,12 +32,10 @@ pub fn auth_01(cfg: &mut ServiceConfig) {
     cfg.service(auth);
 }
 
-pub fn auth_02(cfg: &mut ServiceConfig) {
+pub fn auth_iter2(cfg: &mut ServiceConfig) {
     use super::user_auth_02::*;
 
     let auth = scope("/api/auth")
-        // .wrap(auth_jwt::Auth { value: 42 })
-        .wrap(Blocker { block: |req| Ok(Config::jwt_verify(req)?) })
         .wrap(auth_jwt::Auth { value: 42 })
         .route("/user/update/{user_id}", post().to(update_user_details))
         .route("/user/update_v2a/{user_id}", post().to(update_user_details_v2a))
@@ -49,7 +47,18 @@ pub fn auth_02(cfg: &mut ServiceConfig) {
     cfg.service(auth);
 }
 
+pub fn auth_iter3(cfg: &mut ServiceConfig) {
+    use super::user_auth_02::*;
+
+    let auth = scope("/api/auth")
+        .wrap(Blocker { block: |req| Ok(Config::jwt_verify(req)?) })
+        .route("/user/update", post().to(update_user_details_v3))
+        .route("/user/details", get().to(user_details));
+
+    cfg.service(auth);
+}
+
 pub fn route(cfg: &mut ServiceConfig) {
     open(cfg);
-    auth_02(cfg);
+    auth_iter3(cfg);
 }

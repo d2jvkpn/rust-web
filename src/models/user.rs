@@ -88,7 +88,7 @@ impl CreateUser {
 }
 
 // match user query
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, Default)]
 pub struct MatchUser {
     pub id: Option<i32>,
     pub phone: Option<String>,

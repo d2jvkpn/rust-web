@@ -45,8 +45,8 @@ pub async fn post_new_user(pool: &PgPool, item: CreateUser) -> Result<User, Erro
     }
 }
 
-// Update course details
-pub async fn update_user_details(
+// Update course details, select, compare, update
+pub async fn update_user_details_a(
     pool: &PgPool,
     user_id: i32,
     update_user: UpdateUser,
@@ -97,8 +97,8 @@ pub async fn update_user_details(
     }
 }
 
-// Update course details v2
-pub async fn update_user_details_v2(
+// Update course details, update and return id
+pub async fn update_user_details_b(
     pool: &PgPool,
     user_id: i32,
     update_user: UpdateUser,

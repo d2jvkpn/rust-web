@@ -55,3 +55,7 @@ curl -i -X POST -H "content-type: application/json" $address/api/auth/user/updat
 curl -i -X POST -H "content-type: application/json" -H "Authorization: $token" \
   $address/api/auth/user/update/40 \
   -d '{"name": "Rover", "birthday": "2023-01-02"}'
+
+curl -i -X POST -H "content-type: application/json" -H "Authorization: $token" \
+  $address/api/auth/user/update \
+  -d '{"name": "Rover", "birthday": "2023-01-02"}'
