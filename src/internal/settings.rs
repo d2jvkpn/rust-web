@@ -43,7 +43,7 @@ impl Config {
     //     header::AUTHORIZATION
     // }
 
-    pub fn jwt_sign(mut data: JwtPayload) -> Result<String, Error> {
+    pub fn jwt_sign(mut data: JwtPayload) -> Result<String, actix_web::Error> {
         let jwt = Config::get_jwt().ok_or(Error::Internal("jwt is unset".into()))?;
 
         let now = Utc::now();

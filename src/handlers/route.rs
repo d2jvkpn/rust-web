@@ -1,6 +1,6 @@
 use crate::{
-    internal::auth_jwt,
-    middlewares::{health_check, health_check_v1, health_check_v2},
+    internal::{auth_jwt, settings::Config},
+    middlewares::{blocker::Blocker, health_check, health_check_v1, health_check_v2},
 };
 use actix_web::web::{get, post, scope, ServiceConfig};
 
@@ -36,6 +36,8 @@ pub fn auth_02(cfg: &mut ServiceConfig) {
     use super::user_auth_02::*;
 
     let auth = scope("/api/auth")
+        // .wrap(auth_jwt::Auth { value: 42 })
+        .wrap(Blocker { block: |req| Ok(Config::jwt_verify(req)?) })
         .wrap(auth_jwt::Auth { value: 42 })
         .route("/user/update/{user_id}", post().to(update_user_details))
         .route("/user/update_v2a/{user_id}", post().to(update_user_details_v2a))
