@@ -1,17 +1,17 @@
 // https://actix.rs/docs/middleware/
-use crate::internal::settings::Config;
+use super::response;
 use actix_web::{
     dev::{self, Service, ServiceRequest, ServiceResponse, Transform},
-    HttpMessage,
+    HttpMessage, HttpRequest,
 };
 use futures_util::future::LocalBoxFuture;
 use std::future::{ready, Ready};
 
-pub struct Auth {
-    pub value: i32,
+pub struct Auth<T> {
+    pub verify: fn(&HttpRequest) -> Result<T, response::Error>,
 }
 
-impl<S, B> Transform<S, ServiceRequest> for Auth
+impl<S, B, T: 'static> Transform<S, ServiceRequest> for Auth<T>
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = actix_web::Error>,
     S::Future: 'static,
@@ -20,21 +20,21 @@ where
     type Response = ServiceResponse<B>;
     type Error = actix_web::Error;
     type InitError = ();
-    type Transform = AuthMiddleware<S>;
+    type Transform = AuthMiddleware<S, T>;
     type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
-        ready(Ok(AuthMiddleware { value: self.value, service }))
+        ready(Ok(AuthMiddleware { verify: self.verify, service }))
     }
 }
 
 #[allow(dead_code)]
-pub struct AuthMiddleware<S> {
-    value: i32,
+pub struct AuthMiddleware<S, T> {
+    verify: fn(&HttpRequest) -> Result<T, response::Error>,
     service: S,
 }
 
-impl<S, B> Service<ServiceRequest> for AuthMiddleware<S>
+impl<S, B, T: 'static> Service<ServiceRequest> for AuthMiddleware<S, T>
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = actix_web::Error>,
     S::Future: 'static,
@@ -49,14 +49,13 @@ where
     fn call(&self, req: ServiceRequest) -> Self::Future {
         // println!("~~~ {}", self.value);
 
-        let payload = match Config::jwt_verify(req.request()) {
+        let item = match (self.verify)(req.request()) {
             Ok(v) => v,
             Err(e) => return Box::pin(ready(Err(e.into()))),
         };
-        req.extensions_mut().insert(payload);
+        req.extensions_mut().insert(item);
 
         let fut = self.service.call(req);
-
         Box::pin(async move {
             let res = fut.await?;
             Ok(res)

@@ -4,6 +4,7 @@ mod health_check;
 mod query;
 mod simple_logger;
 
+pub mod auth;
 pub mod response;
 
 pub use api_logger::*;

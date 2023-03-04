@@ -36,7 +36,7 @@ pub fn auth_02(cfg: &mut ServiceConfig) {
     use super::user_auth_02::*;
 
     let auth = scope("/api/auth")
-        .wrap(auth_jwt::Auth {})
+        .wrap(auth_jwt::Auth { value: 42 })
         .route("/user/update/{user_id}", post().to(update_user_details))
         .route("/user/update_v2a/{user_id}", post().to(update_user_details_v2a))
         .route("/user/update_v2b", post().to(update_user_details_v2b))
