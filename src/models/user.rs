@@ -141,7 +141,8 @@ pub struct UserAndPassword {
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct UserAndToken {
     pub user: User,
-    pub token: String,
+    pub token_name: String,
+    pub token_value: String,
 }
 
 // update user body

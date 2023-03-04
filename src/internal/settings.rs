@@ -58,17 +58,27 @@ impl Config {
         Ok("Bearer ".to_owned() + &token)
     }
 
-    pub fn jwt_verify(token: String) -> Result<JwtPayload, Error> {
-        if !token.starts_with("Bearer ") {
-            return Err(Error::Unauthenticated("b1::invalid token".to_string()));
-        }
-
-        let jwt = Config::get_jwt().ok_or(Error::Internal("jwt is unset".into()))?;
+    pub fn jwt_verify(req: &HttpRequest) -> Result<JwtPayload, Error> {
+        let jwt = Self::get_jwt().ok_or(Error::Internal("jwt is unset".into()))?;
         let key = DecodingKey::from_secret(jwt.key.as_ref());
+        let prefix = "Bearer ";
 
-        // TokenData<JwtPayload> { header, claims }
-        let data = decode::<JwtPayload>(&token[7..], &key, &Validation::default())
-            .map_err(|_| Error::Unauthenticated("b2::invalid token".to_string()))?;
+        let msg = "not logged in, please provide token".to_string();
+        let value = req.headers().get(AUTHORIZATION).ok_or(Error::Unauthenticated(msg))?;
+
+        let msg = "failed to parse token".to_string();
+        let token = value.to_str().map_err(|_| Error::Unauthenticated(msg))?;
+
+        if !token.starts_with(prefix) {
+            return Err(Error::Unauthenticated("invalid token format".to_string()));
+        }
+        // TokenData<JwtPayload>: TokenData{ header, claims }
+        let data = decode::<JwtPayload>(&token[prefix.len()..], &key, &Validation::default())
+            .map_err(|_| Error::Unauthenticated("failed to decode token".to_string()))?;
+
+        if data.claims.iat > Utc::now().timestamp() {
+            return Err(Error::Unauthenticated("token expired".into()));
+        }
 
         Ok(data.claims)
     }
@@ -79,28 +89,12 @@ impl FromRequest for JwtPayload {
     type Future = Ready<Result<Self, Self::Error>>;
 
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
-        let msg = "a1::you are not logged in, please provide token".to_string();
-        let value = match req.headers().get(AUTHORIZATION) {
-            Some(v) => v,
-            None => return ready(Err(Error::Unauthenticated(msg))),
-        };
-
-        let msg = "a2::invalid token".to_string();
-        let token = match value.to_str() {
-            Ok(v) => v,
-            Err(_) => return ready(Err(Error::Unauthenticated(msg))),
-        };
-
-        let payload = match Config::jwt_verify(token.to_string()) {
+        let jwt_payload = match Config::jwt_verify(req) {
             Ok(v) => v,
             Err(e) => return ready(Err(e)),
         };
 
-        if payload.iat > Utc::now().timestamp() {
-            return ready(Err(Error::Unauthenticated("a3::token expired".into())));
-        }
-
-        req.extensions_mut().insert(payload.clone());
-        ready(Ok(payload))
+        req.extensions_mut().insert(jwt_payload.clone());
+        ready(Ok(jwt_payload))
     }
 }

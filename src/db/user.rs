@@ -266,9 +266,9 @@ pub async fn user_login(pool: &PgPool, login: UserLogin) -> Result<UserAndToken,
         exp: 0,
         role: upassword.user.role.clone(),
     };
-    let token = Config::jwt_sign(playload)?;
+    let token_value = Config::jwt_sign(playload)?;
 
-    Ok(UserAndToken { user: upassword.user, token })
+    Ok(UserAndToken { user: upassword.user, token_name: "authorization".to_string(), token_value })
 }
 
 #[cfg(test)]
