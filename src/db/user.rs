@@ -6,6 +6,7 @@ use crate::{
 };
 use bcrypt::{hash, verify, DEFAULT_COST};
 use sqlx::{PgPool, QueryBuilder};
+use std::time::Duration;
 
 pub async fn post_new_user(pool: &PgPool, item: CreateUser) -> Result<User, Error> {
     item.valid().map_err(|e| Error::InvalidArgument(e.to_string()))?;
@@ -273,6 +274,7 @@ pub async fn user_login(pool: &PgPool, login: UserLogin) -> Result<UserAndToken,
         Ok(v) => v,
         Err(e) => {
             if utils::pg_not_found(&e) {
+                tokio::time::sleep(Duration::from_secs(1)).await;
                 return Err(Error::NotFound(err_msg));
             } else {
                 return Err(e.into());
@@ -342,6 +344,11 @@ pub async fn reset_user_password(pool: &PgPool, item: ResetPassword) -> Result<(
         .execute(pool)
         .await?;
 
+    Ok(())
+}
+
+pub async fn user_logout(_pool: &PgPool) -> Result<(), Error> {
+	// TODO
     Ok(())
 }
 

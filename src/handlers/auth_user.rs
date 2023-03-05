@@ -86,3 +86,8 @@ pub async fn user_change_password(
         .map(|v| Ok(Data(v).into()))?
     // TODO: disable token
 }
+
+pub async fn user_logout(app_state: web::Data<AppState>) -> Result<HttpResponse, Error> {
+    db_user::user_logout(&app_state.pool).await.map(|v| Ok(Data(v).into()))?
+    // TODO: disable token
+}

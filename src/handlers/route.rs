@@ -10,22 +10,23 @@ fn open(cfg: &mut ServiceConfig) {
 
     cfg.route("/healthz", get().to(health_check));
 
-    let open = scope("/api/open")
-        .route("/user/register", post().to(post_new_user))
-        .route("/user/login", post().to(user_login));
+    let group_user = scope("/api/open/user")
+        .route("/register", post().to(post_new_user))
+        .route("/login", post().to(user_login));
 
-    cfg.service(open);
+    cfg.service(group_user);
 }
 
 pub fn auth_user(cfg: &mut ServiceConfig) {
     use super::auth_user::*;
 
-    let group = scope("/api/auth")
+    let group = scope("/api/auth/user")
         .wrap(Blocker { block: |req| Ok(Config::jwt_verify(req)?) })
-        .route("/user/update", post().to(update_user_details_v3))
-        .route("/user/details", get().to(user_details))
-        .route("/user/frozon", post().to(frozen_user_status))
-        .route("/user/change_password", post().to(user_change_password));
+        .route("/update", post().to(update_user_details_v3))
+        .route("/details", get().to(user_details))
+        .route("/frozon", post().to(frozen_user_status))
+        .route("/change_password", post().to(user_change_password))
+        .route("/logout", post().to(user_logout));
 
     cfg.service(group);
 }
@@ -33,7 +34,7 @@ pub fn auth_user(cfg: &mut ServiceConfig) {
 pub fn auth_leader(cfg: &mut ServiceConfig) {
     // use super::auth_leader::*;
 
-    let group = scope("/api/auth").wrap(jwt_role::Auth { value: Role::Leader });
+    let group = scope("/api/auth/leader").wrap(jwt_role::Auth { value: Role::Leader });
 
     cfg.service(group);
 }
@@ -41,15 +42,15 @@ pub fn auth_leader(cfg: &mut ServiceConfig) {
 pub fn auth_admin(cfg: &mut ServiceConfig) {
     use super::auth_admin::*;
 
-    let group = scope("/api/auth")
+    let group_user = scope("/api/auth/admin/user")
         .wrap(jwt_role::Auth { value: Role::Admin })
-        .route("/admin/user/query", post().to(query_users))
-        .route("/admin/user/find", get().to(find_user))
-        .route("/admin/user/update_status", post().to(update_user_status))
-        .route("/admin/user/update_role", post().to(update_user_role))
-        .route("/admin/user/reset_password", post().to(reset_user_password));
+        .route("/query", post().to(query_users))
+        .route("/find", get().to(find_user))
+        .route("/update_status", post().to(update_user_status))
+        .route("/update_role", post().to(update_user_role))
+        .route("/reset_password", post().to(reset_user_password));
 
-    cfg.service(group);
+    cfg.service(group_user);
 }
 
 pub fn route(cfg: &mut ServiceConfig) {
