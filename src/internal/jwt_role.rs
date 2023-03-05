@@ -1,5 +1,5 @@
 // https://actix.rs/docs/middleware/
-use crate::{internal::settings::Config, middlewares::response, models::user::Role};
+use crate::{internal::settings::Settings, middlewares::response, models::user::Role};
 use actix_web::{
     dev::{self, Service, ServiceRequest, ServiceResponse, Transform},
     HttpMessage,
@@ -49,7 +49,7 @@ where
     fn call(&self, req: ServiceRequest) -> Self::Future {
         // println!("~~~ {}", self.value);
 
-        let payload = match Config::jwt_verify(req.request()) {
+        let payload = match Settings::jwt_verify(req.request()) {
             Ok(v) => v,
             Err(e) => return Box::pin(ready(Err(e.into()))),
         };

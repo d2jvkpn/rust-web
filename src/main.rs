@@ -38,7 +38,7 @@ async fn main() -> io::Result<()> {
     let mut config = load_config(&opts.config)
         .unwrap_or_else(|e| panic!("read configuration {}: {:?}", &opts.config, e));
 
-    config.configuration = opts.config;
+    config.file_path = opts.config;
     config.release = opts.release;
 
     let log_file = format!("logs/{}.log", env!("CARGO_PKG_NAME"));
@@ -66,7 +66,6 @@ async fn main() -> io::Result<()> {
         PgPool::connect(&config.database.to_string()).await.expect("Failed to connect to Postgres.")
     };
 
-    settings::Config::set(config).unwrap();
-
+    settings::Settings::set(config, pool.clone()).unwrap();
     internal::startup::run(&address, pool)?.await
 }

@@ -1,14 +1,20 @@
-use super::configuration::{Configuration, Jwt};
+use super::configuration::Configuration;
 use crate::{middlewares::response::Error, models::user::Role};
 use actix_web::{dev::Payload, http::header::AUTHORIZATION, FromRequest, HttpMessage, HttpRequest};
 use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
 use std::future::{ready, Ready};
 
-pub struct Config(Configuration);
-static OC_CONFIG: OnceCell<Config> = OnceCell::new();
+#[allow(dead_code)]
+pub struct Settings {
+    configuration: Configuration,
+    pool: PgPool,
+}
+
+static OC_SETTINGS: OnceCell<Settings> = OnceCell::new();
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -21,19 +27,21 @@ pub struct JwtPayload {
     pub role: Role,
 }
 
-impl Config {
-    pub fn set(configuration: Configuration) -> Result<(), &'static str> {
+#[allow(dead_code)]
+impl Settings {
+    pub fn set(configuration: Configuration, pool: PgPool) -> Result<(), &'static str> {
         // convert Result<(), Config>
-        OC_CONFIG.set(Self(configuration)).map_err(|_| "can't set configuration")
+        OC_SETTINGS.set(Self { configuration, pool }).map_err(|_| "can't set configuration")
     }
 
-    fn get() -> Option<&'static Config> {
-        OC_CONFIG.get()
+    fn pool() -> Option<&'static PgPool> {
+        let settings = OC_SETTINGS.get()?;
+        Some(&settings.pool)
     }
 
-    fn get_jwt() -> Option<&'static Jwt> {
-        let config = Self::get()?;
-        Some(&config.0.jwt)
+    fn configuration() -> Option<&'static Configuration> {
+        let settings = OC_SETTINGS.get()?;
+        Some(&settings.configuration)
     }
 
     // pub fn jwt_header() -> &'static str {
@@ -44,13 +52,14 @@ impl Config {
     // }
 
     pub fn jwt_sign(mut data: JwtPayload) -> Result<String, actix_web::Error> {
-        let jwt = Config::get_jwt().ok_or(Error::Internal("jwt is unset".into()))?;
+        let config =
+            Settings::configuration().ok_or(Error::Internal("configuration is unset".into()))?;
 
         let now = Utc::now();
         data.iat = now.timestamp();
-        data.exp = (now + Duration::minutes(jwt.alive_mins as i64)).timestamp();
+        data.exp = (now + Duration::minutes(config.jwt.alive_mins as i64)).timestamp();
 
-        let key = EncodingKey::from_secret(jwt.key.as_ref());
+        let key = EncodingKey::from_secret(config.jwt.key.as_ref());
 
         let token =
             encode(&Header::default(), &data, &key).map_err(|e| Error::Internal(e.to_string()))?;
@@ -59,8 +68,10 @@ impl Config {
     }
 
     pub fn jwt_verify(req: &HttpRequest) -> Result<JwtPayload, Error> {
-        let jwt = Self::get_jwt().ok_or(Error::Internal("jwt is unset".into()))?;
-        let key = DecodingKey::from_secret(jwt.key.as_ref());
+        let config =
+            Self::configuration().ok_or(Error::Internal("Configuration is unset".into()))?;
+
+        let key = DecodingKey::from_secret(config.jwt.key.as_ref());
         let prefix = "Bearer ";
 
         let msg = "not logged in, please provide token".to_string();
@@ -89,7 +100,7 @@ impl FromRequest for JwtPayload {
     type Future = Ready<Result<Self, Self::Error>>;
 
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
-        let jwt_payload = match Config::jwt_verify(req) {
+        let jwt_payload = match Settings::jwt_verify(req) {
             Ok(v) => v,
             Err(e) => return ready(Err(e)),
         };

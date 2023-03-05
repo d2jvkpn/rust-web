@@ -1,5 +1,5 @@
 use crate::{
-    internal::settings::{Config, JwtPayload},
+    internal::settings::{JwtPayload, Settings},
     middlewares::{response::Error, QueryPage, QueryResult},
     models::user::*,
     utils,
@@ -293,7 +293,7 @@ pub async fn user_login(pool: &PgPool, login: UserLogin) -> Result<UserAndToken,
         exp: 0,
         role: upassword.user.role.clone(),
     };
-    let token_value = Config::jwt_sign(playload)?;
+    let token_value = Settings::jwt_sign(playload)?;
 
     Ok(UserAndToken { user: upassword.user, token_name: "authorization".to_string(), token_value })
 }
@@ -348,7 +348,7 @@ pub async fn reset_user_password(pool: &PgPool, item: ResetPassword) -> Result<(
 }
 
 pub async fn user_logout(_pool: &PgPool) -> Result<(), Error> {
-	// TODO
+    // TODO
     Ok(())
 }
 

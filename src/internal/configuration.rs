@@ -6,7 +6,7 @@ use std::{env, fmt};
 pub struct Configuration {
     // read from env or set mannual
     pub version: String,
-    pub configuration: String,
+    pub file_path: String,
     pub threads: usize,
     pub release: bool,
 
@@ -31,7 +31,7 @@ impl Default for Configuration {
     fn default() -> Self {
         Self {
             version: env!("CARGO_PKG_VERSION").to_string(),
-            configuration: "".to_string(),
+            file_path: "".to_string(),
             threads: 1,
             release: false,
 
@@ -53,7 +53,7 @@ pub fn load_config(fp: &str) -> Result<Configuration, ConfigError> {
     builder = builder
         .set_default("version", "0.1.0")?
         .set_override("version", env!("CARGO_PKG_VERSION"))?
-        .set_default("configuration", "")?
+        .set_default("file_path", "")?
         .set_default("threads", "1")?
         .set_default("release", "false")?
         .add_source(config::File::new(fp, config::FileFormat::Yaml));

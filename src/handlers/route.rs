@@ -1,5 +1,5 @@
 use crate::{
-    internal::{jwt_role, settings::Config},
+    internal::{jwt_role, settings::Settings},
     middlewares::{blocker::Blocker, health_check},
     models::user::Role,
 };
@@ -21,7 +21,7 @@ pub fn auth_user(cfg: &mut ServiceConfig) {
     use super::auth_user::*;
 
     let group = scope("/api/auth/user")
-        .wrap(Blocker { block: |req| Ok(Config::jwt_verify(req)?) })
+        .wrap(Blocker { block: |req| Ok(Settings::jwt_verify(req)?) })
         .route("/update", post().to(update_user_details_v3))
         .route("/details", get().to(user_details))
         .route("/frozon", post().to(frozen_user_status))
