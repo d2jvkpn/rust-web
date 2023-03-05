@@ -16,17 +16,6 @@ pub struct Settings {
 
 static OC_SETTINGS: OnceCell<Settings> = OnceCell::new();
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct JwtPayload {
-    // pub iss: String, // issuer
-    // pub sub: String, // subject
-    pub iat: i64, // issued at
-    pub exp: i64, // expiry
-    pub user_id: i32,
-    pub role: Role,
-}
-
 #[allow(dead_code)]
 impl Settings {
     pub fn set(configuration: Configuration, pool: PgPool) -> Result<(), &'static str> {
@@ -93,6 +82,17 @@ impl Settings {
 
         Ok(data.claims)
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct JwtPayload {
+    // pub iss: String, // issuer
+    // pub sub: String, // subject
+    pub iat: i64, // issued at
+    pub exp: i64, // expiry
+    pub user_id: i32,
+    pub role: Role,
 }
 
 impl FromRequest for JwtPayload {

@@ -18,7 +18,7 @@ pub struct Configuration {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Jwt {
     pub key: String,
-    pub alive_mins: u64,
+    pub alive_mins: u32,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
