@@ -131,7 +131,10 @@ pub async fn update_user_details_b(
 }
 
 #[allow(dead_code)]
-pub async fn query_users(pool: &PgPool, mut page: QueryPage) -> Result<QueryResult<User>, Error> {
+pub async fn query_users_v1(
+    pool: &PgPool,
+    mut page: QueryPage,
+) -> Result<QueryResult<User>, Error> {
     page.check(("id", &["id", "name", "email"]))
         .map_err(|e| Error::InvalidArgument(e.to_string()))?;
 
@@ -255,6 +258,15 @@ pub async fn user_login(pool: &PgPool, login: UserLogin) -> Result<UserAndToken,
             };
         }
     };
+
+    match upassword.user.status {
+        Status::OK => {}
+        Status::Frozen => return Err(Error::PermissionDenied("your account is frozen".into())),
+        Status::Blocked => return Err(Error::PermissionDenied("your account is blocked".into())),
+        Status::Deleted => {
+            return Err(Error::PermissionDenied("this account is banned from logging in".into()))
+        }
+    }
 
     if !verify(login.password, &upassword.password).map_err(|_| Error::Unknown)? {
         return Err(Error::Unauthenticated("user not found or incorrect password".into()));

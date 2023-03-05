@@ -2,14 +2,17 @@ use crate::{
     db::user as db_user,
     internal::{settings::JwtPayload, AppState},
     middlewares::response::{Data, Error, OK_JSON},
-    middlewares::QueryPage,
     models::user::*,
 };
-use actix_web::{http::header::ContentType, web, HttpResponse};
+use actix_web::{
+    http::header::ContentType,
+    web::{self, ReqData},
+    HttpResponse,
+};
 
+// POST /user/update/{user_id} + BODY, update_user_details_a
 pub async fn update_user_details(
     app_state: web::Data<AppState>,
-    _: JwtPayload,
     user_id: web::Path<i32>,
     item: web::Json<UpdateUser>,
 ) -> Result<HttpResponse, Error> {
@@ -18,9 +21,9 @@ pub async fn update_user_details(
         .map(|v| Ok(Data(v).into()))?
 }
 
+// POST /user/update/{user_id} + BODY, update_user_details_b
 pub async fn update_user_details_v2a(
     app_state: web::Data<AppState>,
-    _: JwtPayload,
     user_id: web::Path<i32>,
     item: web::Json<UpdateUser>,
 ) -> Result<HttpResponse, Error> {
@@ -29,9 +32,9 @@ pub async fn update_user_details_v2a(
     Ok(HttpResponse::Ok().content_type(ContentType::json()).body(OK_JSON))
 }
 
+// POST /user/update?user_id=1 + BODY, update_user_details_b
 pub async fn update_user_details_v2b(
     app_state: web::Data<AppState>,
-    _: JwtPayload,
     match_user: web::Query<MatchUser>,
     item: web::Json<UpdateUser>,
 ) -> Result<HttpResponse, Error> {
@@ -41,32 +44,31 @@ pub async fn update_user_details_v2b(
     Ok(HttpResponse::Ok().content_type(ContentType::json()).body(OK_JSON))
 }
 
-pub async fn query_users(
+// POST /user/update + BODY, update_user_details_b
+pub async fn update_user_details_v3(
     app_state: web::Data<AppState>,
-    _: JwtPayload,
-    query_page: web::Query<QueryPage>,
+    jwt_payload: ReqData<JwtPayload>,
+    item: web::Json<UpdateUser>,
 ) -> Result<HttpResponse, Error> {
-    db_user::query_users_v2(&app_state.pool, query_page.into_inner())
-        .await
-        .map(|v| Ok(Data(v).into()))?
+    db_user::update_user_details_b(&app_state.pool, jwt_payload.user_id, item.into_inner()).await?;
+
+    Ok(HttpResponse::Ok().content_type(ContentType::json()).body(OK_JSON))
 }
 
-pub async fn find_user(
+pub async fn user_details(
     app_state: web::Data<AppState>,
-    _: JwtPayload,
-    match_user: web::Query<MatchUser>,
+    jwt_payload: ReqData<JwtPayload>,
 ) -> Result<HttpResponse, Error> {
-    db_user::find_user(&app_state.pool, match_user.into_inner())
-        .await
-        .map(|v| Ok(Data(v).into()))?
+    let match_user = MatchUser { id: Some(jwt_payload.user_id), ..Default::default() };
+    db_user::find_user(&app_state.pool, match_user).await.map(|v| Ok(Data(v).into()))?
 }
 
-pub async fn update_user_status(
+pub async fn frozen_user_status(
     app_state: web::Data<AppState>,
-    _: JwtPayload,
-    uus: web::Query<UpdateUserStatus>,
+    jwt_payload: ReqData<JwtPayload>,
 ) -> Result<HttpResponse, Error> {
-    db_user::update_user_status(&app_state.pool, uus.into_inner())
-        .await
-        .map(|v| Ok(Data(v).into()))?
+    let uus = UpdateUserStatus { id: jwt_payload.user_id, status: Status::Frozen };
+
+    db_user::update_user_status(&app_state.pool, uus).await.map(|v| Ok(Data(v).into()))?
+    // TODO: disable token
 }

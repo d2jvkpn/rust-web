@@ -71,8 +71,8 @@ pub enum Error {
     AlreadyExists,
 
     // 7
-    #[error("permission denied")]
-    PermissionDenied,
+    #[error("permission denied: {0}")]
+    PermissionDenied(String),
 
     // 8
     #[error("resource exhausted")]
@@ -119,7 +119,7 @@ impl Error {
             Self::InvalidArgument(_) => 3,
             Self::NotFound(_) => 5,
             Self::AlreadyExists => 6,
-            Self::PermissionDenied => 7,
+            Self::PermissionDenied(_) => 7,
             Self::ResourceExhausted => 8,
             Self::Aborted => 10,
             Self::Internal(_) => 13,
@@ -140,7 +140,7 @@ impl ResponseError for Error {
             Self::InvalidArgument(_) => StatusCode::BAD_REQUEST,
             Self::NotFound(_) => StatusCode::NOT_FOUND,
             Self::AlreadyExists => StatusCode::NOT_ACCEPTABLE,
-            Self::PermissionDenied => StatusCode::FORBIDDEN,
+            Self::PermissionDenied(_) => StatusCode::FORBIDDEN,
             Self::ResourceExhausted => StatusCode::INTERNAL_SERVER_ERROR,
             Self::Aborted => StatusCode::NOT_ACCEPTABLE,
             Self::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,

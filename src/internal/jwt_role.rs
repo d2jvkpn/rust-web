@@ -1,5 +1,5 @@
 // https://actix.rs/docs/middleware/
-use crate::internal::settings::Config;
+use crate::{internal::settings::Config, middlewares::response, models::user::Role};
 use actix_web::{
     dev::{self, Service, ServiceRequest, ServiceResponse, Transform},
     HttpMessage,
@@ -8,7 +8,7 @@ use futures_util::future::LocalBoxFuture;
 use std::future::{ready, Ready};
 
 pub struct Auth {
-    pub value: i32,
+    pub value: Role,
 }
 
 impl<S, B> Transform<S, ServiceRequest> for Auth
@@ -24,13 +24,13 @@ where
     type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
-        ready(Ok(AuthMiddleware { value: self.value, service }))
+        ready(Ok(AuthMiddleware { value: self.value.clone(), service }))
     }
 }
 
 #[allow(dead_code)]
 pub struct AuthMiddleware<S> {
-    value: i32,
+    value: Role,
     service: S,
 }
 
@@ -53,6 +53,12 @@ where
             Ok(v) => v,
             Err(e) => return Box::pin(ready(Err(e.into()))),
         };
+
+        if payload.role != self.value {
+            let err = response::Error::PermissionDenied("you have no permission".into());
+            return Box::pin(ready(Err(err.into())));
+        }
+
         req.extensions_mut().insert(payload);
 
         let fut = self.service.call(req);

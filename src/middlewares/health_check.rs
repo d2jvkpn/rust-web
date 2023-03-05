@@ -10,10 +10,12 @@ pub async fn health_check() -> HttpResponse {
     HttpResponse::Ok().finish()
 }
 
+#[allow(dead_code)]
 pub async fn health_check_v1(request_id: ReqData<Uuid>) -> HttpResponse {
     HttpResponse::Ok().json(json!({"code": 0, "msg": "ok", "requestId": request_id.into_inner()}))
 }
 
+#[allow(dead_code)]
 pub async fn health_check_v2(app_state: Data<AppState>, request_id: ReqData<Uuid>) -> HttpResponse {
     let request_id = request_id.into_inner();
     let response_msg = &app_state.health_check_response;

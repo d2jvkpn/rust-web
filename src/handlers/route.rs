@@ -1,15 +1,14 @@
 use crate::{
-    internal::{auth_jwt, settings::Config},
-    middlewares::{blocker::Blocker, health_check, health_check_v1, health_check_v2},
+    internal::{jwt_role, settings::Config},
+    middlewares::{blocker::Blocker, health_check},
+    models::user::Role,
 };
 use actix_web::web::{get, post, scope, ServiceConfig};
 
 fn open(cfg: &mut ServiceConfig) {
     use super::user_open::*;
 
-    cfg.route("/healthz", get().to(health_check))
-        .route("healthz_v1", get().to(health_check_v1))
-        .route("/healthz_v2", get().to(health_check_v2));
+    cfg.route("/healthz", get().to(health_check));
 
     let open = scope("/api/open")
         .route("/user/register", post().to(post_new_user))
@@ -18,47 +17,32 @@ fn open(cfg: &mut ServiceConfig) {
     cfg.service(open);
 }
 
-pub fn auth_iter1(cfg: &mut ServiceConfig) {
-    use super::user_auth_01::*;
-
-    let auth = scope("/api/auth")
-        .route("/user/update/{user_id}", post().to(update_user_details))
-        .route("/user/update_v2a/{user_id}", post().to(update_user_details_v2a))
-        .route("/user/update_v2b", post().to(update_user_details_v2b))
-        .route("/user/query", get().to(query_users))
-        .route("/user/find", get().to(find_user))
-        .route("/user/update_status", get().to(update_user_status));
-
-    cfg.service(auth);
-}
-
-pub fn auth_iter2(cfg: &mut ServiceConfig) {
-    use super::user_auth_02::*;
-
-    let auth = scope("/api/auth")
-        .wrap(auth_jwt::Auth { value: 42 })
-        .route("/user/update/{user_id}", post().to(update_user_details))
-        .route("/user/update_v2a/{user_id}", post().to(update_user_details_v2a))
-        .route("/user/update_v2b", post().to(update_user_details_v2b))
-        .route("/user/query", get().to(query_users))
-        .route("/user/find", get().to(find_user))
-        .route("/user/update_status", get().to(update_user_status));
-
-    cfg.service(auth);
-}
-
-pub fn auth_iter3(cfg: &mut ServiceConfig) {
-    use super::user_auth_02::*;
+pub fn auth_user(cfg: &mut ServiceConfig) {
+    use super::user_auth::*;
 
     let auth = scope("/api/auth")
         .wrap(Blocker { block: |req| Ok(Config::jwt_verify(req)?) })
         .route("/user/update", post().to(update_user_details_v3))
-        .route("/user/details", get().to(user_details));
+        .route("/user/details", get().to(user_details))
+        .route("/user/frozon", post().to(frozen_user_status));
+
+    cfg.service(auth);
+}
+
+pub fn auth_admin(cfg: &mut ServiceConfig) {
+    use super::admin_auth::*;
+
+    let auth = scope("/api/auth")
+        .wrap(jwt_role::Auth { value: Role::Admin })
+        .wrap(Blocker { block: |req| Ok(Config::jwt_verify(req)?) })
+        .route("/admin/user/query", post().to(query_users))
+        .route("/admin/user/find", get().to(find_user))
+        .route("/admin/user/update_status", post().to(update_user_status));
 
     cfg.service(auth);
 }
 
 pub fn route(cfg: &mut ServiceConfig) {
     open(cfg);
-    auth_iter3(cfg);
+    auth_user(cfg);
 }

@@ -5,16 +5,17 @@ use serde::{Deserialize, Serialize};
 
 // user structure
 // sqlx type_name: enum type name in postgres, rename_all = "snake_case"
-#[derive(Deserialize, Serialize, Debug, Clone, sqlx::Type)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, sqlx::Type)]
 #[serde(rename_all = "camelCase")]
 #[sqlx(type_name = "user_status", rename_all = "lowercase")]
 pub enum Status {
     OK,
+    Frozen,
     Blocked,
     Deleted,
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone, sqlx::Type)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, sqlx::Type)]
 #[serde(rename_all = "camelCase")]
 #[sqlx(type_name = "user_role", rename_all = "snake_case")]
 pub enum Role {
@@ -108,6 +109,7 @@ impl MatchUser {
 // update user status query
 #[derive(Deserialize, Debug, Clone)]
 pub struct UpdateUserStatus {
+    #[serde(default = "User::default_id")]
     pub id: i32,
     pub status: Status,
 }

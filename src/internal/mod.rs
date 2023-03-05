@@ -1,7 +1,7 @@
 mod configuration;
 mod data;
 
-pub mod auth_jwt;
+pub mod jwt_role;
 pub mod settings;
 pub mod startup;
 
