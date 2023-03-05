@@ -326,7 +326,7 @@ pub async fn user_change_password(
 
     let password = hash(item.new_password, DEFAULT_COST).map_err(|_| Error::Unknown)?;
 
-    sqlx::query!(r#"UPDATE users SET password = $1 WHERE id = $2"#, password, user_id,)
+    sqlx::query!(r#"UPDATE users SET password = $1 WHERE id = $2"#, password, user_id)
         .execute(pool)
         .await?;
 
@@ -338,7 +338,7 @@ pub async fn reset_user_password(pool: &PgPool, item: ResetPassword) -> Result<(
 
     let password = hash(item.new_password, DEFAULT_COST).map_err(|_| Error::Unknown)?;
 
-    sqlx::query!(r#"UPDATE users SET password = $1 WHERE id = $2"#, password, item.user_id,)
+    sqlx::query!(r#"UPDATE users SET password = $1 WHERE id = $2"#, password, item.user_id)
         .execute(pool)
         .await?;
 
