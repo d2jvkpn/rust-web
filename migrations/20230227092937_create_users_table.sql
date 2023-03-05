@@ -1,5 +1,5 @@
 -- set enum types
-CREATE TYPE user_status AS ENUM('ok', 'blocked', 'deleted');
+CREATE TYPE user_status AS ENUM('ok', 'frozen', 'blocked', 'deleted');
 CREATE TYPE user_role AS ENUM('admin', 'leader', 'member');
 
 -- setup trigger
@@ -19,6 +19,7 @@ CREATE TABLE users (
   email       varchar(128)  DEFAULT NULL UNIQUE,
   name        varchar(32)   NOT NULL,
   birthday    char(10)      DEFAULT NULL,
+  password    varchar(64)   DEFAULT NULL,
   created_at  timestamptz   NOT NULL DEFAULT now(),
   updated_at  timestamptz   NOT NULL DEFAULT now()
 );
@@ -28,3 +29,7 @@ CREATE TABLE users (
 
 CREATE TRIGGER updated_at BEFORE INSERT OR UPDATE ON users
   FOR EACH ROW EXECUTE PROCEDURE updated_at();
+
+-- password: 12QWas!@
+INSERT INTO users (id, status, role, email, name, birthday, password) VALUES
+  (1, 'ok', 'admin', 'admin@users.noreply.github.com', 'admin', '2006-01-02', '$2b$12$9tK/XV7r4yXRQVm2jYshieKgr.CsFDVD7YxQRUt2FF5TBnIt7Phx.');

@@ -10,6 +10,7 @@ use actix_web::{
     HttpResponse,
 };
 
+#[allow(dead_code)]
 // POST /user/update/{user_id} + BODY, update_user_details_a
 pub async fn update_user_details(
     app_state: web::Data<AppState>,
@@ -21,6 +22,7 @@ pub async fn update_user_details(
         .map(|v| Ok(Data(v).into()))?
 }
 
+#[allow(dead_code)]
 // POST /user/update/{user_id} + BODY, update_user_details_b
 pub async fn update_user_details_v2a(
     app_state: web::Data<AppState>,
@@ -32,6 +34,7 @@ pub async fn update_user_details_v2a(
     Ok(HttpResponse::Ok().content_type(ContentType::json()).body(OK_JSON))
 }
 
+#[allow(dead_code)]
 // POST /user/update?user_id=1 + BODY, update_user_details_b
 pub async fn update_user_details_v2b(
     app_state: web::Data<AppState>,
@@ -70,5 +73,16 @@ pub async fn frozen_user_status(
     let uus = UpdateUserStatus { id: jwt_payload.user_id, status: Status::Frozen };
 
     db_user::update_user_status(&app_state.pool, uus).await.map(|v| Ok(Data(v).into()))?
+    // TODO: disable token
+}
+
+pub async fn user_change_password(
+    app_state: web::Data<AppState>,
+    jwt_payload: ReqData<JwtPayload>,
+    item: web::Json<ChangePassword>,
+) -> Result<HttpResponse, Error> {
+    db_user::user_change_password(&app_state.pool, jwt_payload.user_id, item.into_inner())
+        .await
+        .map(|v| Ok(Data(v).into()))?
     // TODO: disable token
 }

@@ -1,8 +1,6 @@
-#![allow(dead_code)]
-
-mod admin_auth;
+mod auth_admin;
+mod auth_user;
+mod open;
 mod route;
-mod user_auth;
-mod user_open;
 
 pub use route::*;

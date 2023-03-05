@@ -235,6 +235,26 @@ pub async fn update_user_status(pool: &PgPool, uus: UpdateUserStatus) -> Result<
     }
 }
 
+pub async fn update_user_role(pool: &PgPool, uus: UpdateUserRole) -> Result<(), Error> {
+    let err = match sqlx::query!(
+        "UPDATE users SET status = $1 WHERE id = $2 RETURNING id",
+        uus.role as Role,
+        uus.id,
+    )
+    .fetch_one(pool)
+    .await
+    {
+        Ok(_) => return Ok(()),
+        Err(e) => e,
+    };
+
+    if utils::pg_not_found(&err) {
+        Err(Error::NotFound("user not found".into()))
+    } else {
+        Err(err.into())
+    }
+}
+
 pub async fn user_login(pool: &PgPool, login: UserLogin) -> Result<UserAndToken, Error> {
     login.valid().map_err(|e| Error::InvalidArgument(e.into()))?;
 
@@ -248,28 +268,21 @@ pub async fn user_login(pool: &PgPool, login: UserLogin) -> Result<UserAndToken,
     }
     query.push(" LIMIT 1");
 
+    let err_msg = "user not found or incorrect password".to_string();
     let upassword: UserAndPassword = match query.build_query_as().fetch_one(pool).await {
         Ok(v) => v,
         Err(e) => {
             if utils::pg_not_found(&e) {
-                return Err(Error::NotFound("user not found".into()));
+                return Err(Error::NotFound(err_msg));
             } else {
                 return Err(e.into());
             };
         }
     };
 
-    match upassword.user.status {
-        Status::OK => {}
-        Status::Frozen => return Err(Error::PermissionDenied("your account is frozen".into())),
-        Status::Blocked => return Err(Error::PermissionDenied("your account is blocked".into())),
-        Status::Deleted => {
-            return Err(Error::PermissionDenied("this account is banned from logging in".into()))
-        }
-    }
-
+    upassword.user.status_ok().map_err(|e| Error::PermissionDenied(e.into()))?;
     if !verify(login.password, &upassword.password).map_err(|_| Error::Unknown)? {
-        return Err(Error::Unauthenticated("user not found or incorrect password".into()));
+        return Err(Error::NotFound(err_msg));
     }
 
     let playload = JwtPayload {
@@ -281,6 +294,55 @@ pub async fn user_login(pool: &PgPool, login: UserLogin) -> Result<UserAndToken,
     let token_value = Config::jwt_sign(playload)?;
 
     Ok(UserAndToken { user: upassword.user, token_name: "authorization".to_string(), token_value })
+}
+
+pub async fn user_change_password(
+    pool: &PgPool,
+    user_id: i32,
+    item: ChangePassword,
+) -> Result<(), Error> {
+    item.valid().map_err(|e| Error::InvalidArgument(e.into()))?;
+
+    let mut query = QueryBuilder::new(r#"SELECT * FROM users WHERE "#);
+    query.push("id = ");
+    query.push_bind(user_id);
+
+    let err_msg = "user not found or incorrect password".to_string();
+    let upassword: UserAndPassword = match query.build_query_as().fetch_one(pool).await {
+        Ok(v) => v,
+        Err(e) => {
+            if utils::pg_not_found(&e) {
+                return Err(Error::NotFound(err_msg));
+            } else {
+                return Err(e.into());
+            };
+        }
+    };
+
+    upassword.user.status_ok().map_err(|e| Error::PermissionDenied(e.into()))?;
+    if !verify(item.old_password, &upassword.password).map_err(|_| Error::Unknown)? {
+        return Err(Error::NotFound(err_msg));
+    }
+
+    let password = hash(item.new_password, DEFAULT_COST).map_err(|_| Error::Unknown)?;
+
+    sqlx::query!(r#"UPDATE users SET password = $1 WHERE id = $2"#, password, user_id,)
+        .execute(pool)
+        .await?;
+
+    Ok(())
+}
+
+pub async fn reset_user_password(pool: &PgPool, item: ResetPassword) -> Result<(), Error> {
+    item.valid().map_err(|e| Error::InvalidArgument(e.into()))?;
+
+    let password = hash(item.new_password, DEFAULT_COST).map_err(|_| Error::Unknown)?;
+
+    sqlx::query!(r#"UPDATE users SET password = $1 WHERE id = $2"#, password, item.user_id,)
+        .execute(pool)
+        .await?;
+
+    Ok(())
 }
 
 #[cfg(test)]

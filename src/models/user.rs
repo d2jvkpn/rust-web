@@ -48,6 +48,15 @@ impl User {
         update_value(&mut self.name, &mut item.name)
             || update_option(&mut self.birthday, &mut item.birthday)
     }
+
+    pub fn status_ok(&self) -> Result<(), &str> {
+        match self.status {
+            Status::OK => Ok(()),
+            Status::Frozen => Err("your account is frozen"),
+            Status::Blocked => Err("your account is blocked"),
+            Status::Deleted => Err("this account is banned from logging in"),
+        }
+    }
 }
 
 // create user query
@@ -90,6 +99,7 @@ impl CreateUser {
 
 // match user query
 #[derive(Deserialize, Debug, Clone, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct MatchUser {
     pub id: Option<i32>,
     pub phone: Option<String>,
@@ -108,14 +118,23 @@ impl MatchUser {
 
 // update user status query
 #[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateUserStatus {
-    #[serde(default = "User::default_id")]
     pub id: i32,
     pub status: Status,
 }
 
+// update user role query
+#[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateUserRole {
+    pub id: i32,
+    pub role: Role,
+}
+
 // user login and token
 #[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct UserLogin {
     pub phone: Option<String>,
     pub email: Option<String>,
@@ -141,6 +160,7 @@ pub struct UserAndPassword {
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct UserAndToken {
     pub user: User,
     pub token_name: String,
@@ -149,6 +169,7 @@ pub struct UserAndToken {
 
 // update user body
 #[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateUser {
     // pub phone: Option<String>,
     // pub email: Option<String>,
@@ -168,5 +189,38 @@ impl UpdateUser {
         }
 
         Ok(())
+    }
+}
+
+// update change password
+#[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ChangePassword {
+    pub old_password: String,
+    pub new_password: String,
+}
+
+impl ChangePassword {
+    pub fn valid(&self) -> Result<(), &str> {
+        valid_password(&self.old_password)?;
+        valid_password(&self.new_password)
+    }
+}
+
+// reset user password
+#[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ResetPassword {
+    pub user_id: i32,
+    pub new_password: String,
+}
+
+impl ResetPassword {
+    pub fn valid(&self) -> Result<(), &str> {
+        if self.user_id <= 0 {
+            return Err("invalid user id");
+        }
+
+        valid_password(&self.new_password)
     }
 }
