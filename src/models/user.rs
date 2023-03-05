@@ -202,6 +202,10 @@ pub struct ChangePassword {
 
 impl ChangePassword {
     pub fn valid(&self) -> Result<(), &str> {
+        if self.old_password == self.new_password {
+            return Err("the new password is the same as the old password");
+        }
+
         valid_password(&self.old_password)?;
         valid_password(&self.new_password)
     }
