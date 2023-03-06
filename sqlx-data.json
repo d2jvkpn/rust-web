@@ -188,6 +188,36 @@
     },
     "query": "INSERT INTO users\n          (status, role, phone, email, name, birthday, password)\n        VALUES ($1, $2, $3, $4, $5, $6, $7)\n        RETURNING\n          id, status AS \"status: Status\", role AS \"role: Role\",\n          phone, email, name, birthday, created_at, updated_at"
   },
+  "a9f94a8b75179516e537c30e480f0928e5da59c430081e1f5f0d2123edddf9cc": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Int4",
+          "Int8",
+          "Int8",
+          "Inet",
+          {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "web",
+                  "android",
+                  "ios",
+                  "unknown"
+                ]
+              },
+              "name": "platform"
+            }
+          },
+          "Varchar"
+        ]
+      }
+    },
+    "query": "INSERT INTO tokens\n          (token_id, user_id, iat, exp, ip, platform, device, status)\n        VALUES ($1, $2, $3, $4, $5, $6, $7, true)"
+  },
   "aa235a0c7690dca34a4d6486f185cd2dae95cb16f335aba88d79135e96ef54d2": {
     "describe": {
       "columns": [
