@@ -1,9 +1,9 @@
-use super::{admin::BCRYPT_COST, token::JwtPayload};
+use super::{admin::BCRYPT_COST, token::save_token};
 use crate::{
     internal::settings::Settings,
     middlewares::response::Error,
     models::{
-        token::{Platform, Token},
+        token::{JwtPayload, Platform, Token},
         user::*,
     },
     utils,
@@ -190,7 +190,7 @@ pub async fn user_login(
     // TODO: use a message queue or a channel instead
     let mut token_record: Token = playload.into();
     (token_record.ip, token_record.device) = (ip, None);
-    token_record.persist(pool).await?;
+    save_token(pool, token_record).await?;
 
     Ok(UserAndToken { user: upassword.user, token_name: "authorization".to_string(), token_value })
 }

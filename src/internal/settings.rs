@@ -1,5 +1,5 @@
 use super::configuration::Configuration;
-use crate::{db::token::JwtPayload, middlewares::response::Error};
+use crate::{middlewares::response::Error, models::token::JwtPayload};
 use actix_web::{dev::Payload, http::header::AUTHORIZATION, FromRequest, HttpMessage, HttpRequest};
 use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};

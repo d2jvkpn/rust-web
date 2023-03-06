@@ -1,10 +1,9 @@
 use crate::{
     db::admin as db_admin,
-    db::token::JwtPayload,
     db::user as db_user,
     internal::AppState,
     middlewares::response::{Data, Error, OK_JSON},
-    models::user::*,
+    models::{token::JwtPayload, user::*},
 };
 use actix_web::{
     http::header::ContentType,
