@@ -4,15 +4,19 @@ use crate::{
     models::user::*,
     utils,
 };
-use bcrypt::{hash, verify, DEFAULT_COST};
+use bcrypt::DEFAULT_COST; // hash and verify are blocking tasks, use utils::bcrypt_hash and utils::bcrypt_verify instead
 use sqlx::{PgPool, QueryBuilder};
 use std::time::Duration;
+use uuid::Uuid;
+
+const BCRYPT_COST: u32 = DEFAULT_COST;
 
 pub async fn post_new_user(pool: &PgPool, item: CreateUser) -> Result<User, Error> {
     item.valid().map_err(|e| Error::InvalidArgument(e.to_string()))?;
 
-    let password = hash(item.password, DEFAULT_COST).map_err(|_| Error::Unknown)?;
-    dbg!(&password);
+    let password =
+        utils::bcrypt_hash(item.password, BCRYPT_COST).await.map_err(|_| Error::Unknown)?;
+    // dbg!(&password);
 
     // TODO: supporting enum convert between postgresql and rust in sqlx
     let err = match sqlx::query_as!(
@@ -283,14 +287,19 @@ pub async fn user_login(pool: &PgPool, login: UserLogin) -> Result<UserAndToken,
     };
 
     upassword.user.status_ok().map_err(|e| Error::PermissionDenied(e.into()))?;
-    if !verify(login.password, &upassword.password).map_err(|_| Error::Unknown)? {
+
+    let m = utils::bcrypt_verify(login.password, upassword.password)
+        .await
+        .map_err(|_| Error::Unknown)?;
+    if !m {
         return Err(Error::NotFound(err_msg));
     }
 
     let playload = JwtPayload {
-        user_id: upassword.user.id,
         iat: 0,
         exp: 0,
+        token_id: Uuid::new_v4(),
+        user_id: upassword.user.id,
         role: upassword.user.role.clone(),
     };
     let token_value = Settings::jwt_sign(playload)?;
@@ -322,11 +331,15 @@ pub async fn user_change_password(
     };
 
     upassword.user.status_ok().map_err(|e| Error::PermissionDenied(e.into()))?;
-    if !verify(item.old_password, &upassword.password).map_err(|_| Error::Unknown)? {
+    let m = utils::bcrypt_verify(item.old_password, upassword.password)
+        .await
+        .map_err(|_| Error::Unknown)?;
+    if !m {
         return Err(Error::NotFound(err_msg));
     }
 
-    let password = hash(item.new_password, DEFAULT_COST).map_err(|_| Error::Unknown)?;
+    let password =
+        utils::bcrypt_hash(item.new_password, BCRYPT_COST).await.map_err(|_| Error::Unknown)?;
 
     sqlx::query!(r#"UPDATE users SET password = $1 WHERE id = $2"#, password, user_id)
         .execute(pool)
@@ -338,7 +351,8 @@ pub async fn user_change_password(
 pub async fn reset_user_password(pool: &PgPool, item: ResetPassword) -> Result<(), Error> {
     item.valid().map_err(|e| Error::InvalidArgument(e.into()))?;
 
-    let password = hash(item.new_password, DEFAULT_COST).map_err(|_| Error::Unknown)?;
+    let password =
+        utils::bcrypt_hash(item.new_password, BCRYPT_COST).await.map_err(|_| Error::Unknown)?;
 
     sqlx::query!(r#"UPDATE users SET password = $1 WHERE id = $2"#, password, item.user_id)
         .execute(pool)
@@ -350,29 +364,4 @@ pub async fn reset_user_password(pool: &PgPool, item: ResetPassword) -> Result<(
 pub async fn user_logout(_pool: &PgPool) -> Result<(), Error> {
     // TODO
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use bcrypt::{hash, verify, DEFAULT_COST};
-
-    #[test]
-    fn t_bcrypt() {
-        let password = hash("123456", DEFAULT_COST).unwrap();
-        let m = verify("123456", &password).unwrap();
-        assert!(m);
-
-        let m = verify("123456aaa", &password).unwrap();
-        assert!(!m);
-
-        let password = hash("12QWas!@", DEFAULT_COST).unwrap();
-        dbg!(&password);
-        let m = verify("12QWas!@", &password).unwrap();
-        assert!(m);
-
-        let m = verify("12QWas!@", "$2b$12$QnMtKFokkQbxZ8vATa2PU.b2IkTPd8QDumYdgpWsMGNKeX5IOONUW")
-            .unwrap();
-
-        assert!(m);
-    }
 }

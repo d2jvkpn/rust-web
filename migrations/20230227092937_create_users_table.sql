@@ -27,7 +27,8 @@ CREATE TABLE users (
 -- ALTER TABLE users ADD CONSTRAINT name UNIQUE(name);
 -- \d users
 
-CREATE TRIGGER updated_at BEFORE INSERT OR UPDATE ON users
+--  BEFORE INSERT OR UPDATE ON
+CREATE TRIGGER users_updated_at BEFORE UPDATE ON users
   FOR EACH ROW EXECUTE PROCEDURE updated_at();
 
 -- password: 12QWas!@

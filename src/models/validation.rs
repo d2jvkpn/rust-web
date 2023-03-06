@@ -52,7 +52,7 @@ pub fn valid_password(password: &str) -> Result<(), &str> {
         return Err("the length of password exceeds 32");
     }
 
-    let special_chars = "!@#$%^&*";
+    let special_chars = "!@#$%^&*()";
 
     let (mut digits, mut specials) = (0, 0);
     let (mut lowers, mut uppers) = (0, 0);

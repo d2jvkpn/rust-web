@@ -29,6 +29,9 @@ pub struct Database {
 
 impl Default for Configuration {
     fn default() -> Self {
+        // let mut file_path = env!("CARGO_MANIFEST_DIR").to_string();
+        // file_path.push_str("/configs/local.yaml");
+
         Self {
             version: env!("CARGO_PKG_VERSION").to_string(),
             file_path: "".to_string(),

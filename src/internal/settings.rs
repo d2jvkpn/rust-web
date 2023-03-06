@@ -5,50 +5,62 @@ use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use sqlx::PgPool;
 use std::future::{ready, Ready};
+use uuid::Uuid;
 
-#[allow(dead_code)]
 pub struct Settings {
     configuration: Configuration,
     pool: PgPool,
+    jwt_key: Vec<u8>,
 }
 
 static OC_SETTINGS: OnceCell<Settings> = OnceCell::new();
 
-#[allow(dead_code)]
 impl Settings {
     pub fn set(configuration: Configuration, pool: PgPool) -> Result<(), &'static str> {
+        let mut hasher = Sha256::new();
+        hasher.update(configuration.jwt.key.as_bytes());
+        let result = hasher.finalize();
+
+        // let strs: Vec<String> = result.iter().map(|b| format!("{:02x}", b)).collect();
+        // let jwt_key = strs.join("");
+
         // convert Result<(), Config>
-        OC_SETTINGS.set(Self { configuration, pool }).map_err(|_| "can't set configuration")
+        OC_SETTINGS
+            .set(Self { configuration, pool, jwt_key: result.to_vec() })
+            .map_err(|_| "can't set configuration")
     }
 
+    #[allow(dead_code)]
     fn pool() -> Option<&'static PgPool> {
         let settings = OC_SETTINGS.get()?;
         Some(&settings.pool)
     }
 
+    #[allow(dead_code)]
     fn configuration() -> Option<&'static Configuration> {
         let settings = OC_SETTINGS.get()?;
         Some(&settings.configuration)
     }
 
-    // pub fn jwt_header() -> &'static str {
-    //    "authorization"
-    // }
-    // pub fn jwt_header() -> HeaderName {
-    //     header::AUTHORIZATION
-    // }
+    // not use settings.configuration.jwt.key as jwt_key
+    fn jwt() -> Option<(&'static [u8], u32)> {
+        let settings = OC_SETTINGS.get()?;
+        // Some((settings.jwt_key.as_bytes(), settings.configuration.jwt.alive_mins))
+        Some((&settings.jwt_key, settings.configuration.jwt.alive_mins))
+    }
 
     pub fn jwt_sign(mut data: JwtPayload) -> Result<String, actix_web::Error> {
-        let config =
-            Settings::configuration().ok_or(Error::Internal("configuration is unset".into()))?;
+        let (jwt_key, alive_mins) =
+            Self::jwt().ok_or(Error::Internal("configuration is unset".into()))?;
 
         let now = Utc::now();
         data.iat = now.timestamp();
-        data.exp = (now + Duration::minutes(config.jwt.alive_mins as i64)).timestamp();
+        data.exp = (now + Duration::minutes(alive_mins as i64)).timestamp();
 
-        let key = EncodingKey::from_secret(config.jwt.key.as_ref());
+        let key = EncodingKey::from_secret(jwt_key);
 
         let token =
             encode(&Header::default(), &data, &key).map_err(|e| Error::Internal(e.to_string()))?;
@@ -57,10 +69,9 @@ impl Settings {
     }
 
     pub fn jwt_verify(req: &HttpRequest) -> Result<JwtPayload, Error> {
-        let config =
-            Self::configuration().ok_or(Error::Internal("Configuration is unset".into()))?;
+        let (jwt_key, _) = Self::jwt().ok_or(Error::Internal("configuration is unset".into()))?;
 
-        let key = DecodingKey::from_secret(config.jwt.key.as_ref());
+        let key = DecodingKey::from_secret(jwt_key);
         let prefix = "Bearer ";
 
         let msg = "not logged in, please provide token".to_string();
@@ -91,6 +102,7 @@ pub struct JwtPayload {
     // pub sub: String, // subject
     pub iat: i64, // issued at
     pub exp: i64, // expiry
+    pub token_id: Uuid,
     pub user_id: i32,
     pub role: Role,
 }
@@ -107,5 +119,28 @@ impl FromRequest for JwtPayload {
 
         req.extensions_mut().insert(jwt_payload.clone());
         ready(Ok(jwt_payload))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use hex_literal::hex;
+    use sha2::{Digest, Sha256};
+
+    // echo -n "hello world" | sha256sum | awk '{print $1}'
+    #[test]
+    fn t_sha2() {
+        let mut hasher = Sha256::new();
+        hasher.update(b"hello world");
+
+        let result = hasher.finalize();
+
+        let strs: Vec<String> = result.iter().map(|b| format!("{:02x}", b)).collect();
+        println!("~~~ {}", strs.join(""));
+
+        assert_eq!(
+            result[..],
+            hex!("b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9")[..],
+        );
     }
 }

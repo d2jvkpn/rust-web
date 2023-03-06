@@ -1,5 +1,5 @@
 use anyhow::Error;
-use log::LevelFilter; // debug, error, info, trace, warn
+// use log::LevelFilter; // debug, error, info, trace, warn
 use log4rs::{
     append::console::{ConsoleAppender, Target},
     append::file::FileAppender,
@@ -30,6 +30,7 @@ pub fn init_logger(file_path: &str, level: log::LevelFilter, console: bool) -> a
 
     // Log Trace level output to file where trace is the default level
     // and the programmatically specified level to stderr.
+    // LevelFilter::Trace
     let config = if console {
         Config::builder()
             .appender(
@@ -42,16 +43,16 @@ pub fn init_logger(file_path: &str, level: log::LevelFilter, console: bool) -> a
                     .filter(Box::new(ThresholdFilter::new(level)))
                     .build("stderr", Box::new(stderr)),
             )
-            .build(Root::builder().appender("logfile").appender("stderr").build(LevelFilter::Trace))
+            .build(Root::builder().appender("logfile").appender("stderr").build(level))
             .map_err(|e| Error::new(e).context("log4rs config builder"))?
     } else {
         Config::builder()
             .appender(
                 Appender::builder()
                     .filter(Box::new(ThresholdFilter::new(level)))
-                    .build("stderr", Box::new(stderr)),
+                    .build("logfile", Box::new(logfile)),
             )
-            .build(Root::builder().appender("logfile").appender("stderr").build(LevelFilter::Trace))
+            .build(Root::builder().appender("logfile").build(level))
             .map_err(|e| Error::new(e).context("log4rs config builder"))?
     };
 

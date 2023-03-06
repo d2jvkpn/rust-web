@@ -19,3 +19,6 @@ curl -i -X POST -H "content-type: application/json" -H "Authorization: $token" \
 curl -i -X POST -H "content-type: application/json" -H "Authorization: $token" \
   "$address/api/auth/user/change_password" \
   -d '{"oldPassword": "12QWas!@", "newPassword": "12qwAS!@"}'
+
+curl -i -X POST -H "content-type: application/json" "$address/api/open/user/login" \
+  -d '{"email": "admin@users.noreply.github.com", "password": "12qwAS!@"}'
