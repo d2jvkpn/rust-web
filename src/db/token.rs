@@ -1,9 +1,7 @@
 use crate::{
     middlewares::response,
-    models::{
-        token::{Platform, Token},
-        user::Role,
-    },
+    models::token::{Platform, Token},
+    models::user::Role,
     utils::socket_addr_to_ip_network,
 };
 use serde::{Deserialize, Serialize};
