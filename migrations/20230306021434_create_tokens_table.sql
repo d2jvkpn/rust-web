@@ -3,9 +3,9 @@ CREATE TYPE platform AS ENUM('web', 'android', 'ios', 'unknown');
 
 CREATE TABLE tokens (
   token_id    uuid         DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id     integer      NOT NULL,
-  iat         integer      NOT NULL,
-  exp         integer      NOT NULL,
+  user_id     int          NOT NULL,
+  iat         bigint       NOT NULL,
+  exp         bigint       NOT NULL,
   ip          inet         DEFAULT NULL,
   platform    platform     DEFAULT 'unknown',
   device      varchar(32)  DEFAULT NULL,

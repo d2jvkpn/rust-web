@@ -1,6 +1,8 @@
 use crate::{
+    db::admin as db_admin,
+    db::token::JwtPayload,
     db::user as db_user,
-    internal::{settings::JwtPayload, AppState},
+    internal::AppState,
     middlewares::response::{Data, Error, OK_JSON},
     models::user::*,
 };
@@ -63,7 +65,7 @@ pub async fn user_details(
     jwt: ReqData<JwtPayload>,
 ) -> Result<HttpResponse, Error> {
     let match_user = MatchUser { id: Some(jwt.user_id), ..Default::default() };
-    db_user::find_user(&app_state.pool, match_user).await.map(|v| Ok(Data(v).into()))?
+    db_admin::find_user(&app_state.pool, match_user).await.map(|v| Ok(Data(v).into()))?
 }
 
 pub async fn frozen_user_status(
@@ -72,7 +74,7 @@ pub async fn frozen_user_status(
 ) -> Result<HttpResponse, Error> {
     let uus = UpdateUserStatus { id: jwt.user_id, status: Status::Frozen };
 
-    db_user::update_user_status(&app_state.pool, uus).await.map(|v| Ok(Data(v).into()))?
+    db_admin::update_user_status(&app_state.pool, uus).await.map(|v| Ok(Data(v).into()))?
     // TODO: disable token
 }
 
