@@ -1,12 +1,12 @@
 use crate::{
     internal::settings::{JwtPayload, Settings},
     middlewares::{response::Error, QueryPage, QueryResult},
-    models::user::*,
+    models::{token::Platform, user::*},
     utils,
 };
 use bcrypt::DEFAULT_COST; // hash and verify are blocking tasks, use utils::bcrypt_hash and utils::bcrypt_verify instead
 use sqlx::{PgPool, QueryBuilder};
-use std::time::Duration;
+use std::{net::SocketAddr, time::Duration};
 use uuid::Uuid;
 
 const BCRYPT_COST: u32 = DEFAULT_COST;
@@ -260,7 +260,12 @@ pub async fn update_user_role(pool: &PgPool, uus: UpdateUserRole) -> Result<(), 
     }
 }
 
-pub async fn user_login(pool: &PgPool, login: UserLogin) -> Result<UserAndToken, Error> {
+pub async fn user_login(
+    pool: &PgPool,
+    login: UserLogin,
+    ip: Option<SocketAddr>,
+    platform: Platform,
+) -> Result<UserAndToken, Error> {
     login.valid().map_err(|e| Error::InvalidArgument(e.into()))?;
 
     let mut query = QueryBuilder::new(r#"SELECT * FROM users WHERE "#);
@@ -301,6 +306,8 @@ pub async fn user_login(pool: &PgPool, login: UserLogin) -> Result<UserAndToken,
         token_id: Uuid::new_v4(),
         user_id: upassword.user.id,
         role: upassword.user.role.clone(),
+        platform,
+        ip,
     };
     let token_value = Settings::jwt_sign(playload)?;
 

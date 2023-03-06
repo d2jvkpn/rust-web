@@ -1,5 +1,8 @@
 use super::configuration::Configuration;
-use crate::{middlewares::response::Error, models::user::Role};
+use crate::{
+    middlewares::response::Error,
+    models::{token::Platform, user::Role},
+};
 use actix_web::{dev::Payload, http::header::AUTHORIZATION, FromRequest, HttpMessage, HttpRequest};
 use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
@@ -7,7 +10,10 @@ use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use sqlx::PgPool;
-use std::future::{ready, Ready};
+use std::{
+    future::{ready, Ready},
+    net::SocketAddr,
+};
 use uuid::Uuid;
 
 pub struct Settings {
@@ -105,6 +111,10 @@ pub struct JwtPayload {
     pub token_id: Uuid,
     pub user_id: i32,
     pub role: Role,
+    pub platform: Platform,
+
+    #[serde(skip)]
+    pub ip: Option<SocketAddr>,
 }
 
 impl FromRequest for JwtPayload {

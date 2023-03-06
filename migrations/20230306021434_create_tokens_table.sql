@@ -6,14 +6,15 @@ CREATE TABLE tokens (
   user_id     integer      NOT NULL,
   iat         integer      NOT NULL,
   exp         integer      NOT NULL,
-  ip          inet         NOT NULL,
+  ip          inet         DEFAULT NULL,
   platform    platform     DEFAULT 'unknown',
   device      varchar(32)  DEFAULT NULL,
   status      boolean      DEFAULT true,
   updated_at  timestamptz  DEFAULT '0001-01-01 00:00:00Z'
 );
 
-CREATE TRIGGER tokens_updated_at BEFORE UPDATE ON tokens FOR EACH ROW EXECUTE PROCEDURE updated_at();
+CREATE TRIGGER tokens_updated_at BEFORE UPDATE ON tokens
+  FOR EACH ROW EXECUTE PROCEDURE updated_at();
 -- 
 
 CREATE INDEX user_tokens_key ON tokens (user_id, exp DESC, status);

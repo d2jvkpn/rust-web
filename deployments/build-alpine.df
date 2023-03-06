@@ -5,7 +5,7 @@ ENV SQLX_OFFLINE true
 WORKDIR /opt/rust-web
 
 RUN mkdir -p /root/.cargo
-ADD deployments/cargo_config /root/.cargo/config
+ADD deployments/cargo_config.toml /root/.cargo/config
 ADD Cargo.lock Cargo.toml sqlx-data.json ./
 COPY src ./src
 

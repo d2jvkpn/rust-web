@@ -31,7 +31,9 @@ pub struct User {
     pub id: i32,
     pub status: Status,
     pub role: Role,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub phone: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
     pub name: String,
     pub birthday: Option<String>,

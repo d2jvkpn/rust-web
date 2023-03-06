@@ -10,7 +10,7 @@ address=http://localhost:3000
 curl -i -X POST -H "content-type: application/json" "$address/api/open/user/login" \
   -d '{"email": "admin@users.noreply.github.com", "password": "12QWas!@"}'
 
-token="Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2NzgwOTg3MjcsImV4cCI6MTY3ODEwMDUyNywidG9rZW5JZCI6ImM2ZGExNDU4LTUwMDYtNDM2Ny05MWE1LTZlZDA4NTQ0MWU1ZiIsInVzZXJJZCI6MSwicm9sZSI6ImFkbWluIn0.dl0fY8CCBHvY3BgBrlOGwFsElbdAjZ-xDo_ngYlpVYw"
+token="Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2NzgxMDY4MzIsImV4cCI6MTY3ODEwODYzMiwidG9rZW5JZCI6ImQ5MmNiZGUwLTEwZDctNDJkMi1iOTg3LTEwZDQxZmJlY2ZjYSIsInVzZXJJZCI6MSwicm9sZSI6ImFkbWluIiwicGxhdGZvcm0iOiJ1bmtub3duIn0.MJawh8Ju34OQ0dur3TRBRTOYh6HDh-IGFBrb-moLKYo"
 
 curl -i -X POST -H "content-type: application/json" -H "Authorization: $token" \
   "$address/api/auth/user/change_password" \
