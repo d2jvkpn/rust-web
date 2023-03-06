@@ -50,7 +50,7 @@ impl Settings {
         Some((&settings.jwt_key, settings.configuration.jwt.alive_mins))
     }
 
-    pub fn jwt_sign(mut data: JwtPayload) -> Result<String, actix_web::Error> {
+    pub fn jwt_sign(data: &mut JwtPayload) -> Result<String, actix_web::Error> {
         let (jwt_key, alive_mins) =
             Self::jwt().ok_or(Error::Internal("configuration is unset".into()))?;
 

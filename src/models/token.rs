@@ -41,7 +41,7 @@ pub struct Token {
     pub platform: Platform,
     pub device: Option<String>,
     pub status: bool,
-    // pub updated_at: DateTime<Utc>,
+    // pub updated_at: Option<DateTime<Utc>>,
 }
 
 #[cfg(tes)]

@@ -10,7 +10,7 @@ CREATE TABLE tokens (
   platform    platform     DEFAULT 'unknown',
   device      varchar(32)  DEFAULT NULL,
   status      boolean      DEFAULT true,
-  updated_at  timestamptz  DEFAULT '0001-01-01 00:00:00Z'
+  updated_at  timestamptz  DEFAULT NULL
 );
 
 CREATE TRIGGER tokens_updated_at BEFORE UPDATE ON tokens

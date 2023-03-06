@@ -2,7 +2,10 @@ use super::{admin::BCRYPT_COST, token::JwtPayload};
 use crate::{
     internal::settings::Settings,
     middlewares::response::Error,
-    models::{token::Platform, user::*},
+    models::{
+        token::{Platform, Token},
+        user::*,
+    },
     utils,
 };
 use sqlx::{PgPool, QueryBuilder};
@@ -136,7 +139,7 @@ pub async fn update_user_details_b(
 pub async fn user_login(
     pool: &PgPool,
     login: UserLogin,
-    _ip: Option<SocketAddr>,
+    ip: Option<SocketAddr>,
     platform: Platform,
 ) -> Result<UserAndToken, Error> {
     login.valid().map_err(|e| Error::InvalidArgument(e.into()))?;
@@ -174,7 +177,7 @@ pub async fn user_login(
         return Err(Error::NotFound(err_msg));
     }
 
-    let playload = JwtPayload {
+    let mut playload = JwtPayload {
         iat: 0,
         exp: 0,
         token_id: Uuid::new_v4(),
@@ -182,7 +185,12 @@ pub async fn user_login(
         role: upassword.user.role.clone(),
         platform,
     };
-    let token_value = Settings::jwt_sign(playload)?;
+    let token_value = Settings::jwt_sign(&mut playload)?;
+
+    // TODO: use a message queue or a channel instead
+    let mut token_record: Token = playload.into();
+    (token_record.ip, token_record.device) = (ip, None);
+    token_record.persist(pool).await?;
 
     Ok(UserAndToken { user: upassword.user, token_name: "authorization".to_string(), token_value })
 }
