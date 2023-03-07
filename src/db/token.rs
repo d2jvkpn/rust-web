@@ -1,13 +1,13 @@
 use crate::{
-    middlewares::response,
+    middlewares::response::Error,
     models::token::{Platform, Token},
     utils::{self, socket_addr_to_ip_network},
 };
 use chrono::Utc;
-use sqlx::{error::Error as SQLxError, types::ipnetwork::IpNetwork, PgPool, QueryBuilder, Row};
+use sqlx::{types::ipnetwork::IpNetwork, PgPool, QueryBuilder, Row};
 use uuid::Uuid;
 
-pub async fn save_token(pool: &PgPool, token: Token) -> Result<(), response::Error> {
+pub async fn save_token(pool: &PgPool, token: Token) -> Result<(), Error> {
     let ip_addr: Option<IpNetwork> = match &token.ip {
         None => None,
         Some(v) => socket_addr_to_ip_network(v),
@@ -32,17 +32,19 @@ pub async fn save_token(pool: &PgPool, token: Token) -> Result<(), response::Err
 }
 
 // TODO: use a message queue or in memory cache instead
-pub async fn disable_curent_token(pool: &PgPool, token_id: Uuid) {
+pub async fn disable_curent_token(pool: &PgPool, token_id: Uuid) -> Result<(), Error> {
     let _ = sqlx::query!(r#"UPDATE tokens SET status = false WHERE token_id = $1"#, token_id)
         .execute(pool)
-        .await;
+        .await?;
+
+    Ok(())
 }
 
 pub async fn disable_user_tokens(
     pool: &PgPool,
     user_id: i32,
     platform: Option<Platform>,
-) -> Result<Vec<Uuid>, SQLxError> {
+) -> Result<Vec<Uuid>, Error> {
     let exp = Utc::now().timestamp();
     /*
     let token_ids: Vec<Uuid> = match sqlx::query!(
@@ -79,7 +81,7 @@ pub async fn disable_user_tokens(
 }
 
 // TODO: use in memory cache instead
-pub async fn check_token_in_table(pool: &PgPool, token_id: Uuid) -> Result<(), response::Error> {
+pub async fn check_token_in_table(pool: &PgPool, token_id: Uuid) -> Result<(), Error> {
     let err = match sqlx::query!(r#"SELECT COUNT(1) FROM tokens WHERE token_id = $1"#, token_id)
         .fetch_one(pool)
         .await
@@ -89,8 +91,8 @@ pub async fn check_token_in_table(pool: &PgPool, token_id: Uuid) -> Result<(), r
     };
 
     if utils::pg_not_found(&err) {
-        Err(response::Error::Unauthenticated("can't verify token, relogin required".to_string()))
+        Err(Error::Unauthenticated("can't verify token, relogin required".to_string()))
     } else {
-        Err(response::Error::Internal(err.to_string()))
+        Err(Error::Internal(err.to_string()))
     }
 }

@@ -74,7 +74,7 @@ pub async fn frozen_user_status(
 ) -> Result<HttpResponse, Error> {
     let uus = UpdateUserStatus { user_id: jwt.user_id, status: Status::Frozen };
 
-    disable_curent_token(&app_state.pool, jwt.token_id).await;
+    disable_curent_token(&app_state.pool, jwt.token_id).await?;
 
     db_admin::update_user_status(&app_state.pool, uus).await.map(|v| Ok(Data(v).into()))?
 }
@@ -84,7 +84,7 @@ pub async fn user_change_password(
     jwt: ReqData<JwtPayload>,
     item: web::Json<ChangePassword>,
 ) -> Result<HttpResponse, Error> {
-    disable_curent_token(&app_state.pool, jwt.token_id).await;
+    disable_curent_token(&app_state.pool, jwt.token_id).await?;
 
     db_user::user_change_password(&app_state.pool, jwt.user_id, item.into_inner())
         .await
@@ -95,7 +95,7 @@ pub async fn user_logout(
     app_state: web::Data<AppState>,
     jwt: ReqData<JwtPayload>,
 ) -> Result<HttpResponse, Error> {
-    disable_curent_token(&app_state.pool, jwt.token_id).await;
+    disable_curent_token(&app_state.pool, jwt.token_id).await?;
 
     db_user::user_logout(&app_state.pool).await.map(|v| Ok(Data(v).into()))?
 }
