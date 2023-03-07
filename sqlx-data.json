@@ -55,6 +55,38 @@
     },
     "query": "UPDATE users SET status = $1 WHERE id = $2 RETURNING id"
   },
+  "4eb1da360a1dd63ba54ffb3dbad15d2ecb30d30bed97b2718add146c3d4f2800": {
+    "describe": {
+      "columns": [
+        {
+          "name": "count",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "SELECT COUNT(1) FROM tokens WHERE token_id = $1"
+  },
+  "602d9c4a75662e6eeb69a07970697e3fe2311e35b649e8b7b05c8d3c9a45d0df": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "UPDATE tokens SET status = false WHERE token_id = $1"
+  },
   "7332fbdcce19ebfd457d73302777c7a22f9fbe480a07ebe55c2fca689725d4da": {
     "describe": {
       "columns": [],
