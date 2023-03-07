@@ -1,5 +1,5 @@
 use crate::{
-    internal::{jwt_role, settings::Settings},
+    internal::{auth_role, settings::Settings},
     middlewares::{blocker::Blocker, health_check},
     models::user::Role,
 };
@@ -34,7 +34,7 @@ pub fn auth_user(cfg: &mut ServiceConfig) {
 pub fn auth_leader(cfg: &mut ServiceConfig) {
     // use super::auth_leader::*;
 
-    let group = scope("/api/auth/leader").wrap(jwt_role::Auth { value: Role::Leader });
+    let group = scope("/api/auth/leader").wrap(auth_role::Auth { value: Role::Leader });
 
     cfg.service(group);
 }
@@ -43,7 +43,7 @@ pub fn auth_admin(cfg: &mut ServiceConfig) {
     use super::auth_admin::*;
 
     let group_user = scope("/api/auth/admin/user")
-        .wrap(jwt_role::Auth { value: Role::Admin })
+        .wrap(auth_role::Auth { value: Role::Admin })
         .route("/query", post().to(query_users))
         .route("/find", get().to(find_user))
         .route("/update_status", post().to(update_user_status))
