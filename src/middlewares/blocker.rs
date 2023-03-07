@@ -46,6 +46,7 @@ where
     dev::forward_ready!(service);
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
+        // !! insertion codes here: Handle_ServiceRequest_Before
         let item = match (self.block)(req.request()) {
             Ok(v) => v,
             Err(e) => return Box::pin(ready(Err(e))),
@@ -54,8 +55,14 @@ where
 
         let fut = self.service.call(req);
         Box::pin(async move {
-            let res = fut.await?;
-            Ok(res)
+            let result = fut.await;
+            // !! insertion codes here: Handle_ServiceRequest_After, Handle_Error
+            // result: Result<ServiceRequest<B>, actix_web::Error>
+            // https://docs.rs/actix-web/latest/actix_web/dev/struct.ServiceResponse.html
+            // https://docs.rs/actix-web/4.3.1/actix_web/error/struct.Error.html
+
+            // HttpResponse.extensions().get::<T>()?
+            result
         })
     }
 }

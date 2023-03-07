@@ -1,5 +1,24 @@
 use std::{io, thread};
 
+#[macro_export]
+macro_rules! func {
+    () => {{
+        fn f() {}
+        fn type_name_of<T>(_: T) -> &'static str {
+            std::any::type_name::<T>()
+        }
+
+        let caller = std::panic::Location::caller();
+        let name = type_name_of(f);
+        let list: Vec<&str> = name.split("::").collect();
+        // println!("??? {:?}", list);
+        let length = list.len();
+        let idx = if list[length - 2] == "{{closure}}" { length - 3 } else { length - 2 };
+
+        format!("{}:{}:{}", caller.file(), caller.line(), list[idx]).as_str()
+    }};
+}
+
 pub fn number_of_threads() -> io::Result<usize> {
     Ok(thread::available_parallelism()?.get())
 }

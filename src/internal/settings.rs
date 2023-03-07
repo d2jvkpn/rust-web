@@ -3,9 +3,13 @@ use crate::{
     db::token::check_token_in_table, middlewares::response::Error, models::token::JwtPayload,
 };
 use actix_web::{dev::Payload, http::header::AUTHORIZATION, FromRequest, HttpMessage, HttpRequest};
+use base64::{engine::general_purpose::STANDARD_NO_PAD, Engine as _};
 use chrono::{Duration, Utc};
 use futures::executor::block_on;
-use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
+use jsonwebtoken::{
+    decode, encode, errors::ErrorKind::ExpiredSignature, DecodingKey, EncodingKey, Header,
+    Validation,
+};
 use once_cell::sync::OnceCell;
 use sha2::{Digest, Sha256};
 use sqlx::PgPool;
@@ -88,11 +92,17 @@ impl Settings {
         }
         // TokenData<JwtPayload>: TokenData{ header, claims }
         let data = decode::<JwtPayload>(&token[prefix.len()..], &key, &Validation::default())
-            .map_err(|_| Error::Unauthenticated("failed to decode token".to_string()))?;
-
-        if data.claims.iat > Utc::now().timestamp() {
-            return Err(Error::Unauthenticated("token expired".into()));
-        }
+            .map_err(|e| {
+                let em = if e.kind() == &ExpiredSignature {
+                    "token expired"
+                } else {
+                    "failed to decode token"
+                };
+                Error::Unauthenticated(em.to_string())
+            })?;
+        // if data.claims.iat > Utc::now().timestamp() {
+        //    return Err(Error::Unauthenticated("token expired".into()));
+        // }
 
         let data = data.claims; // JwtPayload
 
@@ -118,9 +128,37 @@ impl FromRequest for JwtPayload {
     }
 }
 
+// works only after Config.jwt_verify, but it can't be call in Box::pin(async move {}
+#[allow(dead_code)]
+pub fn user_id_from_exts(req: &HttpRequest) -> Option<i32> {
+    let exts = req.extensions();
+    let data = exts.get::<JwtPayload>()?;
+    Some(data.user_id)
+}
+
+// !! hasn't verify token(Config::jwt_verify) yet
+pub fn user_id_from_header(req: &HttpRequest) -> Option<i32> {
+    let prefix = "Bearer ";
+    let value = req.headers().get(AUTHORIZATION)?;
+
+    let mut token = value.to_str().ok()?;
+    if !token.starts_with(prefix) {
+        return None;
+    }
+    token = &token[prefix.len()..];
+
+    let fields = token.split(".").collect::<Vec<&str>>();
+    let payload_str = fields.get(1)?;
+    let bytes = STANDARD_NO_PAD.decode(payload_str).ok()?;
+    let data: JwtPayload = serde_json::from_slice(&bytes).ok()?;
+
+    return Some(data.user_id);
+}
+
 #[cfg(test)]
 mod tests {
     use hex_literal::hex;
+    use jsonwebtoken::decode_header;
     use sha2::{Digest, Sha256};
 
     // echo -n "hello world" | sha256sum | awk '{print $1}'
@@ -138,5 +176,12 @@ mod tests {
             result[..],
             hex!("b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9")[..],
         );
+    }
+
+    #[test]
+    fn t_decode_header() {
+        let header = decode_header("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2NzgxNjI4MTEsImV4cCI6MTY3ODE2NDYxMSwidG9rZW5JZCI6Ijk1OGMyNmRiLTYxOGEtNDM1MC1hNTQ2LWM4NTRjYmEwYTZiYiIsInVzZXJJZCI6MSwicm9sZSI6ImFkbWluIiwicGxhdGZvcm0iOiJ1bmtub3duIn0.ePyZkG91NKmeV95-a_3jFcWzsnxtxTsXfdcllcSkQIM");
+
+        println!("~~~ header: {:?}", header);
     }
 }

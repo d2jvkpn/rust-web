@@ -95,7 +95,5 @@ pub async fn user_logout(
     app_state: web::Data<AppState>,
     jwt: ReqData<JwtPayload>,
 ) -> Result<HttpResponse, Error> {
-    disable_curent_token(&app_state.pool, jwt.token_id).await?;
-
-    db_user::user_logout(&app_state.pool).await.map(|v| Ok(Data(v).into()))?
+    disable_curent_token(&app_state.pool, jwt.token_id).await.map(|v| Ok(Data(v).into()))?
 }

@@ -215,6 +215,7 @@ pub async fn user_change_password(
     let upassword: UserAndPassword = match query.build_query_as().fetch_one(pool).await {
         Ok(v) => v,
         Err(e) => {
+            tokio::time::sleep(Duration::from_secs(1)).await;
             if utils::pg_not_found(&e) {
                 return Err(Error::NotFound(err_msg));
             } else {
@@ -227,6 +228,7 @@ pub async fn user_change_password(
     let m = utils::bcrypt_verify(item.old_password, upassword.password)
         .await
         .map_err(|_| Error::Unknown)?;
+
     if !m {
         return Err(Error::NotFound(err_msg));
     }
@@ -238,10 +240,5 @@ pub async fn user_change_password(
         .execute(pool)
         .await?;
 
-    Ok(())
-}
-
-pub async fn user_logout(_pool: &PgPool) -> Result<(), Error> {
-    // TODO: disable token
     Ok(())
 }

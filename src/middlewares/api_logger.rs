@@ -2,7 +2,7 @@
 use actix_web::{
     dev::{self, Service, ServiceRequest, ServiceResponse, Transform},
     http::header::{HeaderName, HeaderValue},
-    HttpMessage,
+    HttpMessage, HttpRequest,
 };
 use chrono::{DateTime, Local};
 use futures_util::future::LocalBoxFuture;
@@ -16,7 +16,9 @@ use uuid::Uuid;
 // 1. Middleware initialization, middleware factory gets called with
 //    next service in chain as parameter.
 // 2. Middleware's call method gets called with normal request.
-pub struct Logger;
+pub struct Logger {
+    pub get_user_id: fn(&HttpRequest) -> Option<i32>,
+}
 
 // Middleware factory is `Transform` trait
 // `S` - type of the next service
@@ -34,12 +36,13 @@ where
     type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
-        ready(Ok(LoggerMiddleware { service }))
+        ready(Ok(LoggerMiddleware { service, get_user_id: self.get_user_id }))
     }
 }
 
 pub struct LoggerMiddleware<S> {
     service: S,
+    get_user_id: fn(&HttpRequest) -> Option<i32>,
 }
 
 impl<S, B> Service<ServiceRequest> for LoggerMiddleware<S>
@@ -55,6 +58,7 @@ where
     dev::forward_ready!(service);
 
     fn call(&self, mut req: ServiceRequest) -> Self::Future {
+        //
         let start: DateTime<Local> = Local::now();
         let request_id = Uuid::new_v4();
 
@@ -62,6 +66,7 @@ where
             method: req.method().to_string(),
             path: req.path().to_string(),
             request_id,
+            user_id: (self.get_user_id)(req.request()),
             ..Default::default()
         };
 
@@ -75,19 +80,27 @@ where
         let fut = self.service.call(req);
 
         Box::pin(async move {
-            let res = fut.await?;
-
-            record.x_error = if let Some(hv) = res.headers().get("x-error") {
-                hv.to_str().map(String::from).ok() // Result => Option
-            } else {
-                None
-            };
-
-            record.status = res.status().as_u16();
+            let result = fut.await;
 
             let end: DateTime<Local> = Local::now();
             let elapsed = end.signed_duration_since(start).num_microseconds().unwrap_or(0);
             record.elapsed = format!("{:.3}ms", (elapsed as f64) / 1e3);
+
+            // Result<ServiceResponse<B>, actix_web::Error>
+            // v.response(): &HttpResponse<B>, e.error_response(): HttpResponse
+            record.status = match &result {
+                Ok(v) => v.status().as_u16(),
+                Err(e) => {
+                    let res = e.error_response();
+                    let val = res.headers().get("x-error").map(|v| v.to_str()); // Option<Result>
+                    record.x_error = match val {
+                        Some(Err(_)) | None => None,
+                        Some(Ok(v)) => Some(v.to_string()),
+                    };
+                    res.status().as_u16()
+                }
+            };
+            // exts = HttpResponse.extensions(); data = exts.get::<JwtPayload>()?; data.user_id
 
             if record.status >= 500 {
                 error!("{}", json!(record));
@@ -97,7 +110,7 @@ where
                 info!("{}", json!(record));
             }
 
-            Ok(res)
+            result
         })
     }
 }
@@ -108,6 +121,7 @@ struct Record {
     pub method: String,
     pub path: String,
     pub status: u16,
+    pub user_id: Option<i32>,
     pub elapsed: String,
     pub x_error: Option<String>,
 }

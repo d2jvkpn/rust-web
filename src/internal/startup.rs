@@ -1,4 +1,4 @@
-use super::data::AppState;
+use super::{data::AppState, settings::user_id_from_header};
 use crate::{
     handlers::route,
     middlewares::{no_route_error, Logger, SimpleLogger},
@@ -23,7 +23,7 @@ pub fn run(address: &str, pool: PgPool) -> io::Result<Server> {
         App::new()
             .app_data(app_data.clone())
             .wrap(ErrorHandlers::new().handler(StatusCode::NOT_FOUND, no_route_error))
-            .wrap(Logger {})
+            .wrap(Logger { get_user_id: user_id_from_header })
             .wrap(
                 Cors::default()
                     // add specific origin to allowed origin list

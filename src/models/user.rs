@@ -214,7 +214,7 @@ impl ChangePassword {
 }
 
 // reset user password
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ResetPassword {
     pub user_id: i32,
@@ -228,5 +228,19 @@ impl ResetPassword {
         }
 
         valid_password(&self.new_password)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn t_serde() {
+        let d = ResetPassword { user_id: 42, new_password: "hello".into() };
+        let s = json!(d);
+        let text = format!("{}", s);
+        println!("~~~ {text}");
     }
 }
