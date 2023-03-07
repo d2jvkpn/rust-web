@@ -1,7 +1,7 @@
 use crate::{
     middlewares::response,
     models::token::{Platform, Token},
-    utils::socket_addr_to_ip_network,
+    utils::{self, socket_addr_to_ip_network},
 };
 use chrono::Utc;
 use sqlx::{error::Error as SQLxError, types::ipnetwork::IpNetwork, PgPool, QueryBuilder, Row};
@@ -76,4 +76,21 @@ pub async fn disable_user_tokens(
         query.build().fetch_all(pool).await?.into_iter().map(|v| v.get(0)).collect();
 
     Ok(token_ids)
+}
+
+// TODO: use in memory cache instead
+pub async fn check_token_in_table(pool: &PgPool, token_id: Uuid) -> Result<(), response::Error> {
+    let err = match sqlx::query!(r#"SELECT COUNT(1) FROM tokens WHERE token_id = $1"#, token_id)
+        .fetch_one(pool)
+        .await
+    {
+        Ok(_) => return Ok(()),
+        Err(e) => e,
+    };
+
+    if utils::pg_not_found(&err) {
+        Err(response::Error::Unauthenticated("can't verify token, relogin required".to_string()))
+    } else {
+        Err(response::Error::Internal(err.to_string()))
+    }
 }

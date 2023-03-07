@@ -1,7 +1,10 @@
 use super::configuration::Configuration;
-use crate::{middlewares::response::Error, models::token::JwtPayload};
+use crate::{
+    db::token::check_token_in_table, middlewares::response::Error, models::token::JwtPayload,
+};
 use actix_web::{dev::Payload, http::header::AUTHORIZATION, FromRequest, HttpMessage, HttpRequest};
 use chrono::{Duration, Utc};
+use futures::executor::block_on;
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use once_cell::sync::OnceCell;
 use sha2::{Digest, Sha256};
@@ -67,7 +70,9 @@ impl Settings {
     }
 
     pub fn jwt_verify(req: &HttpRequest) -> Result<JwtPayload, Error> {
-        let (jwt_key, _) = Self::jwt().ok_or(Error::Internal("configuration is unset".into()))?;
+        // let (jwt_key, _) = Self::jwt().ok_or(Error::Internal("configuration is unset".into()))?;
+        let settings = OC_SETTINGS.get().ok_or(Error::Internal("configuration is unset".into()))?;
+        let jwt_key = &settings.jwt_key;
 
         let key = DecodingKey::from_secret(jwt_key);
         let prefix = "Bearer ";
@@ -89,7 +94,12 @@ impl Settings {
             return Err(Error::Unauthenticated("token expired".into()));
         }
 
-        Ok(data.claims)
+        let data = data.claims; // JwtPayload
+
+        // ?? a blocking task
+        block_on(check_token_in_table(&settings.pool, data.token_id))?;
+
+        Ok(data)
     }
 }
 
