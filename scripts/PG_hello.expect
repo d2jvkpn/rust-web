@@ -2,7 +2,9 @@
 set prompt "#"
 set timeout 10
 set passwd "world"
-set db [lindex $argv 0];
+
+# set db [lindex $argv 0];
+set db rust_web;
 
 spawn psql --username=hello --host=127.0.0.1 --port=5432 --password $db
 expect "Password: "

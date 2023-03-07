@@ -1,4 +1,7 @@
-use super::{admin::BCRYPT_COST, token::save_token};
+use super::{
+    admin::BCRYPT_COST,
+    token::{disable_user_tokens, save_token},
+};
 use crate::{
     internal::settings::Settings,
     middlewares::response::Error,
@@ -20,6 +23,7 @@ pub async fn post_new_user(pool: &PgPool, item: CreateUser) -> Result<User, Erro
     // dbg!(&password);
 
     // TODO: supporting enum convert between postgresql and rust in sqlx
+    // https://docs.rs/sqlx/latest/sqlx/macro.query.html
     let err = match sqlx::query_as!(
         User,
         r#"INSERT INTO users
@@ -183,13 +187,14 @@ pub async fn user_login(
         token_id: Uuid::new_v4(),
         user_id: upassword.user.id,
         role: upassword.user.role.clone(),
-        platform,
+        platform: platform.clone(),
     };
     let token_value = Settings::jwt_sign(&mut playload)?;
 
     // TODO: use a message queue or a channel instead
     let mut token_record: Token = playload.into();
     (token_record.ip, token_record.device) = (ip, None);
+    disable_user_tokens(pool, upassword.user.id, Some(platform)).await?;
     save_token(pool, token_record).await?;
 
     Ok(UserAndToken { user: upassword.user, token_name: "authorization".to_string(), token_value })

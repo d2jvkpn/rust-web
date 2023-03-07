@@ -122,7 +122,7 @@ impl MatchUser {
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateUserStatus {
-    pub id: i32,
+    pub user_id: i32,
     pub status: Status,
 }
 
@@ -130,7 +130,7 @@ pub struct UpdateUserStatus {
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateUserRole {
-    pub id: i32,
+    pub user_id: i32,
     pub role: Role,
 }
 

@@ -96,7 +96,7 @@ pub async fn update_user_role(pool: &PgPool, uus: UpdateUserRole) -> Result<(), 
     let err = match sqlx::query!(
         "UPDATE users SET status = $1 WHERE id = $2 RETURNING id",
         uus.role as Role,
-        uus.id,
+        uus.user_id,
     )
     .fetch_one(pool)
     .await
@@ -116,7 +116,7 @@ pub async fn update_user_status(pool: &PgPool, uus: UpdateUserStatus) -> Result<
     let err = match sqlx::query!(
         "UPDATE users SET status = $1 WHERE id = $2 RETURNING id",
         uus.status as Status,
-        uus.id,
+        uus.user_id,
     )
     .fetch_one(pool)
     .await

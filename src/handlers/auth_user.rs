@@ -1,5 +1,6 @@
 use crate::{
     db::admin as db_admin,
+    db::token::disable_curent_token,
     db::user as db_user,
     internal::AppState,
     middlewares::response::{Data, Error, OK_JSON},
@@ -71,10 +72,11 @@ pub async fn frozen_user_status(
     app_state: web::Data<AppState>,
     jwt: ReqData<JwtPayload>,
 ) -> Result<HttpResponse, Error> {
-    let uus = UpdateUserStatus { id: jwt.user_id, status: Status::Frozen };
+    let uus = UpdateUserStatus { user_id: jwt.user_id, status: Status::Frozen };
+
+    disable_curent_token(&app_state.pool, jwt.token_id).await;
 
     db_admin::update_user_status(&app_state.pool, uus).await.map(|v| Ok(Data(v).into()))?
-    // TODO: disable token
 }
 
 pub async fn user_change_password(
@@ -82,13 +84,18 @@ pub async fn user_change_password(
     jwt: ReqData<JwtPayload>,
     item: web::Json<ChangePassword>,
 ) -> Result<HttpResponse, Error> {
+    disable_curent_token(&app_state.pool, jwt.token_id).await;
+
     db_user::user_change_password(&app_state.pool, jwt.user_id, item.into_inner())
         .await
         .map(|v| Ok(Data(v).into()))?
-    // TODO: disable token
 }
 
-pub async fn user_logout(app_state: web::Data<AppState>) -> Result<HttpResponse, Error> {
+pub async fn user_logout(
+    app_state: web::Data<AppState>,
+    jwt: ReqData<JwtPayload>,
+) -> Result<HttpResponse, Error> {
+    disable_curent_token(&app_state.pool, jwt.token_id).await;
+
     db_user::user_logout(&app_state.pool).await.map(|v| Ok(Data(v).into()))?
-    // TODO: disable token
 }

@@ -1,5 +1,6 @@
 use crate::{
     db::admin as db_admin,
+    db::token::disable_user_tokens,
     internal::AppState,
     middlewares::response::{Data, Error},
     middlewares::QueryPage,
@@ -29,28 +30,33 @@ pub async fn update_user_status(
     app_state: web::Data<AppState>,
     uus: web::Query<UpdateUserStatus>,
 ) -> Result<HttpResponse, Error> {
+    if uus.status != Status::OK {
+        let _ = disable_user_tokens(&app_state.pool, uus.user_id, None).await;
+    }
+
     db_admin::update_user_status(&app_state.pool, uus.into_inner())
         .await
         .map(|v| Ok(Data(v).into()))?
-    // TODO: disable token
 }
 
 pub async fn update_user_role(
     app_state: web::Data<AppState>,
     uur: web::Query<UpdateUserRole>,
 ) -> Result<HttpResponse, Error> {
+    let _ = disable_user_tokens(&app_state.pool, uur.user_id, None).await;
+
     db_admin::update_user_role(&app_state.pool, uur.into_inner())
         .await
         .map(|v| Ok(Data(v).into()))?
-    // TODO: disable token
 }
 
 pub async fn reset_user_password(
     app_state: web::Data<AppState>,
     reset_password: web::Json<ResetPassword>,
 ) -> Result<HttpResponse, Error> {
+    let _ = disable_user_tokens(&app_state.pool, reset_password.user_id, None).await;
+
     db_admin::reset_user_password(&app_state.pool, reset_password.into_inner())
         .await
         .map(|v| Ok(Data(v).into()))?
-    // TODO: disable token
 }
