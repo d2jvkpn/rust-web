@@ -1,7 +1,9 @@
 // https://actix.rs/docs/middleware/
+use super::response;
 use actix_web::{
     dev::{self, ServiceResponse},
-    http::header::{HeaderName, HeaderValue, CONTENT_TYPE},
+    error::ResponseError,
+    http::header::{HeaderName, HeaderValue},
     middleware::ErrorHandlerResponse,
 };
 
@@ -15,12 +17,15 @@ pub fn no_route_error<B>(sr: ServiceResponse<B>) -> actix_web::Result<ErrorHandl
         return Ok(ErrorHandlerResponse::Response(sr.map_into_left_body()));
     }
 
-    let (req, mut res) = sr.into_parts(); // (HttpRequest, HttpResponse<B>)
-    res.headers_mut().insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-    let res = res.set_body(r#"{"code":-1,"msg":"no route"}"#.to_owned());
+    // let (req, mut res) = sr.into_parts(); // (HttpRequest, HttpResponse<B>)
+    // res.headers_mut().insert(header::CONTENT_TYPE, HeaderValue::from_static("application/json"));
+    // let res = res.set_body(r#"{"code":-1,"msg":"no route"}"#.to_owned());
+    // let sr = ServiceResponse::new(req, res).map_into_boxed_body().map_into_right_body();
+    // Ok(ErrorHandlerResponse::Response(sr))
 
+    let (req, _) = sr.into_parts(); // (HttpRequest, HttpResponse<B>)
+    let res = response::Error::NoRoute.error_response();
     let sr = ServiceResponse::new(req, res).map_into_boxed_body().map_into_right_body();
-
     Ok(ErrorHandlerResponse::Response(sr))
 }
 

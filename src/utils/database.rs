@@ -14,7 +14,7 @@ pub fn db_error_code(err: &SQLxError) -> Option<String> {
 pub fn pg_already_exists(err: &SQLxError) -> bool {
     match db_error_code(err) {
         None => false,
-        Some(v) => v == *"23505",
+        Some(ref v) => v == "23505",
     }
 }
 

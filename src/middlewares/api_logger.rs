@@ -1,4 +1,5 @@
 // https://actix.rs/docs/middleware/
+use super::response;
 use actix_web::{
     dev::{self, Service, ServiceRequest, ServiceResponse, Transform},
     http::header::{HeaderName, HeaderValue},
@@ -88,29 +89,27 @@ where
 
             // Result<ServiceResponse<B>, actix_web::Error>
             // v.response(): &HttpResponse<B>, e.error_response(): HttpResponse
-            record.status = match &result {
-                Ok(v) => v.status().as_u16(),
-                Err(e) => {
-                    let res = e.error_response();
-                    let val = res.headers().get("x-error").map(|v| v.to_str()); // Option<Result>
-                    record.x_error = match val {
-                        Some(Err(_)) | None => None,
-                        Some(Ok(v)) => Some(v.to_string()),
-                    };
-                    res.status().as_u16()
+            let call = |headers, mut record: Record| {
+                if let Some(v) = response::Error::extract_from_headers(headers) {
+                    (record.code, record.msg) = (Some(v.0), Some(v.1));
                 }
+                record.log();
             };
-            // exts = HttpResponse.extensions(); data = exts.get::<JwtPayload>()?; data.user_id
 
-            if record.status >= 500 {
-                error!("{}", json!(record));
-            } else if record.status >= 400 {
-                warn!("{}", json!(record));
-            } else {
-                info!("{}", json!(record));
+            match result {
+                Ok(mut v) => {
+                    record.status = v.status().as_u16();
+                    call(v.headers_mut(), record);
+                    Ok(v)
+                }
+                Err(e) => {
+                    let mut res = e.error_response();
+                    record.status = res.status().as_u16();
+                    call(res.headers_mut(), record);
+                    Err(e)
+                }
             }
-
-            result
+            // exts = HttpResponse.extensions(); data = exts.get::<JwtPayload>()?; data.user_id
         })
     }
 }
@@ -123,5 +122,18 @@ struct Record {
     pub status: u16,
     pub user_id: Option<i32>,
     pub elapsed: String,
-    pub x_error: Option<String>,
+    pub code: Option<i32>,
+    pub msg: Option<String>,
+}
+
+impl Record {
+    pub fn log(&self) {
+        if self.status >= 500 {
+            error!("{}", json!(self));
+        } else if self.status >= 400 {
+            warn!("{}", json!(self));
+        } else {
+            info!("{}", json!(self));
+        }
+    }
 }

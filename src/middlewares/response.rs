@@ -1,12 +1,11 @@
 use actix_web::{
     error::{Error as ActixError, ResponseError},
-    http::StatusCode,
+    http::{header::HeaderMap, StatusCode},
     HttpResponse,
 };
 use serde::Serialize;
 use serde_json::json;
 use sqlx::error::Error as SQLxError;
-// use std::fmt;
 use thiserror;
 
 // type MyResult<T> = Result<Data<T>, Error>;
@@ -129,6 +128,29 @@ impl Error {
             Self::NoChanges => 1001,
         }
     }
+
+    pub fn header_name() -> &'static str {
+        "x-response-error"
+    }
+
+    pub fn header_value(&self) -> String {
+        format!("{};{}", self.code(), self)
+    }
+
+    pub fn extract_from_headers(headers: &mut HeaderMap) -> Option<(i32, String)> {
+        let value = headers.get(Self::header_name())?;
+
+        let value = value.to_str().ok()?;
+
+        let mut iter = value.splitn(2, ';');
+        let code = iter.next()?;
+        let code = code.parse::<i32>().ok()?;
+
+        let msg = iter.next()?.to_string();
+        headers.remove(Self::header_name());
+
+        Some((code, msg))
+    }
 }
 
 impl ResponseError for Error {
@@ -151,12 +173,9 @@ impl ResponseError for Error {
     }
 
     fn error_response(&self) -> HttpResponse {
-        let msg = format!("{}", self);
-        let x_error = format!("code={}; msg={}", self.code(), msg);
-
         HttpResponse::build(self.status_code())
-            .append_header(("x-error", x_error))
-            .json(json!({"code": self.code(),"msg":msg}))
+            .append_header((Error::header_name(), self.header_value()))
+            .json(json!({"code": self.code(),"msg":format!("{}", self)}))
     }
 }
 
