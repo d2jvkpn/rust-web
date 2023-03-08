@@ -47,7 +47,7 @@ pub async fn post_new_user(pool: &PgPool, item: CreateUser) -> Result<User, Erro
         Err(e) => e,
     };
 
-    // dbg!(&err);
+    dbg!(&err);
     if utils::pg_already_exists(&err) {
         Err(Error::AlreadyExists)
     } else {

@@ -21,7 +21,7 @@ CREATE INDEX user_tokens_key ON tokens (user_id, exp DESC, status);
 -- DROP INDEX user_tokens_key;
 
 -- gen_random_uuid()
-INSERT INTO tokens (user_id, iat, exp, ip, platform) VALUES
-  (42, 1678005219, 1678007019, '127.0.0.1', 'web');
+-- INSERT INTO tokens (user_id, iat, exp, ip, platform) VALUES
+--   (1, 1678005219, 1678007019, '127.0.0.1', 'web');
 
 -- explain select * from tokens where user_id = 42 and exp > 1678007000 and status and platform = 'unknown';

@@ -2,7 +2,7 @@
 
 use log::LevelFilter;
 use rust_web::{
-    internal::{load_config, startup::run_with_listener, Database},
+    internal::{load_config, settings::Settings, startup::run_with_listener, Database},
     utils,
 };
 // use sqlx::{Connection, PgConnection};
@@ -45,7 +45,8 @@ pub async fn spawn_app_create_db() -> String {
     )
     .unwrap();
 
-    let pool = prepare_test_db(config.database).await;
+    let pool = prepare_test_db(&config.database).await;
+    Settings::set(config, pool.clone()).unwrap();
 
     let server = run_with_listener(listener, pool).unwrap();
     let _ = tokio::spawn(server);
@@ -53,7 +54,7 @@ pub async fn spawn_app_create_db() -> String {
     format!("http://127.0.0.1:{port}")
 }
 
-async fn prepare_test_db(dsn: Database) -> PgPool {
+async fn prepare_test_db(dsn: &Database) -> PgPool {
     // remove temporary databases newsletter_test_*
     let mut conn =
         PgConnection::connect(&dsn.to_string()).await.expect("Failed to connect to Postgres");

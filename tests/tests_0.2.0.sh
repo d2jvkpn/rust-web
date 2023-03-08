@@ -20,3 +20,13 @@ curl -i -X POST -H "content-type: application/json" "$address/api/open/user/logi
   -d '{"email": "admin@users.noreply.github.com", "password": "12qwAS!@"}'
 
 curl -i -X GET -H "Authorization: $token" "$address/api/auth/user/details"
+
+####
+curl -i -X POST -H "content-type: application/json" "$address/api/open/user/register" \
+  -d '{"email": "d2jvkpn@users.noreply.github.com", "name": "Rover", "birthday": "2006-01-02", "password": "12QWas!@"}'
+
+curl -i -X POST -H "content-type: application/json" "$address/api/open/user/register" \
+  -d '{"email": "alice@users.noreply.github.com", "name": "Alice", "birthday": "2006-01-02", "password": "12QWas!@"}'
+
+curl -i -X POST -H "content-type: application/json" "$address/api/open/user/login" \
+  -d '{"email": "alice@users.noreply.github.com", "password": "12QWas!@"}'
