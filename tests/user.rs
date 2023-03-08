@@ -45,7 +45,7 @@ async fn users() {
         .body(body)
         .send()
         .await
-        .expect("Failed to execute request.");
+        .unwrap();
 
     assert_eq!(response.status(), StatusCode::NOT_ACCEPTABLE);
 
@@ -56,22 +56,21 @@ async fn users() {
         .body(r#"{"email": "d2jvkpn@users.noreply.github.com", "password": "12QWas!@"}"#)
         .send()
         .await
-        .expect("Failed to execute request.");
+        .unwrap();
 
     assert!(response.status().is_success());
 
     let bts = response.bytes().await.unwrap();
     println!("--> {:?}", bts);
     let res_data: ResData<Token> = serde_json::from_slice(&bts).unwrap();
-    let token = res_data.data;
+    let Token { token_name, token_value } = res_data.data;
 
-    //
     let response = client
         .post(&format!("{}/api/auth/user/logout", &address))
-        .header(&token.token_name, &token.token_value)
+        .header(&token_name, &token_value)
         .send()
         .await
-        .expect("Failed to execute request.");
+        .unwrap();
 
     assert!(response.status().is_success());
 
@@ -84,7 +83,7 @@ async fn users() {
         .unwrap()
         .json::<Value>()
         .await
-        .expect("Failed to execute request.");
+        .unwrap();
 
     dbg!(&res_json);
 }
