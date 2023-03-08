@@ -75,7 +75,7 @@ async fn users() {
 
     assert!(response.status().is_success());
 
-    let res_data = client
+    let res_json = client
         .post(&format!("{}/api/open/user/login", &address))
         .header("Content-Type", "application/json")
         .body(r#"{"email": "d2jvkpn@users.noreply.github.com", "password": "12QWas!@"}"#)
@@ -86,5 +86,5 @@ async fn users() {
         .await
         .expect("Failed to execute request.");
 
-    dbg!(&res_data);
+    dbg!(&res_json);
 }
