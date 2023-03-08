@@ -1,6 +1,6 @@
 use crate::{
-    db::admin as db_admin,
-    db::token::disable_user_tokens,
+    db::db_admin,
+    db::db_token::disable_user_tokens,
     internal::AppState,
     middlewares::response::{Data, Error},
     middlewares::QueryPage,

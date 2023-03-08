@@ -1,3 +1,3 @@
-pub mod admin;
-pub mod token;
-pub mod user;
+pub mod db_admin;
+pub mod db_token;
+pub mod db_user;

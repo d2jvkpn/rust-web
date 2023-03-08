@@ -1,6 +1,6 @@
 use super::configuration::Configuration;
 use crate::{
-    db::token::check_token_in_table, middlewares::response::Error, models::token::JwtPayload,
+    db::db_token::check_token_in_table, middlewares::response::Error, models::token::JwtPayload,
 };
 use actix_web::{dev::Payload, http::header::AUTHORIZATION, FromRequest, HttpMessage, HttpRequest};
 use base64::{engine::general_purpose::STANDARD_NO_PAD, Engine as _};

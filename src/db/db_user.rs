@@ -1,6 +1,6 @@
 use super::{
-    admin::BCRYPT_COST,
-    token::{disable_user_tokens, save_token},
+    db_admin::BCRYPT_COST,
+    db_token::{disable_user_tokens, save_token},
 };
 use crate::{
     internal::settings::Settings,

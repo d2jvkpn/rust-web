@@ -1,7 +1,7 @@
 use crate::{
-    db::admin as db_admin,
-    db::token::disable_curent_token,
-    db::user as db_user,
+    db::db_admin,
+    db::db_token::disable_curent_token,
+    db::db_user,
     internal::AppState,
     middlewares::response::{Data, Error, OK_JSON},
     models::{token::JwtPayload, user::*},

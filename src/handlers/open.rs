@@ -1,5 +1,5 @@
 use crate::{
-    db::user as db_user,
+    db::db_user,
     internal::AppState,
     middlewares::response::{Data, Error},
     models::{token::Platform, user::*},
