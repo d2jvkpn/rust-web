@@ -138,15 +138,12 @@ impl Error {
     }
 
     pub fn extract_from_headers(headers: &mut HeaderMap) -> Option<(i32, String)> {
-        let value = headers.get(Self::header_name())?;
-
-        let value = value.to_str().ok()?;
-
+        let value = headers.get(Self::header_name())?.to_str().ok()?;
         let mut iter = value.splitn(2, ';');
-        let code = iter.next()?;
-        let code = code.parse::<i32>().ok()?;
 
+        let code = iter.next()?.parse::<i32>().ok()?;
         let msg = iter.next()?.to_string();
+
         headers.remove(Self::header_name());
 
         Some((code, msg))
