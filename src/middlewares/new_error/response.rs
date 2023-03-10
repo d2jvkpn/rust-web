@@ -34,7 +34,7 @@ use anyhow::Error as AE;
 use derive_more::Display;
 use serde::Serialize;
 use serde_json::json;
-use sqlx::error::Error as SQLxError;
+use sqlx::error::{DatabaseError, Error as SQLxError};
 use uuid::Uuid;
 
 #[derive(Serialize, Debug, Display)]
@@ -101,9 +101,97 @@ impl Response {
     }
 
     #[track_caller]
-    fn invalid_token(e: AE, msg: String) -> Self {
+    // fn invalid_token1<S: AsRef<str>>(msg: S) -> Self {
+    fn invalid_token1(msg: String) -> Self {
+        let mut res: Self = Error::InvalidToken(msg).into();
+        res.loc = Some(loc!());
+        res
+    }
+
+    #[track_caller]
+    fn invalid_token2(e: AE, msg: String) -> Self {
         let mut res: Self = Error::InvalidToken(msg).into();
         res.cause = Some(e);
+        res.loc = Some(loc!());
+        res
+    }
+
+    #[track_caller]
+    fn no_route() -> Self {
+        let mut res: Self = Error::NoRoute.into();
+        res.loc = Some(loc!());
+        res
+    }
+
+    #[track_caller]
+    fn canceled(msg: String) -> Self {
+        let mut res: Self = Error::Canceled(msg).into();
+        res.loc = Some(loc!());
+        res
+    }
+
+    #[track_caller]
+    fn unknown(e: AE) -> Self {
+        let mut res: Self = Error::Unknown.into();
+        res.cause = Some(e);
+        res.loc = Some(loc!());
+        res
+    }
+
+    #[track_caller]
+    fn invalid1(msg: String) -> Self {
+        let mut res: Self = Error::InvalidArgument(msg).into();
+        res.loc = Some(loc!());
+        res
+    }
+
+    #[track_caller]
+    fn invalid2(e: AE, msg: String) -> Self {
+        let mut res: Self = Error::InvalidArgument(msg).into();
+        res.cause = Some(e);
+        res.loc = Some(loc!());
+        res
+    }
+
+    #[track_caller]
+    fn not_found1(msg: String) -> Self {
+        let mut res: Self = Error::NotFound(msg).into();
+        res.loc = Some(loc!());
+        res
+    }
+
+    #[track_caller]
+    fn not_found2(e: AE, msg: String) -> Self {
+        let mut res: Self = Error::NotFound(msg).into();
+        res.cause = Some(e);
+        res.loc = Some(loc!());
+        res
+    }
+
+    #[track_caller]
+    fn already_exists() -> Self {
+        let mut res: Self = Error::AlreadyExists.into();
+        res.loc = Some(loc!());
+        res
+    }
+
+    #[track_caller]
+    fn permission_denied(msg: String) -> Self {
+        let mut res: Self = Error::PermissionDenied(msg).into();
+        res.loc = Some(loc!());
+        res
+    }
+
+    #[track_caller]
+    fn resource_exhausted() -> Self {
+        let mut res: Self = Error::ResourceExhausted.into();
+        res.loc = Some(loc!());
+        res
+    }
+
+    #[track_caller]
+    fn aborted() -> Self {
+        let mut res: Self = Error::Aborted.into();
         res.loc = Some(loc!());
         res
     }
@@ -122,14 +210,33 @@ impl Response {
         res
     }
 
-    fn actix_error(e: AE) -> Self {
-        let mut res: Self = Error::ActixError.into();
-        res.cause = Some(e.into());
+    // TODO: more...
+}
+
+impl From<SQLxError> for Response {
+    fn from(err: SQLxError) -> Self {
+        // Self::DBError(err.to_string())
+        let convert = |e: &Box<dyn DatabaseError>| {
+            let code = match e.code() {
+                Some(v) => v,
+                None => return Error::DBError,
+            };
+
+            let v = if code.as_ref() == "23505" { Error::AlreadyExists } else { Error::DBError };
+            v
+        };
+
+        let e2 = match &err {
+            SQLxError::RowNotFound => Error::NotFound("...".to_string()),
+            SQLxError::Database(e) => convert(e),
+            _ => Error::DBError,
+        };
+
+        let mut res: Self = e2.into();
+        res.cause = Some(err.into());
         res.loc = Some(loc!());
         res
     }
-
-    // TODO: more...
 }
 
 //

@@ -4,7 +4,7 @@ use std::net::{IpAddr, SocketAddr};
 // TODO: sqlx::error::Error, sqlx::postgres::PgDatabaseError,
 pub fn db_error_code(err: &SQLxError) -> Option<String> {
     let e2 = match err {
-        sqlx::Error::Database(e) => e,
+        SQLxError::Database(e) => e,
         _ => return None,
     };
 

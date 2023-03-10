@@ -42,9 +42,8 @@ pub enum Error {
     #[error("database error")] // 13: internal server error
     DBError,
 
-    #[error("server error")] // 13: internal server error
-    ActixError,
-
+    // #[error("server error")] // 13: internal server error
+    // ActixError,
     #[error("unauthenticated: {0}")] // 16
     Unauthenticated(String),
 }
@@ -64,7 +63,7 @@ impl Error {
             Self::PermissionDenied(_) => 7,
             Self::ResourceExhausted => 8,
             Self::Aborted => 10,
-            Self::UnexpectedError | Self::ActixError | Self::DBError => 13,
+            Self::UnexpectedError | Self::DBError => 13,
             Self::Unauthenticated(_) => 16,
         }
     }
@@ -82,9 +81,7 @@ impl Error {
             Self::PermissionDenied(_) => StatusCode::FORBIDDEN,
             Self::ResourceExhausted => StatusCode::INTERNAL_SERVER_ERROR,
             Self::Aborted => StatusCode::NOT_ACCEPTABLE,
-            Self::UnexpectedError | Self::DBError | Self::ActixError => {
-                StatusCode::INTERNAL_SERVER_ERROR
-            }
+            Self::UnexpectedError | Self::DBError => StatusCode::INTERNAL_SERVER_ERROR,
             Self::Unauthenticated(_) => StatusCode::UNAUTHORIZED,
         }
     }
