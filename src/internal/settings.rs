@@ -147,12 +147,12 @@ pub fn user_id_from_header(req: &HttpRequest) -> Option<i32> {
     }
     token = &token[prefix.len()..];
 
-    let fields = token.split(".").collect::<Vec<&str>>();
+    let fields = token.split('.').collect::<Vec<&str>>();
     let payload_str = fields.get(1)?;
     let bytes = STANDARD_NO_PAD.decode(payload_str).ok()?;
     let data: JwtPayload = serde_json::from_slice(&bytes).ok()?;
 
-    return Some(data.user_id);
+    Some(data.user_id)
 }
 
 #[cfg(test)]

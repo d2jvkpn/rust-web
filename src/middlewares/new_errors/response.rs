@@ -228,8 +228,11 @@ impl From<SQLxError> for Response {
                 None => return Error::DBError,
             };
 
-            let v = if code.as_ref() == "23505" { Error::AlreadyExists } else { Error::DBError };
-            v
+            if code.as_ref() == "23505" {
+                Error::AlreadyExists
+            } else {
+                Error::DBError
+            }
         };
 
         let e2 = match &err {

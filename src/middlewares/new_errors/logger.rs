@@ -66,7 +66,7 @@ where
                     let mut exts = res.extensions_mut();
                     let r = exts.remove::<response::Response>().unwrap();
                     record.user_id = exts.get::<i32>().copied();
-                    record.from_response(r);
+                    record.take_response(r);
                     record.log();
                     Ok(v)
                 }
@@ -75,7 +75,7 @@ where
                     let mut exts = rep.extensions_mut();
                     let r = exts.remove::<response::Response>().unwrap();
                     record.user_id = exts.get::<i32>().copied();
-                    record.from_response(r);
+                    record.take_response(r);
                     record.log();
                     Err(e)
                 }
@@ -117,7 +117,7 @@ impl Record {
     }
 
     // consume a response::Response, using Option<T>.take() rather than Option<T>.clone()
-    pub fn from_response(&mut self, mut res: response::Response) {
+    pub fn take_response(&mut self, mut res: response::Response) {
         self.request_id = res.request_id;
         self.code = res.code;
         self.msg = res.msg.take();

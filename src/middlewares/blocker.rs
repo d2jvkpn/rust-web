@@ -55,14 +55,29 @@ where
 
         let fut = self.service.call(req);
         Box::pin(async move {
+            fut.await
+            /*
             let result = fut.await;
+            match result {
+                Ok(v) => {
+                    let res = v.request().clone();
+                    let mut exts = res.extensions_mut();
+                    todo!();
+                    Ok(v)
+                }
+                Err(e) => {
+                    let mut resp = e.err_response();
+                    let mut exts = rep.extensions_mut();
+                    todo!();
+                    Err(e)
+                }
+            }
+            */
+
             // !! insertion codes here: Handle_ServiceRequest_After, Handle_Error
             // result: Result<ServiceRequest<B>, actix_web::Error>
             // https://docs.rs/actix-web/latest/actix_web/dev/struct.ServiceResponse.html
             // https://docs.rs/actix-web/4.3.1/actix_web/error/struct.Error.html
-
-            // HttpResponse.extensions().get::<T>()?
-            result
         })
     }
 }

@@ -34,7 +34,7 @@ pub async fn spawn_app_without_db() -> String {
 
 // connect to database in config
 pub async fn spawn_app_create_db() -> String {
-    let (listener, port) = utils::tcp_listener_with_random_port("127.0.0.1:0").unwrap();
+    let (listener, port) = tcp_listener_with_random_port("127.0.0.1:0").unwrap();
 
     let config = load_config("configs/local.yaml").expect("Failed to read configuration");
 
