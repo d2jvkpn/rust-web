@@ -79,7 +79,7 @@ impl ResponseError for Response {
 }
 
 impl Response {
-    fn into_req(self, req: &mut HttpRequest) -> ActixError {
+    pub fn into_req(self, req: &mut HttpRequest) -> ActixError {
         let res = Self {
             code: self.code,
             msg: self.msg.clone(),
@@ -94,7 +94,7 @@ impl Response {
     }
 
     #[track_caller]
-    fn no_changes() -> Self {
+    pub fn no_changes() -> Self {
         let mut res: Self = Error::NoChanges.into();
         res.loc = Some(loc!());
         res
@@ -102,14 +102,14 @@ impl Response {
 
     #[track_caller]
     // fn invalid_token1<S: AsRef<str>>(msg: S) -> Self {
-    fn invalid_token1(msg: String) -> Self {
+    pub fn invalid_token1(msg: String) -> Self {
         let mut res: Self = Error::InvalidToken(msg).into();
         res.loc = Some(loc!());
         res
     }
 
     #[track_caller]
-    fn invalid_token2(e: AE, msg: String) -> Self {
+    pub fn invalid_token2(e: AE, msg: String) -> Self {
         let mut res: Self = Error::InvalidToken(msg).into();
         res.cause = Some(e);
         res.loc = Some(loc!());
@@ -117,21 +117,21 @@ impl Response {
     }
 
     #[track_caller]
-    fn no_route() -> Self {
+    pub fn no_route() -> Self {
         let mut res: Self = Error::NoRoute.into();
         res.loc = Some(loc!());
         res
     }
 
     #[track_caller]
-    fn canceled(msg: String) -> Self {
+    pub fn canceled(msg: String) -> Self {
         let mut res: Self = Error::Canceled(msg).into();
         res.loc = Some(loc!());
         res
     }
 
     #[track_caller]
-    fn unknown(e: AE) -> Self {
+    pub fn unknown(e: AE) -> Self {
         let mut res: Self = Error::Unknown.into();
         res.cause = Some(e);
         res.loc = Some(loc!());
@@ -139,14 +139,14 @@ impl Response {
     }
 
     #[track_caller]
-    fn invalid1(msg: String) -> Self {
+    pub fn invalid1(msg: String) -> Self {
         let mut res: Self = Error::InvalidArgument(msg).into();
         res.loc = Some(loc!());
         res
     }
 
     #[track_caller]
-    fn invalid2(e: AE, msg: String) -> Self {
+    pub fn invalid2(e: AE, msg: String) -> Self {
         let mut res: Self = Error::InvalidArgument(msg).into();
         res.cause = Some(e);
         res.loc = Some(loc!());
@@ -154,14 +154,14 @@ impl Response {
     }
 
     #[track_caller]
-    fn not_found1(msg: String) -> Self {
+    pub fn not_found1(msg: String) -> Self {
         let mut res: Self = Error::NotFound(msg).into();
         res.loc = Some(loc!());
         res
     }
 
     #[track_caller]
-    fn not_found2(e: AE, msg: String) -> Self {
+    pub fn not_found2(e: AE, msg: String) -> Self {
         let mut res: Self = Error::NotFound(msg).into();
         res.cause = Some(e);
         res.loc = Some(loc!());
@@ -169,41 +169,41 @@ impl Response {
     }
 
     #[track_caller]
-    fn already_exists() -> Self {
+    pub fn already_exists() -> Self {
         let mut res: Self = Error::AlreadyExists.into();
         res.loc = Some(loc!());
         res
     }
 
     #[track_caller]
-    fn permission_denied(msg: String) -> Self {
+    pub fn permission_denied(msg: String) -> Self {
         let mut res: Self = Error::PermissionDenied(msg).into();
         res.loc = Some(loc!());
         res
     }
 
     #[track_caller]
-    fn resource_exhausted() -> Self {
+    pub fn resource_exhausted() -> Self {
         let mut res: Self = Error::ResourceExhausted.into();
         res.loc = Some(loc!());
         res
     }
 
     #[track_caller]
-    fn aborted() -> Self {
+    pub fn aborted() -> Self {
         let mut res: Self = Error::Aborted.into();
         res.loc = Some(loc!());
         res
     }
 
-    fn unexpected_error(e: AE) -> Self {
+    pub fn unexpected_error(e: AE) -> Self {
         let mut res: Self = Error::UnexpectedError.into();
         res.cause = Some(e);
         res.loc = Some(loc!());
         res
     }
 
-    fn db_error(e: SQLxError) -> Self {
+    pub fn db_error(e: SQLxError) -> Self {
         let mut res: Self = Error::DBError.into();
         res.cause = Some(e.into());
         res.loc = Some(loc!());
@@ -249,7 +249,7 @@ pub struct Data<T> {
 
 impl<T: Serialize> Data<T> {
     #[track_caller]
-    fn new(data: T) -> Self {
+    pub fn new(data: T) -> Self {
         let response = Response {
             code: 0,
             msg: Some("ok".to_string()),
@@ -262,12 +262,18 @@ impl<T: Serialize> Data<T> {
         Self { data: Some(data), response }
     }
 
-    fn into_req(mut self, req: &mut HttpRequest) -> HttpResponse {
+    pub fn into_req(mut self, req: &mut HttpRequest) -> HttpResponse {
         let data = self.data.take();
         let request_id = self.response.request_id;
         req.extensions_mut().insert(self.response);
         HttpResponse::Ok()
             .json(json!({"code": 0,"msg":"ok", "requestId": request_id, "data": data}))
+    }
+}
+
+impl<T: Serialize> From<T> for Data<T> {
+    fn from(d: T) -> Self {
+        Self::new(d)
     }
 }
 
