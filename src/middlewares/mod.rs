@@ -13,4 +13,4 @@ pub use health_check::*;
 pub use query::*;
 pub use simple_logger::*;
 
-pub mod new_error;
+pub mod new_errors;

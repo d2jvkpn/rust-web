@@ -3,7 +3,7 @@
 use log::LevelFilter;
 use rust_web::{
     internal::{load_config, settings::Settings, startup::run_with_listener, Database},
-    utils::{self, init_logger, LogOutput},
+    utils::{self, init_logger, tcp_listener_with_random_port, LogOutput},
 };
 // use sqlx::{Connection, PgConnection};
 use sqlx::{Connection, Executor, PgConnection, PgPool};
@@ -16,7 +16,7 @@ pub struct TestApp {
 
 // connect to database in config
 pub async fn spawn_app_without_db() -> String {
-    let (listener, port) = utils::tcp_listener_with_random_port("127.0.0.1:0").unwrap();
+    let (listener, port) = tcp_listener_with_random_port("127.0.0.1:0").unwrap();
 
     let config = load_config("configs/local.yaml").expect("Failed to read configuration");
 
