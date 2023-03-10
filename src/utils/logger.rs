@@ -9,7 +9,12 @@ use log4rs::{
     filter::threshold::ThresholdFilter,
 };
 
-pub fn init_logger(file_path: &str, level: log::LevelFilter, console: bool) -> anyhow::Result<()> {
+pub enum LogOutput<'a> {
+    File(&'a str),
+    Console,
+}
+
+pub fn init_logger(output: LogOutput, level: log::LevelFilter) -> anyhow::Result<()> {
     // if let Err(e) = fs::remove_dir_all("logs") {
     //     if e.kind() != io::ErrorKind::NotFound {
     //         return Err(Error::new(e).context("remove logs/"));
@@ -18,43 +23,38 @@ pub fn init_logger(file_path: &str, level: log::LevelFilter, console: bool) -> a
 
     // fs::create_dir_all("logs").map_err(|e| Error::new(e).context("create logs/"))?;
 
-    // Build a stderr logger.
-    let stderr = ConsoleAppender::builder().target(Target::Stderr).build();
-
-    // Logging to log file.
-    let logfile = FileAppender::builder()
-        // Pattern: https://docs.rs/log4rs/*/log4rs/encode/pattern/index.html
-        .encoder(Box::new(JsonEncoder::new()))
-        .build(file_path)
-        .map_err(|e| Error::new(e).context("log4rs create logfile from FileAppender"))?;
+    let name = match output {
+        LogOutput::File(_) => "logfile",
+        LogOutput::Console => "stderr",
+    };
 
     // Log Trace level output to file where trace is the default level
     // and the programmatically specified level to stderr.
     // LevelFilter::Trace
-    let config = if console {
-        Config::builder()
-            .appender(
-                Appender::builder()
-                    .filter(Box::new(ThresholdFilter::new(level)))
-                    .build("logfile", Box::new(logfile)),
-            )
-            .appender(
-                Appender::builder()
-                    .filter(Box::new(ThresholdFilter::new(level)))
-                    .build("stderr", Box::new(stderr)),
-            )
-            .build(Root::builder().appender("logfile").appender("stderr").build(level))
-            .map_err(|e| Error::new(e).context("log4rs config builder"))?
-    } else {
-        Config::builder()
-            .appender(
-                Appender::builder()
-                    .filter(Box::new(ThresholdFilter::new(level)))
-                    .build("logfile", Box::new(logfile)),
-            )
-            .build(Root::builder().appender("logfile").build(level))
-            .map_err(|e| Error::new(e).context("log4rs config builder"))?
+    let appender = match output {
+        LogOutput::File(v) => {
+            // Pattern: https://docs.rs/log4rs/*/log4rs/encode/pattern/index.html
+            let logfile = FileAppender::builder()
+                .encoder(Box::new(JsonEncoder::new()))
+                .build(v)
+                .map_err(|e| Error::new(e).context("log4rs create logfile from FileAppender"))?;
+
+            Appender::builder()
+                .filter(Box::new(ThresholdFilter::new(level)))
+                .build(name, Box::new(logfile))
+        }
+        LogOutput::Console => {
+            let stderr = ConsoleAppender::builder().target(Target::Stderr).build();
+            Appender::builder()
+                .filter(Box::new(ThresholdFilter::new(level)))
+                .build(name, Box::new(stderr))
+        }
     };
+
+    let config = Config::builder()
+        .appender(appender)
+        .build(Root::builder().appender(name).build(level))
+        .map_err(|e| Error::new(e).context("log4rs config builder"))?;
 
     // Use this to change log levels at runtime.
     // This means you can change the default log level to trace

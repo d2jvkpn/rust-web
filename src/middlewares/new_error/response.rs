@@ -101,7 +101,13 @@ impl Response {
     }
 
     #[track_caller]
-    // fn invalid_token1<S: AsRef<str>>(msg: S) -> Self {
+    pub fn invalid_token0<S: AsRef<str>>(msg: S) -> Self {
+        let mut res: Self = Error::InvalidToken(msg.as_ref().to_string()).into();
+        res.loc = Some(loc!());
+        res
+    }
+
+    #[track_caller]
     pub fn invalid_token1(msg: String) -> Self {
         let mut res: Self = Error::InvalidToken(msg).into();
         res.loc = Some(loc!());
@@ -280,7 +286,6 @@ impl<T: Serialize> From<T> for Data<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json;
 
     #[test]
     fn t_response() {

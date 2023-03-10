@@ -3,7 +3,7 @@
 use log::LevelFilter;
 use rust_web::{
     internal::{load_config, settings::Settings, startup::run_with_listener, Database},
-    utils,
+    utils::{self, init_logger, LogOutput},
 };
 // use sqlx::{Connection, PgConnection};
 use sqlx::{Connection, Executor, PgConnection, PgPool};
@@ -38,12 +38,8 @@ pub async fn spawn_app_create_db() -> String {
 
     let config = load_config("configs/local.yaml").expect("Failed to read configuration");
 
-    utils::init_logger(
-        format!("logs/{}.test.log", env!("CARGO_PKG_NAME")).as_str(),
-        LevelFilter::Debug,
-        true,
-    )
-    .unwrap();
+    let fp = format!("logs/{}.TESTS.log", env!("CARGO_PKG_NAME"));
+    init_logger(LogOutput::File(fp.as_str()), LevelFilter::Debug).unwrap();
 
     let pool = prepare_test_db(&config.database).await;
     Settings::set(config, pool.clone()).unwrap();

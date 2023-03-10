@@ -10,6 +10,7 @@ use log::LevelFilter;
 use sqlx::{postgres::PgConnectOptions, ConnectOptions, PgPool};
 use std::{io, str::FromStr};
 use structopt::StructOpt;
+use utils::{init_logger, LogOutput};
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "rust-web", about = "a rust web app")]
@@ -43,9 +44,9 @@ async fn main() -> io::Result<()> {
 
     let log_file = format!("logs/{}.log", env!("CARGO_PKG_NAME"));
     if opts.release {
-        utils::init_logger(&log_file, LevelFilter::Info, false).unwrap();
+        init_logger(LogOutput::File(log_file.as_ref()), LevelFilter::Info).unwrap();
     } else {
-        utils::init_logger(&log_file, LevelFilter::Debug, true).unwrap();
+        init_logger(LogOutput::Console, LevelFilter::Debug).unwrap();
     }
 
     config.threads = opts.threads;
