@@ -9,7 +9,7 @@ use sqlx::error::Error as SQLxError;
 use thiserror;
 
 // type MyResult<T> = Result<Data<T>, Error>;
-pub const OK_JSON: &str = r#"{"code":0,"msg":"ok"}"#;
+pub const OK_JSON: &str = r#"{"code":0,"msg":"ok","data":{}}"#;
 
 // pub enum Result {
 //     Ok(HttpResponse),
@@ -172,7 +172,7 @@ impl ResponseError for Error {
     fn error_response(&self) -> HttpResponse {
         HttpResponse::build(self.status_code())
             .append_header((Error::header_name(), self.header_value()))
-            .json(json!({"code": self.code(),"msg":format!("{}", self)}))
+            .json(json!({"code": self.code(),"msg":format!("{}", self),"data":{}}))
     }
 }
 
