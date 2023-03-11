@@ -1,5 +1,5 @@
 // https://actix.rs/docs/middleware/
-use super::response;
+use super::errors::Error as AnError;
 use actix_web::{
     dev::{self, Service, ServiceRequest, ServiceResponse, Transform},
     HttpMessage, HttpRequest,
@@ -62,20 +62,23 @@ where
 
             match result {
                 Ok(v) => {
-                    let res = v.request().clone();
-                    let mut exts = res.extensions_mut();
-                    let r = exts.remove::<response::Response>().unwrap();
-                    record.user_id = exts.get::<i32>().copied();
-                    record.take_response(r);
+                    let req = v.request().clone();
+                    let mut exts = req.extensions_mut();
+                    record.user_id = exts.remove::<String>();
+
+                    record.status = v.response().status().as_u16();
+                    record.msg = Some("ok".into());
+                    record.request_id = exts.remove::<Uuid>().unwrap();
                     record.log();
                     Ok(v)
                 }
                 Err(e) => {
-                    let mut rep = e.error_response();
-                    let mut exts = rep.extensions_mut();
-                    let r = exts.remove::<response::Response>().unwrap();
-                    record.user_id = exts.get::<i32>().copied();
-                    record.take_response(r);
+                    let mut res = e.error_response();
+                    let mut exts = res.extensions_mut();
+                    record.user_id = exts.remove::<String>();
+
+                    let err = exts.remove::<AnError>().unwrap();
+                    record.with_error(err);
                     record.log();
                     Err(e)
                 }
@@ -92,7 +95,7 @@ struct Record {
     pub method: String,
     pub path: String,
     pub status: u16,
-    pub user_id: Option<i32>,
+    pub user_id: Option<String>,
     pub elapsed: String,
     pub code: i32,
     pub msg: Option<String>,
@@ -117,12 +120,12 @@ impl Record {
     }
 
     // consume a response::Response, using Option<T>.take() rather than Option<T>.clone()
-    pub fn take_response(&mut self, mut res: response::Response) {
-        self.request_id = res.request_id;
-        self.code = res.code;
-        self.msg = res.msg.take();
-        self.status = res.status_code.as_u16();
-        self.loc = res.loc.take();
+    pub fn with_error(&mut self, mut err: AnError) {
+        self.request_id = err.request_id;
+        self.code = err.code;
+        self.msg = err.msg.take();
+        self.status = err.status.as_u16();
+        self.loc = err.loc.take();
     }
 
     pub fn log(&self) {

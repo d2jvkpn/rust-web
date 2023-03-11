@@ -1,7 +1,7 @@
 use super::{data::AppState, settings::user_id_from_header};
 use crate::{
     handlers::route,
-    middlewares::{no_route_error, Logger, SimpleLogger},
+    middlewares::{no_route_error, Logger},
 };
 use actix_cors::Cors;
 use actix_web::{
@@ -45,12 +45,6 @@ pub fn run(address: &str, pool: PgPool) -> io::Result<Server> {
             .configure(route)
     };
 
-    // HttpServer::new(app)
-    //     .keep_alive(Duration::from_secs(60))
-    //     .bind(address)?
-    //     .run()
-    //     .await
-
     let server = HttpServer::new(app).keep_alive(Duration::from_secs(60)).bind(address)?.run();
 
     Ok(server)
@@ -73,7 +67,7 @@ pub fn run_with_listener(listener: TcpListener, pool: PgPool) -> io::Result<Serv
                     .block_on_origin_mismatch(false)
                     .max_age(3600),
             )
-            .wrap(SimpleLogger {})
+            .wrap(Logger { get_user_id: user_id_from_header })
             .wrap(Compress::default())
             .configure(route)
     };

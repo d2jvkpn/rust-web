@@ -3,7 +3,7 @@
 use log::LevelFilter;
 use rust_web::{
     internal::{load_config, settings::Settings, startup::run_with_listener, Database},
-    utils::{self, init_logger, tcp_listener_with_random_port, LogOutput},
+    utils::{init_logger, tcp_listener_with_random_port, LogOutput},
 };
 // use sqlx::{Connection, PgConnection};
 use sqlx::{Connection, Executor, PgConnection, PgPool};

@@ -12,9 +12,15 @@ pub fn db_error_code(err: &SQLxError) -> Option<String> {
 }
 
 pub fn pg_already_exists(err: &SQLxError) -> bool {
-    match db_error_code(err) {
+    let ev = match err {
+        // SQLxError::RowNotFound => false,
+        SQLxError::Database(e) => e,
+        _ => return false,
+    };
+
+    match ev.code() {
         None => false,
-        Some(ref v) => v == "23505",
+        Some(v) => v.as_ref() == "23505",
     }
 }
 

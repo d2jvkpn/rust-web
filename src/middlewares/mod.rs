@@ -1,16 +1,14 @@
 mod api_logger;
-mod errors;
+mod error_handlers;
 mod health_check;
 mod query;
-mod simple_logger;
 
 pub mod blocker;
 pub mod response;
 
 pub use api_logger::*;
-pub use errors::*;
+pub use error_handlers::*;
 pub use health_check::*;
 pub use query::*;
-pub use simple_logger::*;
 
 pub mod new_errors;

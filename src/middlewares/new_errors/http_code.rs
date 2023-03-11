@@ -2,7 +2,7 @@ use actix_web::http::StatusCode;
 
 #[allow(dead_code)]
 #[derive(Debug, thiserror::Error)]
-pub enum Error {
+pub enum HttpCode {
     #[error("no changes")] // -3
     NoChanges,
 
@@ -48,7 +48,7 @@ pub enum Error {
     Unauthenticated(String),
 }
 
-impl Error {
+impl HttpCode {
     // grpc codes: go doc google.golang.org/grpc/codes.Internal
     pub fn code(&self) -> i32 {
         match self {
