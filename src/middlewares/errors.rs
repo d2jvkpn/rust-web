@@ -14,7 +14,7 @@ use anyhow::Error as AE;
 use derive_more::Display;
 use serde::Serialize;
 use serde_json::json;
-use sqlx::error::{DatabaseError, Error as SQLxError};
+use sqlx::error::Error as SQLxError; // DatabaseError
 use uuid::Uuid;
 
 #[derive(Serialize, Debug, Display)]
@@ -216,6 +216,7 @@ impl Error {
     }
 }
 
+/*
 impl From<SQLxError> for Error {
     fn from(err: SQLxError) -> Self {
         // Self::DBError(err.to_string())
@@ -239,6 +240,16 @@ impl From<SQLxError> for Error {
         };
 
         let mut ae: Self = e2.into();
+        ae.cause = Some(err.into());
+        ae.loc = Some(loc!());
+        ae
+    }
+}
+*/
+
+impl From<SQLxError> for Error {
+    fn from(err: SQLxError) -> Self {
+        let mut ae: Self = HttpCode::DBError.into();
         ae.cause = Some(err.into());
         ae.loc = Some(loc!());
         ae
