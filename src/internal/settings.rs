@@ -121,6 +121,7 @@ impl FromRequest for JwtPayload {
         };
 
         req.extensions_mut().insert(jwt_payload.clone());
+        req.extensions_mut().insert(jwt_payload.user_id);
         ready(Ok(jwt_payload))
     }
 }

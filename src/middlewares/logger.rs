@@ -64,7 +64,7 @@ where
                 Ok(v) => {
                     let req = v.request().clone();
                     let mut exts = req.extensions_mut();
-                    record.user_id = exts.remove::<String>();
+                    record.user_id = exts.get::<i32>().copied();
 
                     if let Some(err) = exts.remove::<AnError>() {
                         record.with_error(err);
@@ -80,8 +80,8 @@ where
                     let mut res = e.error_response();
                     record.status = res.status().as_u16();
                     record.cause = Some(format!("{:}", e));
-                    let mut exts = res.extensions_mut();
-                    record.user_id = exts.remove::<String>();
+                    let exts = res.extensions_mut();
+                    record.user_id = exts.get::<i32>().copied();
                     // TODO:...
 
                     record.log();
@@ -100,7 +100,7 @@ struct Record {
     pub method: String,
     pub path: String,
     pub status: u16,
-    pub user_id: Option<String>,
+    pub user_id: Option<i32>,
     pub elapsed: String,
     pub code: i32,
     pub msg: Option<String>,
