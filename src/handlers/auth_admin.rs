@@ -2,61 +2,59 @@ use crate::{
     db::db_admin,
     db::db_token::disable_user_tokens,
     internal::AppState,
-    middlewares::response::{Data, Error},
-    middlewares::QueryPage,
+    middlewares::{IntoResult, QueryPage},
     models::user::*,
 };
-use actix_web::{web, HttpResponse};
+use actix_web::{error::Error as ActixError, web, HttpRequest, HttpResponse};
 
 pub async fn query_users(
+    mut request: HttpRequest,
     app_state: web::Data<AppState>,
     query_page: web::Query<QueryPage>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, ActixError> {
     db_admin::query_users_v2(&app_state.pool, query_page.into_inner())
         .await
-        .map(|v| Ok(Data(v).into()))?
+        .into_result(&mut request)
 }
 
 pub async fn find_user(
+    mut request: HttpRequest,
     app_state: web::Data<AppState>,
     match_user: web::Query<MatchUser>,
-) -> Result<HttpResponse, Error> {
-    db_admin::find_user(&app_state.pool, match_user.into_inner())
-        .await
-        .map(|v| Ok(Data(v).into()))?
+) -> Result<HttpResponse, ActixError> {
+    db_admin::find_user(&app_state.pool, match_user.into_inner()).await.into_result(&mut request)
 }
 
 pub async fn update_user_status(
+    mut request: HttpRequest,
     app_state: web::Data<AppState>,
     uus: web::Query<UpdateUserStatus>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, ActixError> {
     if uus.status != Status::OK {
         let _ = disable_user_tokens(&app_state.pool, uus.user_id, None).await;
     }
 
-    db_admin::update_user_status(&app_state.pool, uus.into_inner())
-        .await
-        .map(|v| Ok(Data(v).into()))?
+    db_admin::update_user_status(&app_state.pool, uus.into_inner()).await.into_result(&mut request)
 }
 
 pub async fn update_user_role(
+    mut request: HttpRequest,
     app_state: web::Data<AppState>,
     uur: web::Query<UpdateUserRole>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, ActixError> {
     let _ = disable_user_tokens(&app_state.pool, uur.user_id, None).await;
 
-    db_admin::update_user_role(&app_state.pool, uur.into_inner())
-        .await
-        .map(|v| Ok(Data(v).into()))?
+    db_admin::update_user_role(&app_state.pool, uur.into_inner()).await.into_result(&mut request)
 }
 
 pub async fn reset_user_password(
+    mut request: HttpRequest,
     app_state: web::Data<AppState>,
     reset_password: web::Json<ResetPassword>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, ActixError> {
     let _ = disable_user_tokens(&app_state.pool, reset_password.user_id, None).await;
 
     db_admin::reset_user_password(&app_state.pool, reset_password.into_inner())
         .await
-        .map(|v| Ok(Data(v).into()))?
+        .into_result(&mut request)
 }

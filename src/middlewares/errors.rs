@@ -117,7 +117,14 @@ impl Error {
     }
 
     #[track_caller]
-    pub fn unknown(e: AE) -> Self {
+    pub fn unknown1() -> Self {
+        let mut err: Self = HttpCode::Unknown.into();
+        err.loc = Some(loc!());
+        err
+    }
+
+    #[track_caller]
+    pub fn unknown2(e: AE) -> Self {
         let mut err: Self = HttpCode::Unknown.into();
         err.cause = Some(e);
         err.loc = Some(loc!());
@@ -182,7 +189,13 @@ impl Error {
         err
     }
 
-    pub fn unexpected_error(e: AE) -> Self {
+    pub fn unexpected_error1() -> Self {
+        let mut err: Self = HttpCode::UnexpectedError.into();
+        err.loc = Some(loc!());
+        err
+    }
+
+    pub fn unexpected_error2(e: AE) -> Self {
         let mut err: Self = HttpCode::UnexpectedError.into();
         err.cause = Some(e);
         err.loc = Some(loc!());
@@ -196,7 +209,11 @@ impl Error {
         err
     }
 
-    // TODO: more...
+    pub fn unauthenticated(msg: String) -> Self {
+        let mut err: Self = HttpCode::Unauthenticated(msg).into();
+        err.loc = Some(loc!());
+        err
+    }
 }
 
 impl From<SQLxError> for Error {

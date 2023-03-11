@@ -1,5 +1,5 @@
 use crate::{
-    middlewares::response::Error,
+    middlewares::Error,
     models::token::{Platform, Token},
     utils::{self, socket_addr_to_ip_network},
 };
@@ -91,8 +91,8 @@ pub async fn check_token_in_table(pool: &PgPool, token_id: Uuid) -> Result<(), E
     };
 
     if utils::pg_not_found(&err) {
-        Err(Error::Unauthenticated("can't verify token, relogin required".to_string()))
+        Err(Error::unauthenticated("can't verify token, relogin required".to_string()))
     } else {
-        Err(Error::Internal(err.to_string()))
+        Err(Error::db_error(err))
     }
 }

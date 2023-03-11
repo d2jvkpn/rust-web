@@ -1,5 +1,5 @@
 use crate::{
-    middlewares::{response::Error, QueryPage, QueryResult},
+    middlewares::{Error, QueryPage, QueryResult},
     models::user::*,
     utils,
 };
@@ -13,8 +13,7 @@ pub async fn query_users_v1(
     pool: &PgPool,
     mut page: QueryPage,
 ) -> Result<QueryResult<User>, Error> {
-    page.check(("id", &["id", "name", "email"]))
-        .map_err(|e| Error::InvalidArgument(e.to_string()))?;
+    page.check(("id", &["id", "name", "email"])).map_err(|e| Error::invalid1(e.to_string()))?;
 
     let mut result = QueryResult::new();
 
@@ -36,8 +35,7 @@ pub async fn query_users_v2(
     pool: &PgPool,
     mut page: QueryPage,
 ) -> Result<QueryResult<User>, Error> {
-    page.check(("id", &["id", "name", "email"]))
-        .map_err(|e| Error::InvalidArgument(e.to_string()))?;
+    page.check(("id", &["id", "name", "email"])).map_err(|e| Error::invalid1(e.to_string()))?;
 
     // dbg!(&page);
     let mut result = QueryResult::new();
@@ -65,7 +63,7 @@ pub async fn query_users_v2(
 }
 
 pub async fn find_user(pool: &PgPool, match_user: MatchUser) -> Result<User, Error> {
-    match_user.valid().map_err(|e| Error::InvalidArgument(e.to_string()))?;
+    match_user.valid().map_err(|e| Error::invalid1(e.to_string()))?;
 
     let mut query = QueryBuilder::new(r#"SELECT * FROM users WHERE "#);
     if let Some(v) = match_user.id {
@@ -86,7 +84,7 @@ pub async fn find_user(pool: &PgPool, match_user: MatchUser) -> Result<User, Err
     };
 
     if utils::pg_not_found(&err) {
-        Err(Error::NotFound("user not found".into()))
+        Err(Error::not_found1("user not found".into()))
     } else {
         Err(err.into())
     }
@@ -106,7 +104,7 @@ pub async fn update_user_role(pool: &PgPool, uus: UpdateUserRole) -> Result<(), 
     };
 
     if utils::pg_not_found(&err) {
-        Err(Error::NotFound("user not found".into()))
+        Err(Error::not_found1("user not found".into()))
     } else {
         Err(err.into())
     }
@@ -126,17 +124,17 @@ pub async fn update_user_status(pool: &PgPool, uus: UpdateUserStatus) -> Result<
     };
 
     if utils::pg_not_found(&err) {
-        Err(Error::NotFound("user not found".into()))
+        Err(Error::not_found1("user not found".into()))
     } else {
         Err(err.into())
     }
 }
 
 pub async fn reset_user_password(pool: &PgPool, item: ResetPassword) -> Result<(), Error> {
-    item.valid().map_err(|e| Error::InvalidArgument(e.into()))?;
+    item.valid().map_err(|e| Error::invalid1(e.into()))?;
 
     let password =
-        utils::bcrypt_hash(item.new_password, BCRYPT_COST).await.map_err(|_| Error::Unknown)?;
+        utils::bcrypt_hash(item.new_password, BCRYPT_COST).await.map_err(|_| Error::unknown1())?;
 
     sqlx::query!(r#"UPDATE users SET password = $1 WHERE id = $2"#, password, item.user_id)
         .execute(pool)

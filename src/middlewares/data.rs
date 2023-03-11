@@ -1,10 +1,17 @@
 use actix_web::{HttpMessage, HttpRequest, HttpResponse};
 use serde::Serialize;
 use serde_json::json;
+use std::collections::HashMap;
 use uuid::Uuid;
 
 #[derive(Debug, Serialize)]
 pub struct Data<T>(pub T);
+
+pub const OK_JSON: &'static str = r#"{"code":0,"msg":"ok","data":{}}"#;
+
+pub fn empty_data() -> HashMap<u8, u8> {
+    HashMap::new()
+}
 
 impl<T: Serialize> Data<T> {
     pub fn into_req(self, req: &mut HttpRequest) -> HttpResponse {

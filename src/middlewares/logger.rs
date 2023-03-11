@@ -66,19 +66,24 @@ where
                     let mut exts = req.extensions_mut();
                     record.user_id = exts.remove::<String>();
 
-                    record.status = v.response().status().as_u16();
-                    record.msg = Some("ok".into());
-                    record.request_id = exts.remove::<Uuid>().unwrap();
+                    if let Some(err) = exts.remove::<AnError>() {
+                        record.with_error(err);
+                    } else {
+                        record.status = v.response().status().as_u16();
+                        record.msg = Some("ok".into());
+                        record.request_id = exts.remove::<Uuid>().unwrap();
+                    }
                     record.log();
                     Ok(v)
                 }
                 Err(e) => {
                     let mut res = e.error_response();
+                    record.status = res.status().as_u16();
+                    record.cause = Some(format!("{:}", e));
                     let mut exts = res.extensions_mut();
                     record.user_id = exts.remove::<String>();
+                    // TODO:...
 
-                    let err = exts.remove::<AnError>().unwrap();
-                    record.with_error(err);
                     record.log();
                     Err(e)
                 }
@@ -99,6 +104,7 @@ struct Record {
     pub elapsed: String,
     pub code: i32,
     pub msg: Option<String>,
+    pub cause: Option<String>,
     pub loc: Option<String>,
 }
 
@@ -125,6 +131,9 @@ impl Record {
         self.code = err.code;
         self.msg = err.msg.take();
         self.status = err.status.as_u16();
+        if let Some(e) = err.cause {
+            self.cause = Some(format!("{:}", e));
+        }
         self.loc = err.loc.take();
     }
 

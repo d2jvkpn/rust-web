@@ -1,5 +1,5 @@
 // https://actix.rs/docs/middleware/
-use crate::{internal::settings::Settings, middlewares::response, models::user::Role};
+use crate::{internal::settings::Settings, middlewares::Error, models::user::Role};
 use actix_web::{
     dev::{self, Service, ServiceRequest, ServiceResponse, Transform},
     HttpMessage,
@@ -55,7 +55,7 @@ where
         };
 
         if payload.role != self.value {
-            let err = response::Error::PermissionDenied("you have no permission".into());
+            let err = Error::permission_denied("you have no permission".into());
             return Box::pin(ready(Err(err.into())));
         }
 

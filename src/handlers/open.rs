@@ -1,29 +1,32 @@
 use crate::{
     db::db_user,
     internal::AppState,
-    middlewares::response::{Data, Error},
+    middlewares::IntoResult,
     models::{token::Platform, user::*},
 };
-use actix_web::{http::header::HeaderName, web, HttpRequest, HttpResponse};
+use actix_web::{
+    error::Error as ActixError, http::header::HeaderName, web, HttpRequest, HttpResponse,
+};
 use std::str::FromStr;
 
 pub async fn post_new_user(
+    mut request: HttpRequest,
     app_state: web::Data<AppState>,
     item: web::Json<CreateUser>,
-) -> Result<HttpResponse, Error> {
-    db_user::post_new_user(&app_state.pool, item.into_inner()).await.map(|v| Ok(Data(v).into()))?
+) -> Result<HttpResponse, ActixError> {
+    db_user::post_new_user(&app_state.pool, item.into_inner()).await.into_result(&mut request)
 }
 
 pub async fn user_login(
+    mut request: HttpRequest,
     app_state: web::Data<AppState>,
     login: web::Json<UserLogin>,
-    request: HttpRequest,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, ActixError> {
     let platform = extract_platform_v1(&request);
 
     db_user::user_login(&app_state.pool, login.into_inner(), request.peer_addr(), platform)
         .await
-        .map(|v| Ok(Data(v).into()))?
+        .into_result(&mut request)
 }
 
 fn extract_platform_v1(request: &HttpRequest) -> Platform {

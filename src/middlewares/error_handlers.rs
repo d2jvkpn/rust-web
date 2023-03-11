@@ -1,10 +1,10 @@
 // https://actix.rs/docs/middleware/
-use super::response;
+use super::Error;
 use actix_web::{
     dev::{self, ServiceResponse},
-    error::ResponseError,
     http::header::{HeaderName, HeaderValue},
     middleware::ErrorHandlerResponse,
+    ResponseError,
 };
 
 // https://docs.rs/actix-web/latest/actix_web/middleware/struct.ErrorHandlers.html
@@ -24,7 +24,7 @@ pub fn no_route_error<B>(sr: ServiceResponse<B>) -> actix_web::Result<ErrorHandl
     // Ok(ErrorHandlerResponse::Response(sr))
 
     let (req, _) = sr.into_parts(); // (HttpRequest, HttpResponse<B>)
-    let res = response::Error::NoRoute.error_response();
+    let res = Error::no_route().error_response();
     let sr = ServiceResponse::new(req, res).map_into_boxed_body().map_into_right_body();
     Ok(ErrorHandlerResponse::Response(sr))
 }

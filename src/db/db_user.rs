@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
     internal::settings::Settings,
-    middlewares::response::Error,
+    middlewares::Error,
     models::{
         token::{JwtPayload, Platform, Token},
         user::*,
@@ -16,10 +16,10 @@ use std::{net::SocketAddr, time::Duration};
 use uuid::Uuid;
 
 pub async fn post_new_user(pool: &PgPool, item: CreateUser) -> Result<User, Error> {
-    item.valid().map_err(|e| Error::InvalidArgument(e.to_string()))?;
+    item.valid().map_err(|e| Error::invalid1(e.to_string()))?;
 
     let password =
-        utils::bcrypt_hash(item.password, BCRYPT_COST).await.map_err(|_| Error::Unknown)?;
+        utils::bcrypt_hash(item.password, BCRYPT_COST).await.map_err(|_| Error::unknown1())?;
     // dbg!(&password);
 
     // TODO: supporting enum convert between postgresql and rust in sqlx
@@ -49,9 +49,9 @@ pub async fn post_new_user(pool: &PgPool, item: CreateUser) -> Result<User, Erro
 
     dbg!(&err);
     if utils::pg_already_exists(&err) {
-        Err(Error::AlreadyExists)
+        Err(Error::already_exists())
     } else {
-        Err(Error::DBError(err))
+        Err(Error::db_error(err))
     }
 }
 
@@ -62,10 +62,10 @@ pub async fn update_user_details_a(
     update_user: UpdateUser,
 ) -> Result<User, Error> {
     if user_id <= 0 {
-        return Err(Error::InvalidArgument("invalid user_id".into()));
+        return Err(Error::invalid1("invalid user_id".into()));
     }
     if let Err(e) = update_user.valid() {
-        return Err(Error::InvalidArgument(e.to_string()));
+        return Err(Error::invalid1(e.to_string()));
     }
 
     // Retrieve current record
@@ -78,11 +78,11 @@ pub async fn update_user_details_a(
     )
     .fetch_one(pool)
     .await
-    .map_err(|_err| Error::NotFound("user not found".into()))?;
+    .map_err(|_err| Error::not_found1("user not found".into()))?;
     // ignore database errors other than NotFound
 
     if !user.update(update_user) {
-        return Err(Error::NoChanges);
+        return Err(Error::no_changes());
     }
 
     let err = match sqlx::query!(
@@ -101,7 +101,7 @@ pub async fn update_user_details_a(
     // WARNING: user.updated_at is unchange
     // ?? return part of user only
     if utils::pg_not_found(&err) {
-        Err(Error::NotFound("user not found".into()))
+        Err(Error::not_found1("user not found".into()))
     } else {
         Err(err.into())
     }
@@ -114,10 +114,10 @@ pub async fn update_user_details_b(
     update_user: UpdateUser,
 ) -> Result<(), Error> {
     if user_id <= 0 {
-        return Err(Error::InvalidArgument("invalid user_id".into()));
+        return Err(Error::invalid1("invalid user_id".into()));
     }
     if let Err(e) = update_user.valid() {
-        return Err(Error::InvalidArgument(e.to_string()));
+        return Err(Error::invalid1(e.to_string()));
     }
 
     let err = match sqlx::query!(
@@ -134,7 +134,7 @@ pub async fn update_user_details_b(
     };
 
     if utils::pg_not_found(&err) {
-        Err(Error::NotFound("user not found".into()))
+        Err(Error::not_found1("user not found".into()))
     } else {
         Err(err.into())
     }
@@ -146,7 +146,7 @@ pub async fn user_login(
     ip: Option<SocketAddr>,
     platform: Platform,
 ) -> Result<UserAndToken, Error> {
-    login.valid().map_err(|e| Error::InvalidArgument(e.into()))?;
+    login.valid().map_err(|e| Error::invalid1(e.into()))?;
 
     // let now = std::time::Instant::now(); println!("--> user_login offset: {:?}", now.elapsed());
     let mut query = QueryBuilder::new(r#"SELECT * FROM users WHERE "#);
@@ -165,20 +165,20 @@ pub async fn user_login(
         Err(e) => {
             if utils::pg_not_found(&e) {
                 tokio::time::sleep(Duration::from_secs(1)).await;
-                return Err(Error::NotFound(err_msg));
+                return Err(Error::not_found1(err_msg));
             } else {
                 return Err(e.into());
             };
         }
     };
 
-    upassword.user.status_ok().map_err(|e| Error::PermissionDenied(e.into()))?;
+    upassword.user.status_ok().map_err(|e| Error::permission_denied(e.into()))?;
 
     let m = utils::bcrypt_verify(login.password, upassword.password)
         .await
-        .map_err(|_| Error::Unknown)?;
+        .map_err(|_| Error::unknown1())?;
     if !m {
-        return Err(Error::NotFound(err_msg));
+        return Err(Error::not_found1(err_msg));
     }
 
     let mut playload = JwtPayload {
@@ -205,7 +205,7 @@ pub async fn user_change_password(
     user_id: i32,
     item: ChangePassword,
 ) -> Result<(), Error> {
-    item.valid().map_err(|e| Error::InvalidArgument(e.into()))?;
+    item.valid().map_err(|e| Error::invalid1(e.into()))?;
 
     let mut query = QueryBuilder::new(r#"SELECT * FROM users WHERE "#);
     query.push("id = ");
@@ -217,24 +217,24 @@ pub async fn user_change_password(
         Err(e) => {
             tokio::time::sleep(Duration::from_secs(1)).await;
             if utils::pg_not_found(&e) {
-                return Err(Error::NotFound(err_msg));
+                return Err(Error::not_found1(err_msg));
             } else {
                 return Err(e.into());
             };
         }
     };
 
-    upassword.user.status_ok().map_err(|e| Error::PermissionDenied(e.into()))?;
+    upassword.user.status_ok().map_err(|e| Error::permission_denied(e.into()))?;
     let m = utils::bcrypt_verify(item.old_password, upassword.password)
         .await
-        .map_err(|_| Error::Unknown)?;
+        .map_err(|_| Error::unknown1())?;
 
     if !m {
-        return Err(Error::NotFound(err_msg));
+        return Err(Error::not_found1(err_msg));
     }
 
     let password =
-        utils::bcrypt_hash(item.new_password, BCRYPT_COST).await.map_err(|_| Error::Unknown)?;
+        utils::bcrypt_hash(item.new_password, BCRYPT_COST).await.map_err(|_| Error::unknown1())?;
 
     sqlx::query!(r#"UPDATE users SET password = $1 WHERE id = $2"#, password, user_id)
         .execute(pool)

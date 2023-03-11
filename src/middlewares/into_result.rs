@@ -3,13 +3,13 @@ use super::{data::Data, errors::Error};
 use actix_web::{error::Error as ActixError, HttpRequest, HttpResponse};
 use serde::Serialize;
 
-pub trait IntoRessult<T> {
-    fn into_res(self, req: &mut HttpRequest) -> Result<HttpResponse, ActixError>;
+pub trait IntoResult<T> {
+    fn into_result(self, req: &mut HttpRequest) -> Result<HttpResponse, ActixError>;
 }
 
 // impl<T: Serialize> IntoRes<T> for Result<Data<T>, Error> {
-impl<T: Serialize> IntoRessult<T> for Result<T, Error> {
-    fn into_res(self, req: &mut HttpRequest) -> Result<HttpResponse, ActixError> {
+impl<T: Serialize> IntoResult<T> for Result<T, Error> {
+    fn into_result(self, req: &mut HttpRequest) -> Result<HttpResponse, ActixError> {
         match self {
             Ok(v) => {
                 let d = Data(v);

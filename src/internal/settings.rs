@@ -1,7 +1,5 @@
 use super::configuration::Configuration;
-use crate::{
-    db::db_token::check_token_in_table, middlewares::response::Error, models::token::JwtPayload,
-};
+use crate::{db::db_token::check_token_in_table, middlewares::Error, models::token::JwtPayload};
 use actix_web::{dev::Payload, http::header::AUTHORIZATION, FromRequest, HttpMessage, HttpRequest};
 use base64::{engine::general_purpose::STANDARD_NO_PAD, Engine as _};
 use chrono::{Duration, Utc};
@@ -57,9 +55,8 @@ impl Settings {
         Some((&settings.jwt_key, settings.configuration.jwt.alive_mins))
     }
 
-    pub fn jwt_sign(data: &mut JwtPayload) -> Result<String, actix_web::Error> {
-        let (jwt_key, alive_mins) =
-            Self::jwt().ok_or(Error::Internal("configuration is unset".into()))?;
+    pub fn jwt_sign(data: &mut JwtPayload) -> Result<String, Error> {
+        let (jwt_key, alive_mins) = Self::jwt().ok_or(Error::unexpected_error1())?;
 
         let now = Utc::now();
         data.iat = now.timestamp();
@@ -68,27 +65,27 @@ impl Settings {
         let key = EncodingKey::from_secret(jwt_key);
 
         let token =
-            encode(&Header::default(), &data, &key).map_err(|e| Error::Internal(e.to_string()))?;
+            encode(&Header::default(), &data, &key).map_err(|_| Error::unexpected_error1())?;
 
         Ok("Bearer ".to_owned() + &token)
     }
 
     pub fn jwt_verify(req: &HttpRequest) -> Result<JwtPayload, Error> {
         // let (jwt_key, _) = Self::jwt().ok_or(Error::Internal("configuration is unset".into()))?;
-        let settings = OC_SETTINGS.get().ok_or(Error::Internal("configuration is unset".into()))?;
+        let settings = OC_SETTINGS.get().ok_or(Error::unexpected_error1())?;
         let jwt_key = &settings.jwt_key;
 
         let key = DecodingKey::from_secret(jwt_key);
         let prefix = "Bearer ";
 
         let msg = "not logged in, please provide token".to_string();
-        let value = req.headers().get(AUTHORIZATION).ok_or(Error::Unauthenticated(msg))?;
+        let value = req.headers().get(AUTHORIZATION).ok_or(Error::unauthenticated(msg))?;
 
         let msg = "failed to parse token".to_string();
-        let token = value.to_str().map_err(|_| Error::Unauthenticated(msg))?;
+        let token = value.to_str().map_err(|_| Error::unauthenticated(msg))?;
 
         if !token.starts_with(prefix) {
-            return Err(Error::Unauthenticated("invalid token format".to_string()));
+            return Err(Error::unauthenticated("invalid token format".to_string()));
         }
         // TokenData<JwtPayload>: TokenData{ header, claims }
         let data = decode::<JwtPayload>(&token[prefix.len()..], &key, &Validation::default())
@@ -98,7 +95,7 @@ impl Settings {
                 } else {
                     "failed to decode token"
                 };
-                Error::Unauthenticated(em.to_string())
+                Error::unauthenticated(em.to_string())
             })?;
         // if data.claims.iat > Utc::now().timestamp() {
         //    return Err(Error::Unauthenticated("token expired".into()));
@@ -137,6 +134,7 @@ pub fn user_id_from_exts(req: &HttpRequest) -> Option<i32> {
 }
 
 // !! hasn't verify token(Config::jwt_verify) yet
+#[allow(dead_code)]
 pub fn user_id_from_header(req: &HttpRequest) -> Option<i32> {
     let prefix = "Bearer ";
     let value = req.headers().get(AUTHORIZATION)?;
