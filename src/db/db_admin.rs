@@ -62,17 +62,17 @@ pub async fn query_users_v2(
     Ok(result)
 }
 
-pub async fn find_user(pool: &PgPool, match_user: MatchUser) -> Result<User, Error> {
-    match_user.valid().map_err(|e| Error::invalid1(e.to_string()))?;
+pub async fn find_user(pool: &PgPool, item: MatchUser) -> Result<User, Error> {
+    item.valid().map_err(|e| Error::invalid1(e.to_string()))?;
 
     let mut query = QueryBuilder::new(r#"SELECT * FROM users WHERE "#);
-    if let Some(v) = match_user.id {
+    if let Some(v) = item.id {
         query.push("id = ");
         query.push_bind(v);
-    } else if let Some(v) = match_user.phone {
+    } else if let Some(v) = item.phone {
         query.push("phone = ");
         query.push_bind(v);
-    } else if let Some(v) = match_user.email {
+    } else if let Some(v) = item.email {
         query.push("email = ");
         query.push_bind(v);
     }
@@ -90,11 +90,11 @@ pub async fn find_user(pool: &PgPool, match_user: MatchUser) -> Result<User, Err
     }
 }
 
-pub async fn update_user_role(pool: &PgPool, uus: UpdateUserRole) -> Result<(), Error> {
+pub async fn update_user_role(pool: &PgPool, item: UpdateUserRole) -> Result<(), Error> {
     let err = match sqlx::query!(
         "UPDATE users SET status = $1 WHERE id = $2 RETURNING id",
-        uus.role as Role,
-        uus.user_id,
+        item.role as Role,
+        item.user_id,
     )
     .fetch_one(pool)
     .await
@@ -110,11 +110,11 @@ pub async fn update_user_role(pool: &PgPool, uus: UpdateUserRole) -> Result<(), 
     }
 }
 
-pub async fn update_user_status(pool: &PgPool, uus: UpdateUserStatus) -> Result<(), Error> {
+pub async fn update_user_status(pool: &PgPool, item: UpdateUserStatus) -> Result<(), Error> {
     let err = match sqlx::query!(
         "UPDATE users SET status = $1 WHERE id = $2 RETURNING id",
-        uus.status as Status,
-        uus.user_id,
+        item.status as Status,
+        item.user_id,
     )
     .fetch_one(pool)
     .await

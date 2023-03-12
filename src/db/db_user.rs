@@ -59,12 +59,12 @@ pub async fn post_new_user(pool: &PgPool, item: CreateUser) -> Result<User, Erro
 pub async fn update_user_details_a(
     pool: &PgPool,
     user_id: i32,
-    update_user: UpdateUser,
+    item: UpdateUser,
 ) -> Result<User, Error> {
     if user_id <= 0 {
         return Err(Error::invalid1("invalid user_id".into()));
     }
-    if let Err(e) = update_user.valid() {
+    if let Err(e) = item.valid() {
         return Err(Error::invalid1(e.to_string()));
     }
 
@@ -81,7 +81,7 @@ pub async fn update_user_details_a(
     .map_err(|_err| Error::not_found1("user not found".into()))?;
     // ignore database errors other than NotFound
 
-    if !user.update(update_user) {
+    if !user.update(item) {
         return Err(Error::no_changes());
     }
 
@@ -111,19 +111,19 @@ pub async fn update_user_details_a(
 pub async fn update_user_details_b(
     pool: &PgPool,
     user_id: i32,
-    update_user: UpdateUser,
+    item: UpdateUser,
 ) -> Result<(), Error> {
     if user_id <= 0 {
         return Err(Error::invalid1("invalid user_id".into()));
     }
-    if let Err(e) = update_user.valid() {
+    if let Err(e) = item.valid() {
         return Err(Error::invalid1(e.to_string()));
     }
 
     let err = match sqlx::query!(
         "UPDATE users SET name = $1, birthday = $2 WHERE id = $3 RETURNING id",
-        update_user.name,
-        update_user.birthday,
+        item.name,
+        item.birthday,
         user_id,
     )
     .fetch_one(pool)
@@ -142,18 +142,18 @@ pub async fn update_user_details_b(
 
 pub async fn user_login(
     pool: &PgPool,
-    login: UserLogin,
+    item: UserLogin,
     ip: Option<SocketAddr>,
     platform: Platform,
 ) -> Result<UserAndToken, Error> {
-    login.valid().map_err(|e| Error::invalid1(e.into()))?;
+    item.valid().map_err(|e| Error::invalid1(e.into()))?;
 
     // let now = std::time::Instant::now(); println!("--> user_login offset: {:?}", now.elapsed());
     let mut query = QueryBuilder::new(r#"SELECT * FROM users WHERE "#);
-    if let Some(v) = login.phone {
+    if let Some(v) = item.phone {
         query.push("phone = ");
         query.push_bind(v);
-    } else if let Some(v) = login.email {
+    } else if let Some(v) = item.email {
         query.push("email = ");
         query.push_bind(v);
     }
@@ -174,7 +174,7 @@ pub async fn user_login(
 
     upassword.user.status_ok().map_err(|e| Error::permission_denied(e.into()))?;
 
-    let m = utils::bcrypt_verify(login.password, upassword.password)
+    let m = utils::bcrypt_verify(item.password, upassword.password)
         .await
         .map_err(|_| Error::unknown1())?;
     if !m {

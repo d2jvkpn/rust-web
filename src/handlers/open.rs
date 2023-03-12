@@ -20,11 +20,11 @@ pub async fn post_new_user(
 pub async fn user_login(
     mut request: HttpRequest,
     app_state: web::Data<AppState>,
-    login: web::Json<UserLogin>,
+    item: web::Json<UserLogin>,
 ) -> Result<HttpResponse, ActixError> {
     let platform = extract_platform_v1(&request);
 
-    db_user::user_login(&app_state.pool, login.into_inner(), request.peer_addr(), platform)
+    db_user::user_login(&app_state.pool, item.into_inner(), request.peer_addr(), platform)
         .await
         .into_result(&mut request)
 }
