@@ -1,0 +1,43 @@
+# docker-compose.yaml
+version: '3'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: rust-web_db
+    restart: always
+    # network_mode: bridge
+    networks: ["rust-web"]
+    # ports: ["127.0.0.1:5432:5432"]
+    volumes:
+    - ./data:/var/lib/postgresql/data
+    # - postgres_data:/var/lib/postgresql/data
+    # - ./postgresql.conf:/var/lib/postgresql/data/pgdata/postgresql.conf
+    # - ./log:/var/log/postgresql/
+    environment:
+    - TZ=Asia/Shanghai
+    - PGTZ=Asia/Shanghai
+    - PGDATA=/var/lib/postgresql/data/pgdata
+    - POSTGRES_USER=postgres
+    - POSTGRES_PASSWORD=postgres
+
+  rust-web:
+    image: registry.cn-shanghai.aliyuncs.com/d2jvkpn/rust-web:dev
+    container_name: rust-web_dev
+    restart: always
+    depends_on: ["postgres"]
+    # network_mode: bridge
+    networks: ["rust-web"]
+    ports: ["3000:3000"]
+    environment: ["TZ=Asia/Shanghai"]
+    volumes:
+    - ./configs/:/opt/rust-web/configs/
+    - ./logs/:/opt/rust-web/logs/
+    working_dir: /opt/rust-web
+    command: ["./rust-web", "--config=configs/prod.yaml", "--addr=0.0.0.0", "--port=3000", "--release"]
+
+networks:
+  rust-web:
+    name: rust-web
+    driver: bridge
+    external: false

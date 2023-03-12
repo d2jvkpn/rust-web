@@ -6,7 +6,7 @@ use serde_json::json;
 use std::collections::HashMap;
 use uuid::Uuid;
 
-pub const OK_JSON: &'static str = r#"{"code":0,"msg":"ok","data":{}}"#;
+pub const OK_JSON: &str = r#"{"code":0,"msg":"ok","data":{}}"#;
 
 #[derive(Debug, Serialize)]
 pub struct Data<T>(pub T);
