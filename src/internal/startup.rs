@@ -1,15 +1,7 @@
 use super::data::AppState;
-use crate::{
-    handlers::route,
-    middlewares::{no_route_error, Logger},
-};
+use crate::{handlers::route, middlewares::Logger};
 use actix_cors::Cors;
-use actix_web::{
-    dev::Server,
-    http::{header, StatusCode},
-    middleware::{Compress, ErrorHandlers},
-    web, App, HttpServer,
-};
+use actix_web::{dev::Server, http::header, middleware::Compress, web, App, HttpServer};
 use sqlx::PgPool;
 use std::{io, net::TcpListener, time::Duration};
 
@@ -22,7 +14,7 @@ pub fn run(address: &str, pool: PgPool) -> io::Result<Server> {
         // println!("--> new worker in thread: {:?}", std::thread::current().id());
         App::new()
             .app_data(app_data.clone())
-            .wrap(ErrorHandlers::new().handler(StatusCode::NOT_FOUND, no_route_error))
+            // .wrap(ErrorHandlers::new().handler(StatusCode::NOT_FOUND, no_route_error))
             .wrap(Logger {})
             .wrap(
                 Cors::default()
@@ -57,7 +49,7 @@ pub fn run_with_listener(listener: TcpListener, pool: PgPool) -> io::Result<Serv
     let app = move || {
         App::new()
             .app_data(app_data.clone())
-            .wrap(ErrorHandlers::new().handler(StatusCode::NOT_FOUND, no_route_error))
+            // .wrap(ErrorHandlers::new().handler(StatusCode::NOT_FOUND, no_route_error))
             .wrap(
                 Cors::default()
                     .allowed_methods(vec!["GET", "POST"])

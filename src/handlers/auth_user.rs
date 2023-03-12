@@ -84,7 +84,7 @@ pub async fn frozen_user_status(
 
     disable_curent_token(&app_state.pool, jwt.token_id)
         .await
-        .map_err(|e| e.into_req(&mut request))?;
+        .map_err(|e| e.into_actix(&mut request))?;
 
     db_admin::update_user_status(&app_state.pool, uus).await.into_result(&mut request)
 }

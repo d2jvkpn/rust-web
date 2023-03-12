@@ -19,7 +19,6 @@ macro_rules! loc2 {
     }};
 }
 
-mod data;
 mod error_handlers;
 mod errors;
 mod health_check;
@@ -30,7 +29,6 @@ mod query;
 
 pub mod blocker;
 
-pub use data::*;
 pub use error_handlers::*;
 pub use errors::*;
 pub use health_check::*;

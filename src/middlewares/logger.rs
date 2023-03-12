@@ -1,5 +1,5 @@
 // https://actix.rs/docs/middleware/
-use super::errors::Error as AnError;
+use super::{errors::Error as AnError, Trace};
 use actix_web::{
     dev::{self, Service, ServiceRequest, ServiceResponse, Transform},
     HttpMessage, HttpRequest,
@@ -60,34 +60,44 @@ where
             let result = fut.await;
             record.elapsed();
 
-            match result {
-                Ok(v) => {
-                    let req = v.request().clone();
-                    let mut exts = req.extensions_mut();
-                    record.user_id = exts.get::<i32>().copied();
-
-                    if let Some(err) = exts.remove::<AnError>() {
-                        record.with_error(err);
-                    } else {
-                        record.status = v.response().status().as_u16();
-                        record.msg = Some("ok".into());
-                        record.request_id = exts.remove::<Uuid>().unwrap();
-                    }
-                    record.log();
-                    Ok(v)
-                }
+            let sr = match result {
+                Ok(v) => v,
                 Err(e) => {
+                    dbg!(&e);
                     let mut res = e.error_response();
+                    record.msg = Some("UNEXPECTED ERROR".into());
+                    record.code = -1000;
                     record.status = res.status().as_u16();
                     record.cause = Some(format!("{:}", e));
                     let exts = res.extensions_mut();
                     record.user_id = exts.get::<i32>().copied();
-                    // TODO:...
 
                     record.log();
-                    Err(e)
+                    return Err(e);
                 }
+            };
+
+            let req = sr.request().clone();
+            let mut exts = req.extensions_mut();
+            record.user_id = exts.get::<i32>().copied();
+
+            if let Some(trace) = exts.remove::<Trace>() {
+                match trace {
+                    Trace::RequestId(v) => {
+                        record.status = sr.response().status().as_u16();
+                        record.msg = Some("ok".into());
+                        record.request_id = v;
+                    }
+                    Trace::Error(e) => record.with_error(e),
+                }
+            } else {
+                record.code = -1001;
+                record.status = sr.response().status().as_u16();
+                record.msg = Some("HAS NO TRACE".into());
             }
+
+            record.log();
+            Ok(sr)
         })
     }
 }

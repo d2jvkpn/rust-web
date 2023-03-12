@@ -59,7 +59,7 @@ impl ResponseError for Error {
 }
 
 impl Error {
-    pub fn into_req(self, req: &mut HttpRequest) -> ActixError {
+    pub fn into_actix(self, req: &mut HttpRequest) -> ActixError {
         let err = Self {
             code: self.code,
             msg: self.msg.clone(),
