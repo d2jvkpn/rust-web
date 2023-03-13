@@ -7,7 +7,7 @@ _path=$(dirname $0 | xargs -i readlink -f {})
 name=registry.cn-shanghai.aliyuncs.com/d2jvkpn/rust-web
 tag=dev
 
-bash deployments/git-build-info.sh > .env_git-build-info
+bash deployments/git-build-info.sh > .git-build-info.yaml
 
 for base in $(awk '/^FROM/{print $2}' ${_path}/Dockerfile); do
     docker pull --quiet $base

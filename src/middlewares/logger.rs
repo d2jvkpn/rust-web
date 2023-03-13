@@ -104,6 +104,7 @@ where
 
 #[derive(Debug, Serialize, Default)]
 struct Record {
+    #[serde(skip)]
     pub start_at: DateTime<Local>,
 
     pub request_id: Uuid,
