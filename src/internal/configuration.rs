@@ -8,6 +8,7 @@ pub struct Configuration {
     pub version: String,
     pub file_path: String,
     pub threads: usize,
+    pub address: String,
     pub release: bool,
 
     // load from yaml file or use default
@@ -36,6 +37,7 @@ impl Default for Configuration {
             version: env!("CARGO_PKG_VERSION").to_string(),
             file_path: "".to_string(),
             threads: 1,
+            address: "".to_string(),
             release: false,
 
             database: Database::default(),
@@ -58,6 +60,7 @@ pub fn load_config(fp: &str) -> Result<Configuration, ConfigError> {
         .set_override("version", env!("CARGO_PKG_VERSION"))?
         .set_default("file_path", "")?
         .set_default("threads", "1")?
+        .set_default("address", "")?
         .set_default("release", "false")?
         .add_source(config::File::new(fp, config::FileFormat::Yaml));
 

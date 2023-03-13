@@ -234,6 +234,7 @@ impl ResetPassword {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chrono::{Local, Utc};
     use serde_json::json;
 
     #[test]
@@ -242,5 +243,11 @@ mod tests {
         let s = json!(d);
         let text = format!("{}", s);
         println!("~~~ {text}");
+    }
+
+    #[test]
+    fn t_chrono() {
+        let now = Utc::now();
+        println!("~~~ Utc::now(): {now}, {}", now.with_timezone(&Local));
     }
 }

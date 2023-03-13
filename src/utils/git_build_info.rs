@@ -57,8 +57,14 @@ mod tests {
     #[test]
     fn t_git_build_info() {
         println!("~~~ {:?}", GIT_BUILD_INFO.clone());
+        let yaml = r#"
+build_time: 2023-03-13T14:17:03+08:00
+git_branch: dev
+git_commit: 54d8bed51b1540de431dd6f57ebdfd92725b6ce8
+git_time: 2023-03-13T14:09:52+08:00
+git_treeState: dirty"#;
 
-        GitBuildInfo::set().unwrap();
+        GitBuildInfo::set(yaml).unwrap();
         println!("~~~ {:?}", GitBuildInfo::get().unwrap());
     }
 }
