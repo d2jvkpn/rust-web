@@ -6,13 +6,14 @@ WORKDIR /opt/rust-web
 
 RUN mkdir -p /root/.cargo
 ADD deployments/cargo_config.toml /root/.cargo/config
-ADD Cargo.lock Cargo.toml sqlx-data.json ./
+ADD Cargo.lock Cargo.toml sqlx-data.json .env_git-build-info ./
 COPY src ./src
 
 RUN sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' \
   /etc/apt/sources.list; apt -y update && apt -y upgrade && apt install -y musl-tools
 
-RUN rustup target add x86_64-unknown-linux-musl && \
+RUN . .env_git-build-info && \
+  rustup target add x86_64-unknown-linux-musl && \
   cargo build --target x86_64-unknown-linux-musl --release
 
 ####

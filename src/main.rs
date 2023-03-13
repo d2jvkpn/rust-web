@@ -66,5 +66,6 @@ async fn main() -> io::Result<()> {
 
     println!("=== Http Server is listening on {address:?}");
     settings::Settings::set(config, pool.clone()).unwrap();
+    // utils::GitBuildInfo::set().unwrap();
     internal::startup::run(&address, pool)?.await
 }

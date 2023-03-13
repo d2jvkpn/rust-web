@@ -8,7 +8,7 @@ use actix_web::web::{get, post, scope, ServiceConfig};
 fn open(cfg: &mut ServiceConfig) {
     use super::open::*;
 
-    cfg.route("/healthz", get().to(health_check));
+    cfg.route("/healthz", get().to(health_check)).route("/version", get().to(version));
 
     let group_user = scope("/api/open/user")
         .route("/register", post().to(post_new_user))
