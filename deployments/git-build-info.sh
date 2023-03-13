@@ -32,5 +32,5 @@ build_time: $BUILD_Time
 git_branch: $GIT_Branch
 git_commit: $GIT_Commit
 git_time: $GIT_Time
-git_treeState: $GIT_TreeState
+git_tree_state: $GIT_TreeState
 EOF
