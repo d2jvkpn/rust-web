@@ -1,4 +1,7 @@
 #! /usr/bin/env bash
+# set -eu -o pipefail
+# _wd=$(pwd)
+# _path=$(dirname $0 | xargs -i readlink -f {})
 
 BUILD_Time=$(date +'%FT%T%:z')
 
@@ -15,7 +18,7 @@ uncommitted=$(git status --short)
 unpushed=$(git diff origin/$GIT_Branch..HEAD --name-status)
 [ ! -z "$uncommitted$unpushed" ] && GIT_TreeState="dirty"
 
-cat > .env_git-build-info <<EOF
+cat <<EOF
 export BUILD_Time=$BUILD_Time
 export GIT_Branch=$GIT_Branch
 export GIT_Commit=$GIT_Commit
