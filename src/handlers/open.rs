@@ -11,8 +11,8 @@ use actix_web::{
 use std::str::FromStr;
 
 pub async fn version(mut request: HttpRequest) -> Result<HttpResponse, ActixError> {
-    // Data(utils::GitBuildInfo::get()).into_result(&mut request)
-    Data(utils::GIT_BUILD_INFO.clone()).into_result(&mut request)
+    // Data(utils::GIT_BUILD_INFO.clone()).into_result(&mut request)
+    Data(utils::GitBuildInfo::get()).into_result(&mut request)
 }
 
 pub async fn post_new_user(

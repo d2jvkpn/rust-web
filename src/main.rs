@@ -66,6 +66,6 @@ async fn main() -> io::Result<()> {
 
     println!("=== Http Server is listening on {address:?}");
     settings::Settings::set(config, pool.clone()).unwrap();
-    // utils::GitBuildInfo::set().unwrap();
+    utils::GitBuildInfo::set(include_str!("git-build-info.yaml")).unwrap();
     internal::startup::run(&address, pool)?.await
 }

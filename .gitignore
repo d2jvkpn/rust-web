@@ -15,4 +15,4 @@ configs/
 logs/
 wk*/
 .env
-.env_git-build-info
+git-build-info.yaml

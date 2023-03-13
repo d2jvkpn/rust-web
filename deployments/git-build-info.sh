@@ -18,10 +18,18 @@ uncommitted=$(git status --short)
 unpushed=$(git diff origin/$GIT_Branch..HEAD --name-status)
 [ ! -z "$uncommitted$unpushed" ] && GIT_TreeState="dirty"
 
-cat <<EOF
-export BUILD_Time=$BUILD_Time
-export GIT_Branch=$GIT_Branch
-export GIT_Commit=$GIT_Commit
-export GIT_Time=$GIT_Time
-export GIT_TreeState=$GIT_TreeState
+#cat <<EOF
+#export BUILD_Time=$BUILD_Time
+#export GIT_Branch=$GIT_Branch
+#export GIT_Commit=$GIT_Commit
+#export GIT_Time=$GIT_Time
+#export GIT_TreeState=$GIT_TreeState
+#EOF
+
+cat > src/git-build-info.yaml <<EOF
+build_time: $BUILD_Time
+git_branch: $GIT_Branch
+git_commit: $GIT_Commit
+git_time: $GIT_Time
+git_treeState: $GIT_TreeState
 EOF

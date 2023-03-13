@@ -6,14 +6,14 @@ WORKDIR /opt/rust-web
 
 RUN mkdir -p /root/.cargo
 ADD deployments/cargo_config.toml /root/.cargo/config
-ADD Cargo.lock Cargo.toml sqlx-data.json .env_git-build-info ./
+ADD Cargo.lock Cargo.toml sqlx-data.json ./
 COPY src ./src
 
 RUN sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' \
   /etc/apt/sources.list; apt -y update && apt -y upgrade && apt install -y musl-tools
 
 RUN rustup target add x86_64-unknown-linux-musl && \
-  bash .env_git-build-info; cargo build --target x86_64-unknown-linux-musl --release
+  cargo build --target x86_64-unknown-linux-musl --release
 
 ####
 FROM alpine:latest AS rust-web_runtime

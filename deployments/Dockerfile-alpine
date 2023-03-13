@@ -6,13 +6,13 @@ WORKDIR /opt/rust-web
 
 RUN mkdir -p /root/.cargo
 ADD deployments/cargo_config.toml /root/.cargo/config
-ADD Cargo.lock Cargo.toml sqlx-data.json .env_git-build-info ./
+ADD Cargo.lock Cargo.toml sqlx-data.json ./
 COPY src ./src
 
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
   { apk --no-cache update && apk --no-cache upgrade; apk add musl-dev; } &> /dev/null
 
-RUN bash .env_git-build-info; cargo build --release
+RUN cargo build --release
 
 ####
 FROM alpine:latest AS rust-web_runtime
