@@ -21,6 +21,6 @@ docker image prune --force --filter label=stage=rust-web_builder &> /dev/null
 
 docker push $name:$tag
 
-for img in $(docker images --filter "dangling=true" --quiet $image); do
+for img in $(docker images --filter "dangling=true" --quiet $name); do
     docker rmi $img || true
 done &> /dev/null
