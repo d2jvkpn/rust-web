@@ -43,7 +43,7 @@ mod tests {
         assert!(!m);
 
         let password = hash("12QWas!@", DEFAULT_COST).unwrap();
-        dbg!(&password);
+        // dbg!(&password);
         let m = verify("12QWas!@", &password).unwrap();
         assert!(m);
 

@@ -8,8 +8,6 @@ use std::{io, net::TcpListener, time::Duration};
 pub fn run(address: &str, pool: PgPool) -> io::Result<Server> {
     let app_data = web::Data::new(AppState::new(pool));
 
-    println!("=== Http Server is listening on {address:?}");
-
     let app = move || {
         // println!("--> new worker in thread: {:?}", std::thread::current().id());
         App::new()

@@ -54,7 +54,7 @@ async fn main() -> io::Result<()> {
     if config.threads == 0 || config.threads > cpus {
         config.threads = cpus;
     }
-    dbg!(&config);
+    // dbg!(&config);
 
     let dsn = config.database.to_string();
     let pool = if config.release {
@@ -64,6 +64,7 @@ async fn main() -> io::Result<()> {
         PgPool::connect(&dsn).await.expect("Failed to connect to Postgres.")
     };
 
+    println!("=== Http Server is listening on {address:?}");
     settings::Settings::set(config, pool.clone()).unwrap();
     internal::startup::run(&address, pool)?.await
 }
