@@ -26,7 +26,7 @@ unpushed=$(git diff origin/$GIT_Branch..HEAD --name-status)
 #export GIT_TreeState=$GIT_TreeState
 #EOF
 
-cat > .git-build-info.yaml <<EOF
+cat > src/git-build-info.yaml <<EOF
 build_time: $BUILD_Time
 git_branch: $GIT_Branch
 git_commit: $GIT_Commit
