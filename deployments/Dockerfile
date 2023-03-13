@@ -12,7 +12,7 @@ COPY src ./src
 RUN sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' \
   /etc/apt/sources.list; apt -y update && apt -y upgrade && apt install -y musl-tools
 
-RUN . .env_git-build-info && \
+RUN bash .env_git-build-info && \
   rustup target add x86_64-unknown-linux-musl && \
   cargo build --target x86_64-unknown-linux-musl --release
 
