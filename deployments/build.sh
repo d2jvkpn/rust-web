@@ -8,7 +8,10 @@ name=registry.cn-shanghai.aliyuncs.com/d2jvkpn/rust-web
 tag=dev
 
 docker build --no-cache -f ${_path}/Dockerfile --tag $name:$tag ./
-
 docker image prune --force --filter label=stage=rust-web_builder &> /dev/null
 
 docker push $name:$tag
+
+for img in $(docker images --filter "dangling=true" --quiet $image); do
+    docker rmi $img || true
+done &> /dev/null
