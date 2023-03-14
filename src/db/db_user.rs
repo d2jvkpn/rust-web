@@ -185,7 +185,7 @@ pub async fn user_login(
         iat: 0,
         exp: 0,
         token_id: Uuid::new_v4(),
-        token_kind: TokenKind::Temp,
+        token_kind: TokenKind::Access,
         user_id: upassword.user.id,
         role: upassword.user.role.clone(),
         platform: platform.clone(),

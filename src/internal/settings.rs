@@ -65,25 +65,25 @@ impl Settings {
         let now = Utc::now();
         data.iat = now.timestamp();
 
-        //
+        // access token
         data.exp = (now + Duration::minutes(jwt.alive_mins as i64)).timestamp();
-        data.token_kind = TokenKind::Temp;
+        data.token_kind = TokenKind::Access;
 
         let key = EncodingKey::from_secret(jwt_key);
 
-        let token =
+        let access_token =
             encode(&Header::default(), &data, &key).map_err(|_| Error::unexpected_error1())?;
 
-        //
+        // refresh token
         data.exp = (now + Duration::hours(jwt.refresh_hrs as i64)).timestamp();
         data.token_kind = TokenKind::Refresh;
         let refresh_token =
             encode(&Header::default(), &data, &key).map_err(|_| Error::unexpected_error1())?;
 
         Ok(Tokens {
-            token,
-            refresh_token,
+            access_token,
             alive_mins: jwt.alive_mins,
+            refresh_token,
             refresh_hrs: jwt.refresh_hrs,
         })
     }
@@ -102,7 +102,7 @@ impl Settings {
         }
         // TokenData<JwtPayload>: TokenData{ header, claims }
 
-        Self::jwt_verify_token(&token[prefix.len()..], TokenKind::Temp)
+        Self::jwt_verify_token(&token[prefix.len()..], TokenKind::Access)
     }
 
     pub fn jwt_verify_token(token: &str, kind: TokenKind) -> Result<JwtPayload, Error> {

@@ -247,7 +247,7 @@ mod tests {
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Tokens {
-    pub token: String,
+    pub access_token: String,
     pub alive_mins: u32,
     pub refresh_token: String,
     pub refresh_hrs: u32,

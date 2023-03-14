@@ -8,7 +8,7 @@ use uuid::Uuid;
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum TokenKind {
-    Temp,
+    Access,
     Refresh,
 }
 
