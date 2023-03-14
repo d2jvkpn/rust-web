@@ -161,14 +161,6 @@ pub struct UserAndPassword {
     pub password: String,
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct UserAndToken {
-    pub user: User,
-    pub token_name: String,
-    pub token_value: String,
-}
-
 // update user body
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -250,4 +242,20 @@ mod tests {
         let now = Utc::now();
         println!("~~~ Utc::now(): {now}, {}", now.with_timezone(&Local));
     }
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct Tokens {
+    pub token: String,
+    pub alive_mins: u32,
+    pub refresh_token: String,
+    pub refresh_hrs: u32,
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct UserAndToken {
+    pub user: User,
+    pub tokens: Tokens,
 }

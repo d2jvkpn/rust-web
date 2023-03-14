@@ -49,7 +49,7 @@ where
     fn call(&self, req: ServiceRequest) -> Self::Future {
         // println!("~~~ {}", self.value);
 
-        let payload = match Settings::jwt_verify(req.request()) {
+        let payload = match Settings::jwt_verify_request(req.request()) {
             Ok(v) => v,
             Err(e) => return Box::pin(ready(Err(e.into()))),
         };

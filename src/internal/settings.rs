@@ -1,9 +1,13 @@
-use super::configuration::Configuration;
-use crate::{db::db_token::check_token_in_table, middlewares::Error, models::token::JwtPayload};
+use super::configuration::{Configuration, Jwt};
+use crate::{
+    middlewares::Error,
+    models::token::{JwtPayload, TokenKind},
+    models::user::Tokens,
+};
 use actix_web::{dev::Payload, http::header::AUTHORIZATION, FromRequest, HttpMessage, HttpRequest};
 use base64::{engine::general_purpose::STANDARD_NO_PAD, Engine as _};
 use chrono::{Duration, Utc};
-use futures::executor::block_on;
+// use futures::executor::block_on;
 use jsonwebtoken::{
     decode, encode, errors::ErrorKind::ExpiredSignature, DecodingKey, EncodingKey, Header,
     Validation,
@@ -13,13 +17,13 @@ use sha2::{Digest, Sha256};
 use sqlx::PgPool;
 use std::future::{ready, Ready};
 
+static OC_SETTINGS: OnceCell<Settings> = OnceCell::new();
+
 pub struct Settings {
     configuration: Configuration,
     pool: PgPool,
     jwt_key: Vec<u8>,
 }
-
-static OC_SETTINGS: OnceCell<Settings> = OnceCell::new();
 
 impl Settings {
     pub fn set(configuration: Configuration, pool: PgPool) -> Result<(), &'static str> {
@@ -49,33 +53,42 @@ impl Settings {
     }
 
     // not use settings.configuration.jwt.key as jwt_key
-    fn jwt() -> Option<(&'static [u8], u32)> {
+    fn jwt() -> Option<(&'static [u8], &'static Jwt)> {
         let settings = OC_SETTINGS.get()?;
         // Some((settings.jwt_key.as_bytes(), settings.configuration.jwt.alive_mins))
-        Some((&settings.jwt_key, settings.configuration.jwt.alive_mins))
+        Some((&settings.jwt_key, &settings.configuration.jwt))
     }
 
-    pub fn jwt_sign(data: &mut JwtPayload) -> Result<String, Error> {
-        let (jwt_key, alive_mins) = Self::jwt().ok_or(Error::unexpected_error1())?;
+    pub fn jwt_sign(data: &mut JwtPayload) -> Result<Tokens, Error> {
+        let (jwt_key, jwt) = Self::jwt().ok_or(Error::unexpected_error1())?;
 
         let now = Utc::now();
         data.iat = now.timestamp();
-        data.exp = (now + Duration::minutes(alive_mins as i64)).timestamp();
+
+        //
+        data.exp = (now + Duration::minutes(jwt.alive_mins as i64)).timestamp();
+        data.token_kind = TokenKind::Temp;
 
         let key = EncodingKey::from_secret(jwt_key);
 
         let token =
             encode(&Header::default(), &data, &key).map_err(|_| Error::unexpected_error1())?;
 
-        Ok("Bearer ".to_owned() + &token)
+        //
+        data.exp = (now + Duration::hours(jwt.refresh_hrs as i64)).timestamp();
+        data.token_kind = TokenKind::Refresh;
+        let refresh_token =
+            encode(&Header::default(), &data, &key).map_err(|_| Error::unexpected_error1())?;
+
+        Ok(Tokens {
+            token,
+            refresh_token,
+            alive_mins: jwt.alive_mins,
+            refresh_hrs: jwt.refresh_hrs,
+        })
     }
 
-    pub fn jwt_verify(req: &HttpRequest) -> Result<JwtPayload, Error> {
-        // let (jwt_key, _) = Self::jwt().ok_or(Error::Internal("configuration is unset".into()))?;
-        let settings = OC_SETTINGS.get().ok_or(Error::unexpected_error1())?;
-        let jwt_key = &settings.jwt_key;
-
-        let key = DecodingKey::from_secret(jwt_key);
+    pub fn jwt_verify_request(req: &HttpRequest) -> Result<JwtPayload, Error> {
         let prefix = "Bearer ";
 
         let msg = "not logged in, please provide token".to_string();
@@ -88,25 +101,36 @@ impl Settings {
             return Err(Error::unauthenticated("invalid token format".to_string()));
         }
         // TokenData<JwtPayload>: TokenData{ header, claims }
-        let data = decode::<JwtPayload>(&token[prefix.len()..], &key, &Validation::default())
-            .map_err(|e| {
-                let em = if e.kind() == &ExpiredSignature {
-                    "token expired"
-                } else {
-                    "failed to decode token"
-                };
-                Error::unauthenticated(em.to_string())
-            })?;
+
+        Self::jwt_verify_token(&token[prefix.len()..], TokenKind::Temp)
+    }
+
+    pub fn jwt_verify_token(token: &str, kind: TokenKind) -> Result<JwtPayload, Error> {
+        // let (jwt_key, _) = Self::jwt().ok_or(Error::Internal("configuration is unset".into()))?;
+        let settings = OC_SETTINGS.get().ok_or(Error::unexpected_error1())?;
+        let jwt_key = &settings.jwt_key;
+        let key = DecodingKey::from_secret(jwt_key);
+
+        let data = decode::<JwtPayload>(token, &key, &Validation::default()).map_err(|e| {
+            let em = if e.kind() == &ExpiredSignature {
+                "token expired"
+            } else {
+                "failed to decode token"
+            };
+            Error::unauthenticated(em.to_string())
+        })?;
         // if data.claims.iat > Utc::now().timestamp() {
         //    return Err(Error::Unauthenticated("token expired".into()));
         // }
 
-        let data = data.claims; // JwtPayload
+        if data.claims.token_kind != kind {
+            return Err(Error::unauthenticated("invalid token kind".to_string()));
+        }
 
         // ?? a blocking task
-        block_on(check_token_in_table(&settings.pool, data.token_id))?;
+        // block_on(check_token_in_table(&settings.pool, data.token_id))?;
 
-        Ok(data)
+        Ok(data.claims) // JwtPayload
     }
 }
 
@@ -115,7 +139,7 @@ impl FromRequest for JwtPayload {
     type Future = Ready<Result<Self, Self::Error>>;
 
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
-        let jwt_payload = match Settings::jwt_verify(req) {
+        let jwt_payload = match Settings::jwt_verify_request(req) {
             Ok(v) => v,
             Err(e) => return ready(Err(e)),
         };

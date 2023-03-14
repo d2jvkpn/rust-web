@@ -1,14 +1,14 @@
 use crate::{
     middlewares::Error,
-    models::token::{Platform, Token},
+    models::token::{Platform, TokenRecord},
     utils::{self, socket_addr_to_ip_network},
 };
 use chrono::Utc;
 use sqlx::{types::ipnetwork::IpNetwork, PgPool, QueryBuilder, Row};
 use uuid::Uuid;
 
-pub async fn save_token(pool: &PgPool, token: Token) -> Result<(), Error> {
-    let ip_addr: Option<IpNetwork> = match &token.ip {
+pub async fn save_token(pool: &PgPool, token_record: TokenRecord) -> Result<(), Error> {
+    let ip_addr: Option<IpNetwork> = match &token_record.ip {
         None => None,
         Some(v) => socket_addr_to_ip_network(v),
     };
@@ -17,13 +17,13 @@ pub async fn save_token(pool: &PgPool, token: Token) -> Result<(), Error> {
         r#"INSERT INTO tokens
           (token_id, user_id, iat, exp, ip, platform, device, status)
         VALUES ($1, $2, $3, $4, $5, $6, $7, true)"#,
-        token.token_id,
-        token.user_id,
-        token.iat,
-        token.exp,
+        token_record.token_id,
+        token_record.user_id,
+        token_record.iat,
+        token_record.exp,
         ip_addr,
-        token.platform as _,
-        token.device,
+        token_record.platform as _,
+        token_record.device,
     )
     .execute(pool)
     .await?;

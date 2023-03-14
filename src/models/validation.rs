@@ -2,9 +2,13 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use validator::validate_email; // validate_phone
 
+// alphanumeric(62) + special characters(10)
+pub const PASSWORD_CHARS: [&str; 4] = ["0-9", "a-z", "A-Z", "!@#$%^&*()"];
+pub const PASSWORD_RANGE: [u8; 2] = [8, 32];
+
 static RE_DATE: Lazy<Regex> = Lazy::new(|| Regex::new(r"^\d{4,}-\d{2}-\d{2}$").unwrap());
 
-pub fn valid_phone(v: &str) -> Result<(), &str> {
+pub(crate) fn valid_phone(v: &str) -> Result<(), &str> {
     if v.len() > 20 {
         return Err("the length of phone excceds 20");
     }
@@ -15,7 +19,7 @@ pub fn valid_phone(v: &str) -> Result<(), &str> {
     Ok(())
 }
 
-pub fn valid_email(v: &str) -> Result<(), &str> {
+pub(crate) fn valid_email(v: &str) -> Result<(), &str> {
     if v.len() > 128 {
         return Err("the length of email excceds 128");
     }
@@ -26,7 +30,7 @@ pub fn valid_email(v: &str) -> Result<(), &str> {
     Ok(())
 }
 
-pub fn valid_name(v: &str) -> Result<(), &str> {
+pub(crate) fn valid_name(v: &str) -> Result<(), &str> {
     if v.is_empty() {
         return Err("name is empty");
     } else if v.len() > 32 {
@@ -35,7 +39,7 @@ pub fn valid_name(v: &str) -> Result<(), &str> {
     Ok(())
 }
 
-pub fn valid_birthday(v: &str) -> Result<(), &str> {
+pub(crate) fn valid_birthday(v: &str) -> Result<(), &str> {
     if !RE_DATE.is_match(v) {
         Err("invalid birthday")
     } else {
@@ -44,7 +48,7 @@ pub fn valid_birthday(v: &str) -> Result<(), &str> {
 }
 
 // TODO: using regexp
-pub fn valid_password(password: &str) -> Result<(), &str> {
+pub(crate) fn valid_password(password: &str) -> Result<(), &str> {
     if password.len() < 8 {
         return Err("the length of password is less than 8");
     }

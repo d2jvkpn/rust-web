@@ -80,13 +80,9 @@ pub async fn frozen_user_status(
     app_state: web::Data<AppState>,
     jwt: ReqData<JwtPayload>,
 ) -> Result<HttpResponse, ActixError> {
-    let uus = UpdateUserStatus { user_id: jwt.user_id, status: Status::Frozen };
+    let item = UpdateUserStatus { user_id: jwt.user_id, status: Status::Frozen };
 
-    disable_curent_token(&app_state.pool, jwt.token_id)
-        .await
-        .map_err(|e| e.into_actix(&mut request))?;
-
-    db_admin::update_user_status(&app_state.pool, uus).await.into_result(&mut request)
+    db_admin::update_user_status(&app_state.pool, item).await.into_result(&mut request)
 }
 
 pub async fn user_change_password(
@@ -95,8 +91,6 @@ pub async fn user_change_password(
     jwt: ReqData<JwtPayload>,
     item: web::Json<ChangePassword>,
 ) -> Result<HttpResponse, ActixError> {
-    disable_curent_token(&app_state.pool, jwt.token_id).await?;
-
     db_user::user_change_password(&app_state.pool, jwt.user_id, item.into_inner())
         .await
         .into_result(&mut request)

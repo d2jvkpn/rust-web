@@ -8,20 +8,22 @@ use actix_web::web::{get, post, scope, ServiceConfig};
 fn open(cfg: &mut ServiceConfig) {
     use super::open::*;
 
-    cfg.route("/healthz", get().to(health_check)).route("/version", get().to(version));
+    cfg.route("/healthz", get().to(health_check));
 
-    let group_user = scope("/api/open/user")
-        .route("/register", post().to(post_new_user))
-        .route("/login", post().to(user_login));
+    let group_open = scope("/api/open")
+        .route("/version", get().to(version))
+        .route("/password", get().to(password))
+        .route("/user/register", post().to(post_new_user))
+        .route("/user/login", post().to(user_login));
 
-    cfg.service(group_user);
+    cfg.service(group_open);
 }
 
 pub fn auth_user(cfg: &mut ServiceConfig) {
     use super::auth_user::*;
 
     let group = scope("/api/auth/user")
-        .wrap(Blocker { block: |req| Ok(Settings::jwt_verify(req)?) })
+        .wrap(Blocker { block: |req| Ok(Settings::jwt_verify_request(req)?) })
         .route("/update", post().to(update_user_details_v3))
         .route("/details", get().to(user_details))
         .route("/frozon", post().to(frozen_user_status))

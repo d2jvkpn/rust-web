@@ -10,16 +10,18 @@ address=http://localhost:3000
 curl -i -X POST -H "content-type: application/json" "$address/api/open/user/login" \
   -d '{"email": "admin@users.noreply.github.com", "password": "12QWas!@"}'
 
-token="Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2NzgxNjI4MTEsImV4cCI6MTY3ODE2NDYxMSwidG9rZW5JZCI6Ijk1OGMyNmRiLTYxOGEtNDM1MC1hNTQ2LWM4NTRjYmEwYTZiYiIsInVzZXJJZCI6MSwicm9sZSI6ImFkbWluIiwicGxhdGZvcm0iOiJ1bmtub3duIn0.ePyZkG91NKmeV95-a_3jFcWzsnxtxTsXfdcllcSkQIM"
+# {"code":0,"data":{"tokens":{"aliveMins":10,"refreshHrs":24,"refreshToken":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2Nzg3OTM3MDYsImV4cCI6MTY3ODg4MDEwNiwidG9rZW5JZCI6ImE5NjU1YWIxLWM4YTItNGE2Ni1iMmU2LTUzMTU3ZGFkNjRjMiIsInRva2VuS2luZCI6InJlZnJlc2giLCJ1c2VySWQiOjEsInJvbGUiOiJhZG1pbiIsInBsYXRmb3JtIjoidW5rbm93biJ9.Fb1-xucN8sw9mUMCqEqXWGrLbIbqmylhUYO5b7rp3R8","token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2Nzg3OTM3MDYsImV4cCI6MTY3ODc5NDMwNiwidG9rZW5JZCI6ImE5NjU1YWIxLWM4YTItNGE2Ni1iMmU2LTUzMTU3ZGFkNjRjMiIsInRva2VuS2luZCI6InRlbXAiLCJ1c2VySWQiOjEsInJvbGUiOiJhZG1pbiIsInBsYXRmb3JtIjoidW5rbm93biJ9.DK8vj0I42O9WXDN6jq0dI3eX9tQGzVQWLrdiBqbjixU"},"user":{"birthday":"2006-01-02","createdAt":"2023-03-08T03:59:59.426363Z","email":"admin@users.noreply.github.com","id":1,"name":"admin","role":"admin","status":"oK","updatedAt":"2023-03-08T03:59:59.426363Z"}},"msg":"ok","requestId":"f3d294ca-0417-4742-a981-3bba1db16e0c"}
 
-curl -i -X POST -H "content-type: application/json" -H "Authorization: $token" \
+token="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2Nzg3OTM3MDYsImV4cCI6MTY3ODc5NDMwNiwidG9rZW5JZCI6ImE5NjU1YWIxLWM4YTItNGE2Ni1iMmU2LTUzMTU3ZGFkNjRjMiIsInRva2VuS2luZCI6InRlbXAiLCJ1c2VySWQiOjEsInJvbGUiOiJhZG1pbiIsInBsYXRmb3JtIjoidW5rbm93biJ9.DK8vj0I42O9WXDN6jq0dI3eX9tQGzVQWLrdiBqbjixU"
+
+curl -i -X POST -H "content-type: application/json" -H "Authorization: Bearer $token" \
   "$address/api/auth/user/change_password" \
   -d '{"oldPassword": "12QWas!@", "newPassword": "12qwAS!@"}'
 
 curl -i -X POST -H "content-type: application/json" "$address/api/open/user/login" \
   -d '{"email": "admin@users.noreply.github.com", "password": "12qwAS!@"}'
 
-curl -i -X GET -H "Authorization: $token" "$address/api/auth/user/details"
+curl -i -X GET -H "Authorization: Bearer $token" "$address/api/auth/user/details"
 
 ####
 curl -i -X POST -H "content-type: application/json" "$address/api/open/user/register" \

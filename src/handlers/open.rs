@@ -2,13 +2,19 @@ use crate::{
     db::db_user,
     internal::AppState,
     middlewares::{Data, IntoResult},
-    models::{token::Platform, user::*},
+    models::{self, token::Platform, user::*},
     utils,
 };
 use actix_web::{
     error::Error as ActixError, http::header::HeaderName, web, HttpRequest, HttpResponse,
 };
+use serde_json::json;
 use std::str::FromStr;
+
+pub async fn password(mut request: HttpRequest) -> Result<HttpResponse, ActixError> {
+    Data(json!({"chars": models::PASSWORD_CHARS, "range": models::PASSWORD_RANGE}))
+        .into_result(&mut request)
+}
 
 pub async fn version(mut request: HttpRequest) -> Result<HttpResponse, ActixError> {
     // Data(utils::GIT_BUILD_INFO.clone()).into_result(&mut request)

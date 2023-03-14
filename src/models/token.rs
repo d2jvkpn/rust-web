@@ -5,6 +5,13 @@ use serde::{Deserialize, Serialize};
 use std::{net::SocketAddr, str::FromStr};
 use uuid::Uuid;
 
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum TokenKind {
+    Temp,
+    Refresh,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct JwtPayload {
@@ -12,19 +19,23 @@ pub struct JwtPayload {
     // pub sub: String, // subject
     pub iat: i64, // issued at
     pub exp: i64, // expiry
+
     pub token_id: Uuid,
+    pub token_kind: TokenKind,
     pub user_id: i32,
     pub role: Role,
     pub platform: Platform,
 }
 
-impl From<JwtPayload> for Token {
+impl From<JwtPayload> for TokenRecord {
     fn from(item: JwtPayload) -> Self {
         Self {
-            token_id: item.token_id,
-            user_id: item.user_id,
             iat: item.iat,
             exp: item.exp,
+
+            token_id: item.token_id,
+            token_kind: item.token_kind,
+            user_id: item.user_id,
             ip: None,
             platform: item.platform,
             device: None,
@@ -52,7 +63,7 @@ impl FromStr for Platform {
             "web" => Self::Web,
             "android" => Self::Android,
             "ios" => Self::Ios,
-            _ => return Err("unknown platform"),
+            _ => Self::Unknown,
         };
 
         Ok(val)
@@ -61,11 +72,13 @@ impl FromStr for Platform {
 
 #[derive(Deserialize, Serialize, Debug, Clone, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
-pub struct Token {
-    pub token_id: Uuid,
-    pub user_id: i32,
+pub struct TokenRecord {
     pub iat: i64,
     pub exp: i64,
+
+    pub token_id: Uuid,
+    pub token_kind: TokenKind,
+    pub user_id: i32,
     pub ip: Option<SocketAddr>,
     pub platform: Platform,
     pub device: Option<String>,

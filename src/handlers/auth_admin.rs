@@ -1,6 +1,5 @@
 use crate::{
     db::db_admin,
-    db::db_token::disable_user_tokens,
     internal::AppState,
     middlewares::{IntoResult, QueryPage},
     models::user::*,
@@ -28,10 +27,6 @@ pub async fn update_user_status(
     app_state: web::Data<AppState>,
     item: web::Query<UpdateUserStatus>,
 ) -> Result<HttpResponse, ActixError> {
-    if item.status != Status::OK {
-        let _ = disable_user_tokens(&app_state.pool, item.user_id, None).await;
-    }
-
     db_admin::update_user_status(&app_state.pool, item.into_inner()).await.into_result(&mut request)
 }
 
@@ -40,8 +35,6 @@ pub async fn update_user_role(
     app_state: web::Data<AppState>,
     item: web::Query<UpdateUserRole>,
 ) -> Result<HttpResponse, ActixError> {
-    let _ = disable_user_tokens(&app_state.pool, item.user_id, None).await;
-
     db_admin::update_user_role(&app_state.pool, item.into_inner()).await.into_result(&mut request)
 }
 
@@ -50,8 +43,6 @@ pub async fn reset_user_password(
     app_state: web::Data<AppState>,
     item: web::Json<ResetPassword>,
 ) -> Result<HttpResponse, ActixError> {
-    let _ = disable_user_tokens(&app_state.pool, item.user_id, None).await;
-
     db_admin::reset_user_password(&app_state.pool, item.into_inner())
         .await
         .into_result(&mut request)

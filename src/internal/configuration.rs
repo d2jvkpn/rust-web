@@ -16,10 +16,11 @@ pub struct Configuration {
     pub jwt: Jwt,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Jwt {
     pub key: String,
     pub alive_mins: u32,
+    pub refresh_hrs: u32,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
@@ -41,7 +42,7 @@ impl Default for Configuration {
             release: false,
 
             database: Database::default(),
-            jwt: Jwt { key: "".to_string(), alive_mins: 0 },
+            jwt: Jwt::default(),
         }
     }
 }

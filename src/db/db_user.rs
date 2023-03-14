@@ -6,7 +6,7 @@ use crate::{
     internal::settings::Settings,
     middlewares::Error,
     models::{
-        token::{JwtPayload, Platform, Token},
+        token::{JwtPayload, Platform, TokenKind, TokenRecord},
         user::*,
     },
     utils,
@@ -185,19 +185,20 @@ pub async fn user_login(
         iat: 0,
         exp: 0,
         token_id: Uuid::new_v4(),
+        token_kind: TokenKind::Temp,
         user_id: upassword.user.id,
         role: upassword.user.role.clone(),
         platform: platform.clone(),
     };
-    let token_value = Settings::jwt_sign(&mut playload)?;
+    let tokens = Settings::jwt_sign(&mut playload)?;
 
     // TODO: use a message queue or a channel instead
-    let mut token_record: Token = playload.into();
-    (token_record.ip, token_record.device) = (ip, None);
+    let mut token_record: TokenRecord = playload.into();
+    (token_record.ip, token_record.device) = (ip, None); // TODO: device
     disable_user_tokens(pool, upassword.user.id, Some(platform)).await?;
     save_token(pool, token_record).await?;
 
-    Ok(UserAndToken { user: upassword.user, token_name: "authorization".to_string(), token_value })
+    Ok(UserAndToken { user: upassword.user, tokens })
 }
 
 pub async fn user_change_password(
@@ -239,6 +240,8 @@ pub async fn user_change_password(
     sqlx::query!(r#"UPDATE users SET password = $1 WHERE id = $2"#, password, user_id)
         .execute(pool)
         .await?;
+
+    disable_user_tokens(pool, user_id, None).await?;
 
     Ok(())
 }

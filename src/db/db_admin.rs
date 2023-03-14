@@ -1,3 +1,4 @@
+use super::db_token::disable_user_tokens;
 use crate::{
     middlewares::{Error, QueryPage, QueryResult},
     models::user::*,
@@ -111,23 +112,28 @@ pub async fn update_user_role(pool: &PgPool, item: UpdateUserRole) -> Result<(),
 }
 
 pub async fn update_user_status(pool: &PgPool, item: UpdateUserStatus) -> Result<(), Error> {
-    let err = match sqlx::query!(
+    let status = item.status.clone();
+    let result = sqlx::query!(
         "UPDATE users SET status = $1 WHERE id = $2 RETURNING id",
         item.status as Status,
         item.user_id,
     )
     .fetch_one(pool)
-    .await
-    {
-        Ok(_) => return Ok(()),
-        Err(e) => e,
-    };
+    .await;
 
-    if utils::pg_not_found(&err) {
-        Err(Error::not_found1("user not found".into()))
-    } else {
-        Err(err.into())
+    if let Err(e) = result {
+        if utils::pg_not_found(&e) {
+            return Err(Error::not_found1("user not found".into()));
+        } else {
+            return Err(e.into());
+        }
     }
+
+    if status != Status::OK {
+        let _ = disable_user_tokens(pool, item.user_id, None).await;
+    }
+
+    Ok(())
 }
 
 pub async fn reset_user_password(pool: &PgPool, item: ResetPassword) -> Result<(), Error> {
@@ -139,6 +145,8 @@ pub async fn reset_user_password(pool: &PgPool, item: ResetPassword) -> Result<(
     sqlx::query!(r#"UPDATE users SET password = $1 WHERE id = $2"#, password, item.user_id)
         .execute(pool)
         .await?;
+
+    _ = disable_user_tokens(pool, item.user_id, None).await;
 
     Ok(())
 }
