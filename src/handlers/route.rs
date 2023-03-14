@@ -14,7 +14,8 @@ fn open(cfg: &mut ServiceConfig) {
         .route("/version", get().to(version))
         .route("/password", get().to(password))
         .route("/user/register", post().to(post_new_user))
-        .route("/user/login", post().to(user_login));
+        .route("/user/login", post().to(user_login))
+        .route("/user/refresh_token", post().to(refresh_token));
 
     cfg.service(group_open);
 }

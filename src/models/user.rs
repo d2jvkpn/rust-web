@@ -248,14 +248,20 @@ mod tests {
 #[serde(rename_all = "camelCase")]
 pub struct Tokens {
     pub access_token: String,
-    pub alive_mins: u32,
+    pub access_exp: i64,
     pub refresh_token: String,
-    pub refresh_hrs: u32,
+    pub refresh_exp: i64,
 }
 
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct UserAndToken {
+pub struct UserAndTokens {
     pub user: User,
     pub tokens: Tokens,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct RefreshToken {
+    pub refresh_token: String,
 }

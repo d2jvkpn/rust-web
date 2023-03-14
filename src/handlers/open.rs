@@ -63,3 +63,15 @@ fn extract_platform_v2(request: &HttpRequest) -> Option<Platform> {
     let val_str = value.to_str().ok()?;
     Platform::from_str(val_str).ok()
 }
+
+pub async fn refresh_token(
+    mut request: HttpRequest,
+    app_state: web::Data<AppState>,
+    item: web::Json<RefreshToken>,
+) -> Result<HttpResponse, ActixError> {
+    let platform = extract_platform_v1(&request);
+
+    db_user::refresh_token(&app_state.pool, item.into_inner(), request.peer_addr(), platform)
+        .await
+        .into_result(&mut request)
+}

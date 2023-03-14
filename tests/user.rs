@@ -7,17 +7,26 @@ use serde_json::Value;
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
-struct ResData<T> {
+struct Response<T> {
     code: i32,
     msg: String,
     data: T,
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-struct Token {
-    token_name: String,
-    token_value: String,
+struct Tokens {
+    access_token: String,
+    access_exp: i64,
+    refresh_token: String,
+    refresh_exp: i64,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+struct LoginResponse {
+    tokens: Tokens,
 }
 
 #[tokio::test]
@@ -62,12 +71,12 @@ async fn users() {
 
     let bts = response.bytes().await.unwrap();
     println!("--> {:?}", bts);
-    let res_data: ResData<Token> = serde_json::from_slice(&bts).unwrap();
-    let Token { token_name, token_value } = res_data.data;
+    let res: Response<LoginResponse> = serde_json::from_slice(&bts).unwrap();
+    let access_token = "Bearer ".to_owned() + &res.data.tokens.access_token;
 
     let response = client
         .post(&format!("{}/api/auth/user/logout", &address))
-        .header(&token_name, &token_value)
+        .header("authorization", &access_token)
         .send()
         .await
         .unwrap();
@@ -86,4 +95,18 @@ async fn users() {
         .unwrap();
 
     dbg!(&res_json);
+
+    //
+    let data = client
+        .post(&format!("{}/api/open/user/refresh_token", &address))
+        .header("Content-Type", "application/json")
+        .body(format!(r#"{{"refreshToken": "{}"}}"#, &res.data.tokens.refresh_token))
+        .send()
+        .await
+        .unwrap()
+        .json::<Response<Tokens>>()
+        .await
+        .unwrap();
+
+    println!("--> {:?}", data);
 }

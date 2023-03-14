@@ -62,11 +62,14 @@ impl Settings {
     pub fn jwt_sign(data: &mut JwtPayload) -> Result<Tokens, Error> {
         let (jwt_key, jwt) = Self::jwt().ok_or(Error::unexpected_error1())?;
 
+        // tell whether to create a new refresh token or to regenerate a new one without update exp
+        let (kind, exp) = (data.token_kind.clone(), data.exp);
         let now = Utc::now();
         data.iat = now.timestamp();
 
         // access token
-        data.exp = (now + Duration::minutes(jwt.alive_mins as i64)).timestamp();
+        let access_exp = (now + Duration::minutes(jwt.alive_mins as i64)).timestamp();
+        data.exp = access_exp;
         data.token_kind = TokenKind::Access;
 
         let key = EncodingKey::from_secret(jwt_key);
@@ -75,17 +78,17 @@ impl Settings {
             encode(&Header::default(), &data, &key).map_err(|_| Error::unexpected_error1())?;
 
         // refresh token
-        data.exp = (now + Duration::hours(jwt.refresh_hrs as i64)).timestamp();
+        let refresh_exp = match kind {
+            TokenKind::Access => (now + Duration::hours(jwt.refresh_hrs as i64)).timestamp(),
+            TokenKind::Refresh => exp,
+        };
+        data.exp = refresh_exp;
+
         data.token_kind = TokenKind::Refresh;
         let refresh_token =
             encode(&Header::default(), &data, &key).map_err(|_| Error::unexpected_error1())?;
 
-        Ok(Tokens {
-            access_token,
-            alive_mins: jwt.alive_mins,
-            refresh_token,
-            refresh_hrs: jwt.refresh_hrs,
-        })
+        Ok(Tokens { access_token, access_exp, refresh_token, refresh_exp })
     }
 
     pub fn jwt_verify_request(req: &HttpRequest) -> Result<JwtPayload, Error> {

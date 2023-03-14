@@ -1,6 +1,6 @@
 use super::{
     db_admin::BCRYPT_COST,
-    db_token::{disable_user_tokens, save_token},
+    db_token::{check_token_in_table, disable_curent_token, disable_user_tokens, save_token},
 };
 use crate::{
     internal::settings::Settings,
@@ -145,7 +145,7 @@ pub async fn user_login(
     item: UserLogin,
     ip: Option<SocketAddr>,
     platform: Platform,
-) -> Result<UserAndToken, Error> {
+) -> Result<UserAndTokens, Error> {
     item.valid().map_err(|e| Error::invalid1(e.into()))?;
 
     // let now = std::time::Instant::now(); println!("--> user_login offset: {:?}", now.elapsed());
@@ -198,7 +198,7 @@ pub async fn user_login(
     disable_user_tokens(pool, upassword.user.id, Some(platform)).await?;
     save_token(pool, token_record).await?;
 
-    Ok(UserAndToken { user: upassword.user, tokens })
+    Ok(UserAndTokens { user: upassword.user, tokens })
 }
 
 pub async fn user_change_password(
@@ -244,4 +244,52 @@ pub async fn user_change_password(
     disable_user_tokens(pool, user_id, None).await?;
 
     Ok(())
+}
+
+pub async fn refresh_token(
+    pool: &PgPool,
+    item: RefreshToken,
+    ip: Option<SocketAddr>,
+    platform: Platform,
+) -> Result<Tokens, Error> {
+    let data = Settings::jwt_verify_token(&item.refresh_token, TokenKind::Refresh)?;
+    check_token_in_table(pool, data.token_id).await?;
+
+    let mut query = QueryBuilder::new(r#"SELECT * FROM users WHERE "#);
+    query.push("id = ");
+    query.push_bind(data.user_id);
+
+    let err_msg = "user not found or incorrect password".to_string();
+    let user: User = match query.build_query_as().fetch_one(pool).await {
+        Ok(v) => v,
+        Err(e) => {
+            tokio::time::sleep(Duration::from_secs(1)).await;
+            if utils::pg_not_found(&e) {
+                return Err(Error::not_found1(err_msg));
+            } else {
+                return Err(e.into());
+            };
+        }
+    };
+
+    user.status_ok().map_err(|e| Error::permission_denied(e.into()))?;
+
+    let mut playload = JwtPayload {
+        iat: 0,
+        exp: data.exp,
+        token_id: Uuid::new_v4(),
+        token_kind: TokenKind::Refresh,
+        user_id: user.id,
+        role: user.role.clone(),
+        platform: platform.clone(),
+    };
+    let tokens = Settings::jwt_sign(&mut playload)?;
+
+    let mut token_record: TokenRecord = playload.into();
+    (token_record.ip, token_record.device) = (ip, None); // TODO: device
+
+    disable_curent_token(pool, data.token_id).await?;
+    save_token(pool, token_record).await?;
+
+    Ok(tokens)
 }
