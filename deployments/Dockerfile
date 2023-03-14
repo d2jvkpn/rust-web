@@ -1,8 +1,7 @@
 ####
 FROM rust:1-slim-buster as rust-web_builder
 
-ENV SQLX_OFFLINE=true
-ENV TZ=Asia/Shanghai
+ENV SQLX_OFFLINE=true TZ=Asia/Shanghai
 WORKDIR /opt/rust-web
 
 RUN mkdir -p /root/.cargo

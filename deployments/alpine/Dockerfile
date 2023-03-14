@@ -1,8 +1,7 @@
 ####
 FROM rust:1-alpine as rust-web_builder
 
-ENV SQLX_OFFLINE=true
-ENV TZ=Asia/Shanghai
+ENV SQLX_OFFLINE=true TZ=Asia/Shanghai
 WORKDIR /opt/rust-web
 
 RUN mkdir -p /root/.cargo
@@ -23,6 +22,7 @@ WORKDIR /opt/rust-web
 
 COPY --from=rust-web_builder /opt/rust-web/target/release/rust-web /opt/rust-web/rust-web
 
-EXPOSE 8000
+EXPOSE 3000
 # ENTRYPOINT ["./rust-web"]
-CMD ["./rust-web", "--config=configs/prod.yaml", "--addr=0.0.0.0", "--port=8080", "--threads=0", "--release"]
+# "--threads=0"
+CMD ["./rust-web", "--config=configs/prod.yaml", "--addr=0.0.0.0", "--port=3000", "--release"]

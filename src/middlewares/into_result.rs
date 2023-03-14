@@ -11,6 +11,11 @@ pub const OK_JSON: &str = r#"{"code":0,"msg":"ok","data":{}}"#;
 #[derive(Debug, Serialize)]
 pub struct Data<T>(pub T);
 
+pub enum Trace {
+    RequestId(Uuid),
+    Error(Error),
+}
+
 pub fn empty_data() -> HashMap<u8, u8> {
     HashMap::new()
 }
@@ -34,11 +39,6 @@ impl<T: Serialize> IntoResult<T> for Data<T> {
         Ok(HttpResponse::Ok()
             .json(json!({"code": 0, "msg":"ok", "requestId": request_id, "data": self.0})))
     }
-}
-
-pub enum Trace {
-    RequestId(Uuid),
-    Error(Error),
 }
 
 // impl<T: Serialize> IntoRes<T> for Result<Data<T>, Error> {

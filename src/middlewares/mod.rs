@@ -26,6 +26,7 @@ mod http_code;
 mod into_result;
 mod logger;
 mod query;
+mod record;
 
 pub mod blocker;
 

@@ -33,7 +33,7 @@ pub async fn save_token(pool: &PgPool, token: Token) -> Result<(), Error> {
 
 // TODO: use a message queue or in memory cache instead
 pub async fn disable_curent_token(pool: &PgPool, token_id: Uuid) -> Result<(), Error> {
-    let _ = sqlx::query!(r#"UPDATE tokens SET status = false WHERE token_id = $1"#, token_id)
+    sqlx::query!(r#"UPDATE tokens SET status = false WHERE token_id = $1"#, token_id)
         .execute(pool)
         .await?;
 

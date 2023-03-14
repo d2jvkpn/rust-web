@@ -39,20 +39,19 @@ async fn main() -> io::Result<()> {
 
     let dsn = config.database.to_string();
     let address = config.address.clone();
-    let pool;
 
-    if config.release {
+    let pool = if config.release {
         let log_file = format!("logs/{}.log", env!("CARGO_PKG_NAME"));
         init_logger(LogOutput::File(log_file.as_ref()), Info).unwrap();
 
         println!("=== Http Server is listening on {address:?}");
         let options = PgConnectOptions::from_str(&dsn).unwrap().disable_statement_logging().clone();
-        pool = PgPool::connect_with(options).await.unwrap();
+        PgPool::connect_with(options).await.unwrap()
     } else {
         init_logger(LogOutput::Console, Debug).unwrap();
 
         dbg!(&config);
-        pool = PgPool::connect(&dsn).await.expect("Failed to connect to Postgres.");
+        PgPool::connect(&dsn).await.expect("Failed to connect to Postgres.")
     };
 
     utils::GitBuildInfo::set(include_str!("git-build-info.yaml")).unwrap();
