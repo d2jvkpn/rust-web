@@ -1,6 +1,6 @@
 use super::{
     db_admin::BCRYPT_COST,
-    db_token::{check_token_in_table, disable_curent_token, disable_user_tokens, save_token},
+    db_token::{disable_curent_token, disable_user_tokens, save_token, validate_token_in_table},
 };
 use crate::{
     internal::settings::Settings,
@@ -253,19 +253,17 @@ pub async fn refresh_token(
     platform: Platform,
 ) -> Result<Tokens, Error> {
     let data = Settings::jwt_verify_token(&item.refresh_token, TokenKind::Refresh)?;
-    check_token_in_table(pool, data.token_id).await?;
+    validate_token_in_table(pool, data.token_id).await?;
 
     let mut query = QueryBuilder::new(r#"SELECT * FROM users WHERE "#);
     query.push("id = ");
     query.push_bind(data.user_id);
 
-    let err_msg = "user not found or incorrect password".to_string();
     let user: User = match query.build_query_as().fetch_one(pool).await {
         Ok(v) => v,
         Err(e) => {
-            tokio::time::sleep(Duration::from_secs(1)).await;
             if utils::pg_not_found(&e) {
-                return Err(Error::not_found1(err_msg));
+                return Err(Error::not_found1("user not found".into()));
             } else {
                 return Err(e.into());
             };

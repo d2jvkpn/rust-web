@@ -15,7 +15,10 @@ cargo test --bin -- --show-output
 
 cargo test --lib -- users::t_serde --show-output
 
-cargo test --tests users -- --show-output
+#### integration tests only (tests/user.rs)
+cargo test --test user -- --show-output
+
+cargo test --test user -- users_refresh_token --show-output
 
 ####
 cargo clean
