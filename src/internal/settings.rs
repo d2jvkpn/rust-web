@@ -60,7 +60,7 @@ impl Settings {
     }
 
     pub fn jwt_sign(data: &mut JwtPayload) -> Result<Tokens, Error> {
-        let (jwt_key, jwt) = Self::jwt().ok_or(Error::unexpected_error1())?;
+        let (jwt_key, jwt) = Self::jwt().ok_or(Error::unexpected_error())?;
 
         // tell whether to create a new refresh token or to regenerate a new one without update exp
         let (kind, exp) = (data.token_kind.clone(), data.exp);
@@ -74,8 +74,8 @@ impl Settings {
 
         let key = EncodingKey::from_secret(jwt_key);
 
-        let access_token =
-            encode(&Header::default(), &data, &key).map_err(|_| Error::unexpected_error1())?;
+        let access_token = encode(&Header::default(), &data, &key)
+            .map_err(|e| Error::unexpected_error().cause(e.into()))?;
 
         // refresh token
         let refresh_exp = match kind {
@@ -85,8 +85,8 @@ impl Settings {
         data.exp = refresh_exp;
 
         data.token_kind = TokenKind::Refresh;
-        let refresh_token =
-            encode(&Header::default(), &data, &key).map_err(|_| Error::unexpected_error1())?;
+        let refresh_token = encode(&Header::default(), &data, &key)
+            .map_err(|e| Error::unexpected_error().cause(e.into()))?;
 
         Ok(Tokens { access_token, access_exp, refresh_token, refresh_exp })
     }
@@ -94,14 +94,16 @@ impl Settings {
     pub fn jwt_verify_request(req: &HttpRequest) -> Result<JwtPayload, Error> {
         let prefix = "Bearer ";
 
-        let msg = "not logged in, please provide token".to_string();
-        let value = req.headers().get(AUTHORIZATION).ok_or(Error::unauthenticated(msg))?;
+        let err_msg = "not logged in, please provide token";
+        let value =
+            req.headers().get(AUTHORIZATION).ok_or(Error::unauthenticated().msg(err_msg))?;
 
-        let msg = "failed to parse token".to_string();
-        let token = value.to_str().map_err(|_| Error::unauthenticated(msg))?;
+        let err_msg = "failed to parse token";
+        let token =
+            value.to_str().map_err(|e| Error::unauthenticated().msg(err_msg).cause(e.into()))?;
 
         if !token.starts_with(prefix) {
-            return Err(Error::unauthenticated("invalid token format".to_string()));
+            return Err(Error::unauthenticated().msg("invalid token format"));
         }
         // TokenData<JwtPayload>: TokenData{ header, claims }
 
@@ -110,24 +112,24 @@ impl Settings {
 
     pub fn jwt_verify_token(token: &str, kind: TokenKind) -> Result<JwtPayload, Error> {
         // let (jwt_key, _) = Self::jwt().ok_or(Error::Internal("configuration is unset".into()))?;
-        let settings = OC_SETTINGS.get().ok_or(Error::unexpected_error1())?;
+        let settings = OC_SETTINGS.get().ok_or(Error::unexpected_error())?;
         let jwt_key = &settings.jwt_key;
         let key = DecodingKey::from_secret(jwt_key);
 
         let data = decode::<JwtPayload>(token, &key, &Validation::default()).map_err(|e| {
-            let em = if e.kind() == &ExpiredSignature {
+            let err_msg = if e.kind() == &ExpiredSignature {
                 "token expired"
             } else {
                 "failed to decode token"
             };
-            Error::unauthenticated(em.to_string())
+            Error::unauthenticated().msg(err_msg)
         })?;
         // if data.claims.iat > Utc::now().timestamp() {
         //    return Err(Error::Unauthenticated("token expired".into()));
         // }
 
         if data.claims.token_kind != kind {
-            return Err(Error::unauthenticated("invalid token kind".to_string()));
+            return Err(Error::unauthenticated().msg("invalid token kind"));
         }
 
         // ?? a blocking task

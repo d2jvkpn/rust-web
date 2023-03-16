@@ -5,21 +5,21 @@ use super::{
 use crate::{
     internal::settings::Settings,
     middlewares::Error,
-    models::{
-        token::{JwtPayload, Platform, TokenKind, TokenRecord},
-        user::*,
-    },
+    models::token::{JwtPayload, Platform, TokenKind, TokenRecord},
+    models::user::*,
     utils,
 };
+use anyhow::anyhow;
 use sqlx::{PgPool, QueryBuilder};
 use std::{net::SocketAddr, time::Duration};
 use uuid::Uuid;
 
 pub async fn post_new_user(pool: &PgPool, item: CreateUser) -> Result<User, Error> {
-    item.valid().map_err(|e| Error::invalid1(e.to_string()))?;
+    item.valid().map_err(|s| Error::invalid().msg(s))?;
 
-    let password =
-        utils::bcrypt_hash(item.password, BCRYPT_COST).await.map_err(|_| Error::unknown1())?;
+    let password = utils::bcrypt_hash(item.password, BCRYPT_COST)
+        .await
+        .map_err(|s| Error::unknown().cause(anyhow!(s)))?;
     // dbg!(&password);
 
     // TODO: supporting enum convert between postgresql and rust in sqlx
@@ -62,11 +62,9 @@ pub async fn update_user_details_a(
     item: UpdateUser,
 ) -> Result<User, Error> {
     if user_id <= 0 {
-        return Err(Error::invalid1("invalid user_id".into()));
+        return Err(Error::invalid().msg("invalid user_id"));
     }
-    if let Err(e) = item.valid() {
-        return Err(Error::invalid1(e.to_string()));
-    }
+    item.valid().map_err(|s| Error::invalid().msg(s))?;
 
     // Retrieve current record
     let mut user = sqlx::query_as!(
@@ -78,7 +76,7 @@ pub async fn update_user_details_a(
     )
     .fetch_one(pool)
     .await
-    .map_err(|_err| Error::not_found1("user not found".into()))?;
+    .map_err(|_err| Error::not_found().msg("user not found"))?;
     // ignore database errors other than NotFound
 
     if !user.update(item) {
@@ -101,7 +99,7 @@ pub async fn update_user_details_a(
     // WARNING: user.updated_at is unchange
     // ?? return part of user only
     if utils::pg_not_found(&err) {
-        Err(Error::not_found1("user not found".into()))
+        Err(Error::not_found().msg("user not found"))
     } else {
         Err(err.into())
     }
@@ -114,11 +112,9 @@ pub async fn update_user_details_b(
     item: UpdateUser,
 ) -> Result<(), Error> {
     if user_id <= 0 {
-        return Err(Error::invalid1("invalid user_id".into()));
+        return Err(Error::invalid().msg("invalid user_id"));
     }
-    if let Err(e) = item.valid() {
-        return Err(Error::invalid1(e.to_string()));
-    }
+    item.valid().map_err(|s| Error::invalid().msg(s))?;
 
     let err = match sqlx::query!(
         "UPDATE users SET name = $1, birthday = $2 WHERE id = $3 RETURNING id",
@@ -134,7 +130,7 @@ pub async fn update_user_details_b(
     };
 
     if utils::pg_not_found(&err) {
-        Err(Error::not_found1("user not found".into()))
+        Err(Error::not_found().msg("user not found"))
     } else {
         Err(err.into())
     }
@@ -147,8 +143,9 @@ pub async fn user_login(
     platform: Platform,
     request_id: Uuid,
 ) -> Result<UserAndTokens, Error> {
-    item.valid().map_err(|e| Error::invalid1(e.into()))?;
+    item.valid().map_err(|s| Error::invalid().msg(s))?;
 
+    // step1
     // let now = std::time::Instant::now(); println!("--> user_login offset: {:?}", now.elapsed());
     let mut query = QueryBuilder::new(r#"SELECT * FROM users WHERE "#);
     if let Some(v) = item.phone {
@@ -166,22 +163,24 @@ pub async fn user_login(
         Err(e) => {
             if utils::pg_not_found(&e) {
                 tokio::time::sleep(Duration::from_secs(1)).await;
-                return Err(Error::not_found1(err_msg));
+                return Err(Error::not_found().msg(err_msg));
             } else {
                 return Err(e.into());
             };
         }
     };
 
-    upassword.user.status_ok().map_err(|e| Error::permission_denied(e.into()))?;
+    upassword.user.status_ok().map_err(|s| Error::permission_denied().msg(s))?;
 
+    // step2
     let m = utils::bcrypt_verify(item.password, upassword.password)
         .await
-        .map_err(|_| Error::unknown1())?;
+        .map_err(|s| Error::unknown().cause(anyhow!(s)))?;
     if !m {
-        return Err(Error::not_found1(err_msg));
+        return Err(Error::not_found().msg(err_msg));
     }
 
+    // step3
     let mut playload = JwtPayload {
         iat: 0,
         exp: 0,
@@ -196,6 +195,8 @@ pub async fn user_login(
     // TODO: use a message queue or a channel instead
     let mut token_record: TokenRecord = playload.into();
     (token_record.ip, token_record.device) = (ip, None); // TODO: device
+
+    // step4
     disable_user_tokens(pool, upassword.user.id, Some(platform)).await?;
     save_token(pool, token_record).await?;
 
@@ -207,36 +208,37 @@ pub async fn user_change_password(
     user_id: i32,
     item: ChangePassword,
 ) -> Result<(), Error> {
-    item.valid().map_err(|e| Error::invalid1(e.into()))?;
+    item.valid().map_err(|s| Error::invalid().msg(s))?;
 
     let mut query = QueryBuilder::new(r#"SELECT * FROM users WHERE "#);
     query.push("id = ");
     query.push_bind(user_id);
 
-    let err_msg = "user not found or incorrect password".to_string();
+    let err_msg = "user not found or incorrect password";
     let upassword: UserAndPassword = match query.build_query_as().fetch_one(pool).await {
         Ok(v) => v,
         Err(e) => {
             tokio::time::sleep(Duration::from_secs(1)).await;
             if utils::pg_not_found(&e) {
-                return Err(Error::not_found1(err_msg));
+                return Err(Error::not_found().msg(err_msg));
             } else {
                 return Err(e.into());
             };
         }
     };
 
-    upassword.user.status_ok().map_err(|e| Error::permission_denied(e.into()))?;
+    upassword.user.status_ok().map_err(|s| Error::permission_denied().msg(s))?;
     let m = utils::bcrypt_verify(item.old_password, upassword.password)
         .await
-        .map_err(|_| Error::unknown1())?;
+        .map_err(|s| Error::unknown().cause(anyhow!(s)))?;
 
     if !m {
-        return Err(Error::not_found1(err_msg));
+        return Err(Error::not_found().msg(err_msg));
     }
 
-    let password =
-        utils::bcrypt_hash(item.new_password, BCRYPT_COST).await.map_err(|_| Error::unknown1())?;
+    let password = utils::bcrypt_hash(item.new_password, BCRYPT_COST)
+        .await
+        .map_err(|s| Error::unknown().cause(anyhow!(s)))?;
 
     sqlx::query!(r#"UPDATE users SET password = $1 WHERE id = $2"#, password, user_id)
         .execute(pool)
@@ -254,9 +256,13 @@ pub async fn refresh_token(
     platform: Platform,
     request_id: Uuid,
 ) -> Result<Tokens, Error> {
+    // step1
     let data = Settings::jwt_verify_token(&item.refresh_token, TokenKind::Refresh)?;
+
+    // step2
     validate_token_in_table(pool, data.token_id).await?;
 
+    // step3
     let mut query = QueryBuilder::new(r#"SELECT * FROM users WHERE "#);
     query.push("id = ");
     query.push_bind(data.user_id);
@@ -265,15 +271,16 @@ pub async fn refresh_token(
         Ok(v) => v,
         Err(e) => {
             if utils::pg_not_found(&e) {
-                return Err(Error::not_found1("user not found".into()));
+                return Err(Error::not_found().msg("user not found"));
             } else {
                 return Err(e.into());
             };
         }
     };
 
-    user.status_ok().map_err(|e| Error::permission_denied(e.into()))?;
+    user.status_ok().map_err(|s| Error::permission_denied().msg(s))?;
 
+    // step4
     let mut playload = JwtPayload {
         iat: 0,
         exp: data.exp,
@@ -288,6 +295,7 @@ pub async fn refresh_token(
     let mut token_record: TokenRecord = playload.into();
     (token_record.ip, token_record.device) = (ip, None); // TODO: device
 
+    // step5
     disable_curent_token(pool, data.token_id).await?;
     save_token(pool, token_record).await?;
 

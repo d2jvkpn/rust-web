@@ -55,7 +55,7 @@ where
         };
 
         if payload.role != self.value {
-            let err = Error::permission_denied("you have no permission".into());
+            let err = Error::permission_denied().msg("you have no permission");
             return Box::pin(ready(Err(err.into())));
         }
 

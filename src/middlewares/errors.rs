@@ -18,7 +18,7 @@ use sqlx::error::Error as SQLxError; // DatabaseError
 use uuid::Uuid;
 
 #[derive(Serialize, Debug, Display)]
-#[display(fmt = "code: {code}, msg: {msg:?}, loc: {loc:?}")]
+#[display(fmt = "code: {code}, msg: {msg:?}, loc: {loc:?}, cause: {cause:?}")]
 pub struct Error {
     pub code: i32,
     pub msg: String,
@@ -73,6 +73,17 @@ impl Error {
         err.into()
     }
 
+    pub fn msg<S: AsRef<str>>(mut self, s: S) -> Self {
+        self.msg.push_str(": ");
+        self.msg.push_str(s.as_ref());
+        self
+    }
+
+    pub fn cause(mut self, e: AE) -> Self {
+        self.cause = Some(e);
+        self
+    }
+
     #[track_caller]
     pub fn no_changes() -> Self {
         let mut err: Self = HttpCode::NoChanges.into();
@@ -81,23 +92,8 @@ impl Error {
     }
 
     #[track_caller]
-    pub fn invalid_token0<S: AsRef<str>>(msg: S) -> Self {
-        let mut err: Self = HttpCode::InvalidToken(msg.as_ref().to_string()).into();
-        err.loc = Some(loc!());
-        err
-    }
-
-    #[track_caller]
-    pub fn invalid_token1(msg: String) -> Self {
-        let mut err: Self = HttpCode::InvalidToken(msg).into();
-        err.loc = Some(loc!());
-        err
-    }
-
-    #[track_caller]
-    pub fn invalid_token2(e: AE, msg: String) -> Self {
-        let mut err: Self = HttpCode::InvalidToken(msg).into();
-        err.cause = Some(e);
+    pub fn invalid_token() -> Self {
+        let mut err: Self = HttpCode::InvalidToken.into();
         err.loc = Some(loc!());
         err
     }
@@ -110,53 +106,29 @@ impl Error {
     }
 
     #[track_caller]
-    pub fn canceled(msg: String) -> Self {
-        let mut err: Self = HttpCode::Canceled(msg).into();
+    pub fn canceled() -> Self {
+        let mut err: Self = HttpCode::Canceled.into();
         err.loc = Some(loc!());
         err
     }
 
     #[track_caller]
-    pub fn unknown1() -> Self {
+    pub fn unknown() -> Self {
         let mut err: Self = HttpCode::Unknown.into();
         err.loc = Some(loc!());
         err
     }
 
     #[track_caller]
-    pub fn unknown2(e: AE) -> Self {
-        let mut err: Self = HttpCode::Unknown.into();
-        err.cause = Some(e);
+    pub fn invalid() -> Self {
+        let mut err: Self = HttpCode::InvalidArgument.into();
         err.loc = Some(loc!());
         err
     }
 
     #[track_caller]
-    pub fn invalid1(msg: String) -> Self {
-        let mut err: Self = HttpCode::InvalidArgument(msg).into();
-        err.loc = Some(loc!());
-        err
-    }
-
-    #[track_caller]
-    pub fn invalid2(e: AE, msg: String) -> Self {
-        let mut err: Self = HttpCode::InvalidArgument(msg).into();
-        err.cause = Some(e);
-        err.loc = Some(loc!());
-        err
-    }
-
-    #[track_caller]
-    pub fn not_found1(msg: String) -> Self {
-        let mut err: Self = HttpCode::NotFound(msg).into();
-        err.loc = Some(loc!());
-        err
-    }
-
-    #[track_caller]
-    pub fn not_found2(e: AE, msg: String) -> Self {
-        let mut err: Self = HttpCode::NotFound(msg).into();
-        err.cause = Some(e);
+    pub fn not_found() -> Self {
+        let mut err: Self = HttpCode::NotFound.into();
         err.loc = Some(loc!());
         err
     }
@@ -169,8 +141,8 @@ impl Error {
     }
 
     #[track_caller]
-    pub fn permission_denied(msg: String) -> Self {
-        let mut err: Self = HttpCode::PermissionDenied(msg).into();
+    pub fn permission_denied() -> Self {
+        let mut err: Self = HttpCode::PermissionDenied.into();
         err.loc = Some(loc!());
         err
     }
@@ -189,19 +161,14 @@ impl Error {
         err
     }
 
-    pub fn unexpected_error1() -> Self {
+    #[track_caller]
+    pub fn unexpected_error() -> Self {
         let mut err: Self = HttpCode::UnexpectedError.into();
         err.loc = Some(loc!());
         err
     }
 
-    pub fn unexpected_error2(e: AE) -> Self {
-        let mut err: Self = HttpCode::UnexpectedError.into();
-        err.cause = Some(e);
-        err.loc = Some(loc!());
-        err
-    }
-
+    #[track_caller]
     pub fn db_error(e: SQLxError) -> Self {
         let mut err: Self = HttpCode::DBError.into();
         err.cause = Some(e.into());
@@ -209,8 +176,9 @@ impl Error {
         err
     }
 
-    pub fn unauthenticated(msg: String) -> Self {
-        let mut err: Self = HttpCode::Unauthenticated(msg).into();
+    #[track_caller]
+    pub fn unauthenticated() -> Self {
+        let mut err: Self = HttpCode::Unauthenticated.into();
         err.loc = Some(loc!());
         err
     }
@@ -248,6 +216,7 @@ impl From<SQLxError> for Error {
 */
 
 impl From<SQLxError> for Error {
+    #[track_caller]
     fn from(err: SQLxError) -> Self {
         let mut ae: Self = HttpCode::DBError.into();
         ae.cause = Some(err.into());

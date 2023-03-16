@@ -95,7 +95,7 @@ mod tests {
     #[test]
     fn t_record() {
         let mut record = Record::default();
-        record.msg = Some("Hello".into());
+        record.msg = "Hello".into();
         println!("{}", record);
     }
 }

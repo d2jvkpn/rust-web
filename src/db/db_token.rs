@@ -87,9 +87,9 @@ pub async fn validate_token_in_table(pool: &PgPool, token_id: Uuid) -> Result<()
         .await
     {
         Ok(v) => {
-            let err_msg = "token was disabled, relogin required".to_string();
+            let err_msg = "token was disabled, relogin required";
             if v.status == Some(false) {
-                return Err(Error::unauthenticated(err_msg));
+                return Err(Error::unauthenticated().msg(err_msg));
             }
             return Ok(());
         }
@@ -97,7 +97,7 @@ pub async fn validate_token_in_table(pool: &PgPool, token_id: Uuid) -> Result<()
     };
 
     if utils::pg_not_found(&err) {
-        Err(Error::unauthenticated("can't verify token, relogin required".to_string()))
+        Err(Error::unauthenticated().msg("can't verify token, relogin required"))
     } else {
         Err(Error::db_error(err))
     }
