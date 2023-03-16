@@ -6,6 +6,7 @@ macro_rules! loc {
 }
 
 use super::http_code::HttpCode;
+use crate::utils;
 use actix_web::{
     error::Error as ActixError, http::StatusCode, HttpMessage, HttpRequest, HttpResponse,
     ResponseError,
@@ -172,6 +173,30 @@ impl Error {
     pub fn db_error(e: SQLxError) -> Self {
         let mut err: Self = HttpCode::DBError.into();
         err.cause = Some(e.into());
+        err.loc = Some(loc!());
+        err
+    }
+
+    pub fn db_check_not_found(e: SQLxError, msg: &str) -> Self {
+        let mut err = if utils::pg_not_found(&e) {
+            let err: Error = HttpCode::NotFound.into();
+            err.msg(msg)
+        } else {
+            e.into()
+        };
+
+        err.loc = Some(loc!());
+        err
+    }
+
+    pub fn db_check_already_exists(e: SQLxError, msg: &str) -> Self {
+        let mut err = if utils::pg_not_found(&e) {
+            let err: Error = HttpCode::AlreadyExists.into();
+            err.msg(msg)
+        } else {
+            e.into()
+        };
+
         err.loc = Some(loc!());
         err
     }

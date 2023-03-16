@@ -24,10 +24,9 @@ pub async fn post_new_user(pool: &PgPool, item: CreateUser) -> Result<User, Erro
 
     // TODO: supporting enum convert between postgresql and rust in sqlx
     // https://docs.rs/sqlx/latest/sqlx/macro.query.html
-    let err = match sqlx::query_as!(
+    sqlx::query_as!(
         User,
-        r#"INSERT INTO users
-          (status, role, phone, email, name, birthday, password)
+        r#"INSERT INTO users (status, role, phone, email, name, birthday, password)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING
           id, status AS "status: Status", role AS "role: Role",
@@ -42,17 +41,7 @@ pub async fn post_new_user(pool: &PgPool, item: CreateUser) -> Result<User, Erro
     )
     .fetch_one(pool)
     .await
-    {
-        Ok(v) => return Ok(v),
-        Err(e) => e,
-    };
-
-    dbg!(&err);
-    if utils::pg_already_exists(&err) {
-        Err(Error::already_exists())
-    } else {
-        Err(Error::db_error(err))
-    }
+    .map_err(|e| Error::db_check_already_exists(e, "user"))
 }
 
 // Update course details, select, compare, update
@@ -83,7 +72,7 @@ pub async fn update_user_details_a(
         return Err(Error::no_changes());
     }
 
-    let err = match sqlx::query!(
+    match sqlx::query!(
         "UPDATE users SET name = $1, birthday = $2 WHERE id = $3",
         user.name,
         user.birthday,
@@ -92,17 +81,11 @@ pub async fn update_user_details_a(
     .execute(pool)
     .await
     {
-        Ok(_) => return Ok(user),
-        Err(e) => e,
-    };
-
+        Ok(_) => Ok(user),
+        Err(e) => Err(Error::db_check_not_found(e, "user")),
+    }
     // WARNING: user.updated_at is unchange
     // ?? return part of user only
-    if utils::pg_not_found(&err) {
-        Err(Error::not_found().msg("user not found"))
-    } else {
-        Err(err.into())
-    }
 }
 
 // Update course details, update and return id
@@ -116,7 +99,7 @@ pub async fn update_user_details_b(
     }
     item.valid().map_err(|s| Error::invalid().msg(s))?;
 
-    let err = match sqlx::query!(
+    match sqlx::query!(
         "UPDATE users SET name = $1, birthday = $2 WHERE id = $3 RETURNING id",
         item.name,
         item.birthday,
@@ -125,14 +108,8 @@ pub async fn update_user_details_b(
     .fetch_one(pool)
     .await
     {
-        Ok(_) => return Ok(()),
-        Err(e) => e,
-    };
-
-    if utils::pg_not_found(&err) {
-        Err(Error::not_found().msg("user not found"))
-    } else {
-        Err(err.into())
+        Ok(_) => Ok(()),
+        Err(e) => Err(Error::db_check_not_found(e, "user")),
     }
 }
 
@@ -163,7 +140,7 @@ pub async fn user_login(
         Err(e) => {
             if utils::pg_not_found(&e) {
                 tokio::time::sleep(Duration::from_secs(1)).await;
-                return Err(Error::not_found().msg(err_msg));
+                return Err(Error::unauthenticated().msg(err_msg));
             } else {
                 return Err(e.into());
             };
@@ -215,17 +192,11 @@ pub async fn user_change_password(
     query.push_bind(user_id);
 
     let err_msg = "user not found or incorrect password";
-    let upassword: UserAndPassword = match query.build_query_as().fetch_one(pool).await {
-        Ok(v) => v,
-        Err(e) => {
-            tokio::time::sleep(Duration::from_secs(1)).await;
-            if utils::pg_not_found(&e) {
-                return Err(Error::not_found().msg(err_msg));
-            } else {
-                return Err(e.into());
-            };
-        }
-    };
+    let upassword: UserAndPassword = query
+        .build_query_as()
+        .fetch_one(pool)
+        .await
+        .map_err(|e| Error::db_check_not_found(e, err_msg))?;
 
     upassword.user.status_ok().map_err(|s| Error::permission_denied().msg(s))?;
     let m = utils::bcrypt_verify(item.old_password, upassword.password)
@@ -269,13 +240,7 @@ pub async fn refresh_token(
 
     let user: User = match query.build_query_as().fetch_one(pool).await {
         Ok(v) => v,
-        Err(e) => {
-            if utils::pg_not_found(&e) {
-                return Err(Error::not_found().msg("user not found"));
-            } else {
-                return Err(e.into());
-            };
-        }
+        Err(e) => return Err(Error::db_check_not_found(e, "user")),
     };
 
     user.status_ok().map_err(|s| Error::permission_denied().msg(s))?;

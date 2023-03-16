@@ -80,20 +80,11 @@ pub async fn find_user(pool: &PgPool, item: MatchUser) -> Result<User, Error> {
     }
     query.push(" LIMIT 1");
 
-    let err = match query.build_query_as().fetch_one(pool).await {
-        Ok(v) => return Ok(v),
-        Err(e) => e,
-    };
-
-    if utils::pg_not_found(&err) {
-        Err(Error::not_found().msg("user not found"))
-    } else {
-        Err(err.into())
-    }
+    query.build_query_as().fetch_one(pool).await.map_err(|e| Error::db_check_not_found(e, "user"))
 }
 
 pub async fn update_user_role(pool: &PgPool, item: UpdateUserRole) -> Result<(), Error> {
-    let err = match sqlx::query!(
+    match sqlx::query!(
         "UPDATE users SET status = $1 WHERE id = $2 RETURNING id",
         item.role as Role,
         item.user_id,
@@ -101,34 +92,21 @@ pub async fn update_user_role(pool: &PgPool, item: UpdateUserRole) -> Result<(),
     .fetch_one(pool)
     .await
     {
-        Ok(_) => return Ok(()),
-        Err(e) => e,
-    };
-
-    if utils::pg_not_found(&err) {
-        Err(Error::not_found().msg("user not found"))
-    } else {
-        Err(err.into())
+        Ok(_) => Ok(()),
+        Err(e) => Err(Error::db_check_not_found(e, "user")),
     }
 }
 
 pub async fn update_user_status(pool: &PgPool, item: UpdateUserStatus) -> Result<(), Error> {
     let status = item.status.clone();
-    let result = sqlx::query!(
+    sqlx::query!(
         "UPDATE users SET status = $1 WHERE id = $2 RETURNING id",
         item.status as Status,
         item.user_id,
     )
     .fetch_one(pool)
-    .await;
-
-    if let Err(e) = result {
-        if utils::pg_not_found(&e) {
-            return Err(Error::not_found().msg("user not found"));
-        } else {
-            return Err(e.into());
-        }
-    }
+    .await
+    .map_err(|e| Error::db_check_not_found(e, "user"))?;
 
     if status != Status::OK {
         let _ = disable_user_tokens(pool, item.user_id, None).await;
