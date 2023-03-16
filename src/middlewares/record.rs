@@ -20,7 +20,7 @@ pub struct Record {
     pub user_id: Option<i32>,
     pub elapsed: String,
     pub code: i32,
-    pub msg: Option<String>,
+    pub msg: String,
     pub cause: Option<String>,
     pub loc: Option<String>,
 }
@@ -49,9 +49,10 @@ impl Record {
     pub fn from_request(req: &HttpRequest) -> Self {
         Record {
             start_at: Local::now(),
+            request_id: Uuid::new_v4(),
             method: req.method().to_string(),
             path: req.path().to_string(),
-            request_id: Uuid::nil(),
+            msg: "ok".into(),
             ..Default::default()
         }
     }
@@ -64,9 +65,8 @@ impl Record {
 
     // consume a response::Response, using Option<T>.take() rather than Option<T>.clone()
     pub fn with_error(&mut self, mut err: AnError) {
-        self.request_id = err.request_id;
         self.code = err.code;
-        self.msg = err.msg.take();
+        self.msg = err.msg;
         self.status = err.status.as_u16();
         if let Some(e) = err.cause {
             self.cause = Some(format!("{:}", e));

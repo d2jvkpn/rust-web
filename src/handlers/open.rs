@@ -6,10 +6,14 @@ use crate::{
     utils,
 };
 use actix_web::{
-    error::Error as ActixError, http::header::HeaderName, web, HttpRequest, HttpResponse,
+    error::Error as ActixError,
+    http::header::HeaderName,
+    web::{self, ReqData},
+    HttpRequest, HttpResponse,
 };
 use serde_json::json;
 use std::str::FromStr;
+use uuid::Uuid;
 
 pub async fn password(mut request: HttpRequest) -> Result<HttpResponse, ActixError> {
     Data(json!({"chars": models::PASSWORD_CHARS, "range": models::PASSWORD_RANGE}))
@@ -33,12 +37,19 @@ pub async fn user_login(
     mut request: HttpRequest,
     app_state: web::Data<AppState>,
     item: web::Json<UserLogin>,
+    request_id: ReqData<Uuid>,
 ) -> Result<HttpResponse, ActixError> {
     let platform = extract_platform_v1(&request);
 
-    db_user::user_login(&app_state.pool, item.into_inner(), request.peer_addr(), platform)
-        .await
-        .into_result(&mut request)
+    db_user::user_login(
+        &app_state.pool,
+        item.into_inner(),
+        request.peer_addr(),
+        platform,
+        *request_id,
+    )
+    .await
+    .into_result(&mut request)
 }
 
 fn extract_platform_v1(request: &HttpRequest) -> Platform {
@@ -68,10 +79,17 @@ pub async fn refresh_token(
     mut request: HttpRequest,
     app_state: web::Data<AppState>,
     item: web::Json<RefreshToken>,
+    request_id: ReqData<Uuid>,
 ) -> Result<HttpResponse, ActixError> {
     let platform = extract_platform_v1(&request);
 
-    db_user::refresh_token(&app_state.pool, item.into_inner(), request.peer_addr(), platform)
-        .await
-        .into_result(&mut request)
+    db_user::refresh_token(
+        &app_state.pool,
+        item.into_inner(),
+        request.peer_addr(),
+        platform,
+        *request_id,
+    )
+    .await
+    .into_result(&mut request)
 }

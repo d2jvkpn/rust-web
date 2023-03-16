@@ -21,8 +21,8 @@ use uuid::Uuid;
 #[display(fmt = "code: {code}, msg: {msg:?}, loc: {loc:?}")]
 pub struct Error {
     pub code: i32,
-    pub msg: Option<String>,
-    pub request_id: Uuid,
+    pub msg: String,
+    pub request_id: Option<Uuid>,
 
     #[serde(skip)]
     pub status: StatusCode,
@@ -36,8 +36,8 @@ impl From<HttpCode> for Error {
     fn from(e: HttpCode) -> Self {
         Self {
             code: e.code(),
-            msg: Some(format!("{}", e)),
-            request_id: Uuid::new_v4(),
+            msg: format!("{}", e),
+            request_id: None,
 
             status: e.status_code(),
             cause: None,

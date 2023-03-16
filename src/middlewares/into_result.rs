@@ -11,9 +11,9 @@ pub const OK_JSON: &str = r#"{"code":0,"msg":"ok","data":{}}"#;
 #[derive(Debug, Serialize)]
 pub struct Data<T>(pub T);
 
-pub enum Trace {
-    RequestId(Uuid),
-    Error(Error),
+pub enum Res {
+    Ok,
+    Err(Error),
 }
 
 pub fn empty_data() -> HashMap<u8, u8> {
@@ -33,8 +33,11 @@ pub trait IntoResult<T> {
 // impl<T: Serialize> IntoRes<T> for Result<Data<T>, Error> {
 impl<T: Serialize> IntoResult<T> for Data<T> {
     fn into_result(self, req: &mut HttpRequest) -> Result<HttpResponse, ActixError> {
-        let request_id = Uuid::new_v4();
-        req.extensions_mut().insert(Trace::RequestId(request_id));
+        let request_id = match req.extensions().get::<Uuid>() {
+            Some(v) => *v,
+            None => Uuid::new_v4(),
+        };
+        req.extensions_mut().insert(Res::Ok);
 
         Ok(HttpResponse::Ok()
             .json(json!({"code": 0, "msg":"ok", "requestId": request_id, "data": self.0})))
@@ -47,16 +50,21 @@ impl<T: Serialize> IntoResult<T> for Result<T, Error> {
         match self {
             Ok(v) => Data(v).into_result(req),
             Err(e) => {
+                let request_id = match req.extensions().get::<Uuid>() {
+                    Some(v) => *v,
+                    None => Uuid::new_v4(),
+                };
+
                 let err = Error {
                     code: e.code,
                     msg: e.msg.clone(),
-                    request_id: e.request_id,
+                    request_id: Some(request_id),
 
                     status: e.status,
                     cause: None,
                     loc: None,
                 };
-                req.extensions_mut().insert(Trace::Error(e));
+                req.extensions_mut().insert(Res::Err(e));
                 Err(err.into())
             }
         }

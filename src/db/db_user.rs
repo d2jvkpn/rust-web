@@ -145,6 +145,7 @@ pub async fn user_login(
     item: UserLogin,
     ip: Option<SocketAddr>,
     platform: Platform,
+    request_id: Uuid,
 ) -> Result<UserAndTokens, Error> {
     item.valid().map_err(|e| Error::invalid1(e.into()))?;
 
@@ -184,7 +185,7 @@ pub async fn user_login(
     let mut playload = JwtPayload {
         iat: 0,
         exp: 0,
-        token_id: Uuid::new_v4(),
+        token_id: request_id,
         token_kind: TokenKind::Access,
         user_id: upassword.user.id,
         role: upassword.user.role.clone(),
@@ -251,6 +252,7 @@ pub async fn refresh_token(
     item: RefreshToken,
     ip: Option<SocketAddr>,
     platform: Platform,
+    request_id: Uuid,
 ) -> Result<Tokens, Error> {
     let data = Settings::jwt_verify_token(&item.refresh_token, TokenKind::Refresh)?;
     validate_token_in_table(pool, data.token_id).await?;
@@ -275,7 +277,7 @@ pub async fn refresh_token(
     let mut playload = JwtPayload {
         iat: 0,
         exp: data.exp,
-        token_id: Uuid::new_v4(),
+        token_id: request_id,
         token_kind: TokenKind::Refresh,
         user_id: user.id,
         role: user.role.clone(),

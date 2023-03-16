@@ -1,5 +1,5 @@
 // https://actix.rs/docs/middleware/
-use super::{record::Record, Trace};
+use super::{record::Record, Res};
 use actix_web::{
     dev::{self, Service, ServiceRequest, ServiceResponse, Transform},
     HttpMessage,
@@ -48,6 +48,7 @@ where
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
         let mut record = Record::from_request(req.request());
+        req.extensions_mut().insert(record.request_id);
 
         let fut = self.service.call(req);
 
@@ -60,7 +61,7 @@ where
                 Err(e) => {
                     // dbg!(&e);
                     let mut res = e.error_response();
-                    record.msg = Some("UNEXPECTED ERROR".into());
+                    record.msg = "UNEXPECTED ERROR".into();
                     record.code = -1000;
                     record.status = res.status().as_u16();
                     record.cause = Some(format!("{:}", e));
@@ -76,19 +77,18 @@ where
             let mut exts = req.extensions_mut();
             record.user_id = exts.get::<i32>().copied();
 
-            if let Some(trace) = exts.remove::<Trace>() {
+            if let Some(trace) = exts.remove::<Res>() {
                 match trace {
-                    Trace::RequestId(v) => {
+                    Res::Ok => {
                         record.status = sr.response().status().as_u16();
-                        record.msg = Some("ok".into());
-                        record.request_id = v;
+                        record.msg = "ok".into();
                     }
-                    Trace::Error(e) => record.with_error(e),
+                    Res::Err(e) => record.with_error(e),
                 }
             } else {
                 record.code = -1001;
                 record.status = sr.response().status().as_u16();
-                record.msg = Some("HAS NO TRACE".into());
+                record.msg = "HAS NO TRACE".into();
             }
 
             record.log();
