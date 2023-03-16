@@ -4,7 +4,8 @@ use actix_web::HttpRequest;
 use chrono::{DateTime, Local};
 use log::{error, info, warn};
 use serde::Serialize;
-use serde_json::json;
+// use serde_json::json;
+use std::fmt;
 use uuid::Uuid;
 
 #[derive(Debug, Serialize, Default)]
@@ -22,6 +23,26 @@ pub struct Record {
     pub msg: Option<String>,
     pub cause: Option<String>,
     pub loc: Option<String>,
+}
+
+impl fmt::Display for Record {
+    fn fmt(&self, w: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            w,
+            "request_id: {}, method: {}, path: {:?}, status: {}, user_id: {:?}, \
+            elapsed: {}, code: {}, msg: {:?}, cause: {:?}, loc: {:?}",
+            self.request_id,
+            self.method,
+            self.path,
+            self.status,
+            self.user_id,
+            self.elapsed,
+            self.code,
+            self.msg,
+            self.cause,
+            self.loc
+        )
+    }
 }
 
 impl Record {
@@ -55,11 +76,26 @@ impl Record {
 
     pub fn log(&self) {
         if self.status >= 500 {
-            error!("{}", json!(self));
+            // error!("{}", json!(self));
+            error!("{}", self);
         } else if self.status >= 400 {
-            warn!("{}", json!(self));
+            // warn!("{}", json!(self));
+            warn!("{}", self);
         } else {
-            info!("{}", json!(self));
+            // info!("{}", json!(self));
+            info!("{}", self);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn t_record() {
+        let mut record = Record::default();
+        record.msg = Some("Hello".into());
+        println!("{}", record);
     }
 }
