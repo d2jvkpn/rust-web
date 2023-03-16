@@ -65,8 +65,7 @@ pub async fn update_user_details_a(
     )
     .fetch_one(pool)
     .await
-    .map_err(|_err| Error::not_found().msg("user not found"))?;
-    // ignore database errors other than NotFound
+    .map_err(|e| Error::db_check_not_found(e, "user"))?;
 
     if !user.update(item) {
         return Err(Error::no_changes());
