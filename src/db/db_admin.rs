@@ -84,17 +84,16 @@ pub async fn find_user(pool: &PgPool, item: MatchUser) -> Result<User, Error> {
 }
 
 pub async fn update_user_role(pool: &PgPool, item: UpdateUserRole) -> Result<(), Error> {
-    match sqlx::query!(
+    sqlx::query!(
         "UPDATE users SET status = $1 WHERE id = $2 RETURNING id",
         item.role as Role,
         item.user_id,
     )
     .fetch_one(pool)
     .await
-    {
-        Ok(_) => Ok(()),
-        Err(e) => Err(Error::db_check_not_found(e, "user")),
-    }
+    .map_err(|e| Error::db_check_not_found(e, "user"))?;
+
+    Ok(())
 }
 
 pub async fn update_user_status(pool: &PgPool, item: UpdateUserStatus) -> Result<(), Error> {

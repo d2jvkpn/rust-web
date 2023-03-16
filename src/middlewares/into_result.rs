@@ -47,27 +47,27 @@ impl<T: Serialize> IntoResult<T> for Data<T> {
 // impl<T: Serialize> IntoRes<T> for Result<Data<T>, Error> {
 impl<T: Serialize> IntoResult<T> for Result<T, Error> {
     fn into_result(self, req: &mut HttpRequest) -> Result<HttpResponse, ActixError> {
-        match self {
-            Ok(v) => Data(v).into_result(req),
-            Err(e) => {
-                let request_id = match req.extensions().get::<Uuid>() {
-                    Some(v) => *v,
-                    None => Uuid::new_v4(),
-                };
+        let err = match self {
+            Ok(v) => return Data(v).into_result(req),
+            Err(e) => e,
+        };
 
-                let err = Error {
-                    code: e.code,
-                    msg: e.msg.clone(),
-                    request_id: Some(request_id),
+        let request_id = match req.extensions().get::<Uuid>() {
+            Some(v) => *v,
+            None => Uuid::new_v4(),
+        };
 
-                    status: e.status,
-                    cause: None,
-                    loc: None,
-                };
-                req.extensions_mut().insert(Res::Err(e));
-                Err(err.into())
-            }
-        }
+        let err2 = Error {
+            code: err.code,
+            msg: err.msg.clone(),
+            request_id: Some(request_id),
+
+            status: err.status,
+            cause: None,
+            loc: None,
+        };
+        req.extensions_mut().insert(Res::Err(err));
+        Err(err2.into())
     }
 }
 

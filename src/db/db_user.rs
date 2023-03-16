@@ -71,7 +71,7 @@ pub async fn update_user_details_a(
         return Err(Error::no_changes());
     }
 
-    match sqlx::query!(
+    sqlx::query!(
         "UPDATE users SET name = $1, birthday = $2 WHERE id = $3",
         user.name,
         user.birthday,
@@ -79,12 +79,11 @@ pub async fn update_user_details_a(
     )
     .execute(pool)
     .await
-    {
-        Ok(_) => Ok(user),
-        Err(e) => Err(Error::db_check_not_found(e, "user")),
-    }
+    .map_err(|e| Error::db_check_not_found(e, "user"))?;
     // WARNING: user.updated_at is unchange
     // ?? return part of user only
+
+    Ok(user)
 }
 
 // Update course details, update and return id
@@ -98,7 +97,7 @@ pub async fn update_user_details_b(
     }
     item.valid().map_err(|s| Error::invalid().msg(s))?;
 
-    match sqlx::query!(
+    sqlx::query!(
         "UPDATE users SET name = $1, birthday = $2 WHERE id = $3 RETURNING id",
         item.name,
         item.birthday,
@@ -106,10 +105,9 @@ pub async fn update_user_details_b(
     )
     .fetch_one(pool)
     .await
-    {
-        Ok(_) => Ok(()),
-        Err(e) => Err(Error::db_check_not_found(e, "user")),
-    }
+    .map_err(|e| Error::db_check_not_found(e, "user"))?;
+
+    Ok(())
 }
 
 pub async fn user_login(
@@ -237,10 +235,11 @@ pub async fn refresh_token(
     query.push("id = ");
     query.push_bind(data.user_id);
 
-    let user: User = match query.build_query_as().fetch_one(pool).await {
-        Ok(v) => v,
-        Err(e) => return Err(Error::db_check_not_found(e, "user")),
-    };
+    let user: User = query
+        .build_query_as()
+        .fetch_one(pool)
+        .await
+        .map_err(|e| Error::db_check_not_found(e, "user"))?;
 
     user.status_ok().map_err(|s| Error::permission_denied().msg(s))?;
 
