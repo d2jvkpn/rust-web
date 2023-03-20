@@ -68,7 +68,8 @@ impl Settings {
         data.iat = now.timestamp();
 
         // access token
-        let access_exp = (now + Duration::minutes(jwt.alive_mins as i64)).timestamp();
+        let alive_mins = jwt.alive_mins;
+        let access_exp = (now + Duration::minutes(alive_mins as i64)).timestamp();
         data.exp = access_exp;
         data.token_kind = TokenKind::Access;
 
@@ -88,7 +89,7 @@ impl Settings {
         let refresh_token = encode(&Header::default(), &data, &key)
             .map_err(|e| Error::unexpected_error().cause(e.into()))?;
 
-        Ok(Tokens { access_token, access_exp, refresh_token, refresh_exp })
+        Ok(Tokens { access_token, alive_mins, access_exp, refresh_token, refresh_exp })
     }
 
     pub fn jwt_verify_request(req: &HttpRequest) -> Result<JwtPayload, Error> {

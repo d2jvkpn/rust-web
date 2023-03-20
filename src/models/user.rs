@@ -248,6 +248,7 @@ mod tests {
 #[serde(rename_all = "camelCase")]
 pub struct Tokens {
     pub access_token: String,
+    pub alive_mins: u32,
     pub access_exp: i64,
     pub refresh_token: String,
     pub refresh_exp: i64,
