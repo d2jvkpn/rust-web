@@ -34,4 +34,6 @@ CREATE TRIGGER users_updated_at BEFORE UPDATE ON users
 -- password: 12QWas!@, don't set id = 1 here as users_id_seq not called
 INSERT INTO users (status, role, email, name, birthday, password) VALUES
   ('ok', 'admin', 'admin@users.noreply.github.com', 'admin', '2006-01-02',
-    '$2b$12$9tK/XV7r4yXRQVm2jYshieKgr.CsFDVD7YxQRUt2FF5TBnIt7Phx.');
+    '$2b$12$9tK/XV7r4yXRQVm2jYshieKgr.CsFDVD7YxQRUt2FF5TBnIt7Phx.')
+  ON CONFLICT DO NOTHING;
+-- DO UPDATE
