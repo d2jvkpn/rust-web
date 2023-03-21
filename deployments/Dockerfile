@@ -12,8 +12,8 @@ COPY src ./src
 COPY static ./static
 COPY migrations ./migrations
 
-ADD deployments/cargo_config.toml /root/.cargo/config
-RUN sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' /etc/apt/sources.list
+# ADD deployments/cargo_config.toml /root/.cargo/config
+# RUN sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' /etc/apt/sources.list
 
 RUN apt -y update && apt -y upgrade && apt install -y musl-tools
 # tzdata is already the newest version
