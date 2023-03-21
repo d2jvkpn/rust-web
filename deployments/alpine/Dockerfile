@@ -1,7 +1,8 @@
 ####
 FROM rust:1-alpine as rust-web_builder
 
-ENV SQLX_OFFLINE=true TZ=Asia/Shanghai
+ENV SQLX_OFFLINE=true
+ENV TZ=Asia/Shanghai
 WORKDIR /opt/rust-web
 
 RUN mkdir -p /root/.cargo

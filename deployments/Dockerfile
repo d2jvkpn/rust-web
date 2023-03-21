@@ -1,18 +1,19 @@
 ####
 FROM rust:1-slim-buster as rust-web_builder
 
-ENV SQLX_OFFLINE=true TZ=Asia/Shanghai
+ENV SQLX_OFFLINE=true
+ENV TZ=Asia/Shanghai
 WORKDIR /opt/rust-web
 
 RUN mkdir -p /root/.cargo
-# ADD deployments/cargo_config.toml /root/.cargo/config
 ADD Cargo.lock Cargo.toml sqlx-data.json ./
 ADD .git-build-info.yaml ./src/git-build-info.yaml
 COPY src ./src
 COPY static ./static
 COPY migrations ./migrations
 
-# RUN sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' /etc/apt/sources.list
+ADD deployments/cargo_config.toml /root/.cargo/config
+RUN sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' /etc/apt/sources.list
 
 RUN apt -y update && apt -y upgrade && apt install -y musl-tools
 # tzdata is already the newest version
