@@ -9,6 +9,8 @@ ADD deployments/cargo_config.toml /root/.cargo/config
 ADD Cargo.lock Cargo.toml sqlx-data.json ./
 ADD .git-build-info.yaml ./src/git-build-info.yaml
 COPY src ./src
+COPY static ./static
+COPY migrations ./migrations
 
 RUN sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' \
   /etc/apt/sources.list; apt -y update && apt -y upgrade && apt install -y musl-tools

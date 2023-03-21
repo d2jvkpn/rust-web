@@ -3,12 +3,15 @@ use crate::{
     middlewares::{blocker::Blocker, health_check},
     models::user::Role,
 };
+use actix_files as fs;
 use actix_web::web::{get, post, scope, ServiceConfig};
 
 fn open(cfg: &mut ServiceConfig) {
     use super::open::*;
 
-    cfg.route("/healthz", get().to(health_check));
+    cfg.route("/healthz", get().to(health_check))
+        // .service(fs::Files::new("/static", "./static").show_files_listing());
+        .service(fs::Files::new("/static", "./static"));
 
     let group_open = scope("/api/open")
         .route("/version", get().to(version))

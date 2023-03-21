@@ -38,7 +38,7 @@ pub async fn spawn_app_create_db() -> String {
 
     let config = load_config("configs/local.yaml").expect("Failed to read configuration");
 
-    let fp = format!("logs/{}.TESTS.log", env!("CARGO_PKG_NAME"));
+    let fp = format!("logs/{}.tests.log", env!("CARGO_PKG_NAME"));
     init_logger(LogOutput::File(fp.as_str()), LevelFilter::Debug).unwrap();
 
     let pool = prepare_test_db(&config.database).await;

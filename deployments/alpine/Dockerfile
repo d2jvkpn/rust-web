@@ -9,6 +9,8 @@ ADD deployments/cargo_config.toml /root/.cargo/config
 ADD Cargo.lock Cargo.toml sqlx-data.json ./
 ADD .git-build-info.yaml ./src/git-build-info.yaml
 COPY src ./src
+COPY static ./static
+COPY migrations ./migrations
 
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
   { apk --no-cache update && apk --no-cache upgrade; apk add tzdata musl-dev; } &> /dev/null

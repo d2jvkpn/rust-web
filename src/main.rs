@@ -8,7 +8,7 @@ mod utils;
 use internal::{load_config, settings, Configuration};
 use log::LevelFilter::{Debug, Info};
 use sqlx::{postgres::PgConnectOptions, ConnectOptions, PgPool};
-use std::{io, str::FromStr};
+use std::{io, path::Path, str::FromStr};
 use structopt::StructOpt;
 use utils::{init_logger, LogOutput};
 
@@ -40,8 +40,15 @@ async fn main() -> io::Result<()> {
     let dsn = config.database.to_string();
     let address = config.address.clone();
 
+    let name = Path::new(&config.file_path).with_extension("");
+    // let name = name.file_name().map(|v| v.to_str().or(Some(""))).unwrap_or(Some("")).unwrap_or("");
+    let name = match name.file_name() {
+        None => "",
+        Some(v) => v.to_str().unwrap_or(""),
+    };
+
     let pool = if config.release {
-        let log_file = format!("logs/{}.log", env!("CARGO_PKG_NAME"));
+        let log_file = format!("logs/{}.{}.log", env!("CARGO_PKG_NAME"), name);
         init_logger(LogOutput::File(log_file.as_ref()), Info).unwrap();
 
         println!("=== Http Server is listening on {address:?}");
@@ -53,6 +60,8 @@ async fn main() -> io::Result<()> {
         dbg!(&config);
         PgPool::connect(&dsn).await.expect("Failed to connect to Postgres.")
     };
+
+    sqlx::migrate!("./migrations").run(&pool).await.expect("Failed to migrate the database");
 
     utils::GitBuildInfo::set(include_str!("git-build-info.yaml")).unwrap();
     settings::Settings::set(config, pool.clone()).unwrap();
