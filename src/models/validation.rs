@@ -56,8 +56,6 @@ pub(crate) fn valid_password(password: &str) -> Result<(), &str> {
         return Err("the length of password exceeds 32");
     }
 
-    let special_chars = "!@#$%^&*()";
-
     let (mut digits, mut specials) = (0, 0);
     let (mut lowers, mut uppers) = (0, 0);
 
@@ -66,8 +64,8 @@ pub(crate) fn valid_password(password: &str) -> Result<(), &str> {
             c if c.is_ascii_digit() => digits += 1,
             c if c.is_lowercase() => lowers += 1,
             c if c.is_uppercase() => uppers += 1,
-            c if special_chars.contains(c) => specials += 1,
-            _ => return Err("password contains invalid chars"),
+            c if PASSWORD_CHARS[3].contains(c) => specials += 1,
+            _ => return Err("contains invalid chars in password"),
         }
     }
 

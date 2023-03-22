@@ -31,7 +31,6 @@ pub async fn save_token(pool: &PgPool, token_record: TokenRecord) -> Result<(), 
     Ok(())
 }
 
-// TODO: use a message queue or in memory cache instead
 pub async fn disable_curent_token(pool: &PgPool, token_id: Uuid) -> Result<(), Error> {
     sqlx::query!(r#"UPDATE tokens SET status = false WHERE token_id = $1"#, token_id)
         .execute(pool)
@@ -80,7 +79,6 @@ pub async fn disable_user_tokens(
     Ok(token_ids)
 }
 
-// TODO: use in memory cache instead
 pub async fn validate_token_in_table(pool: &PgPool, token_id: Uuid) -> Result<(), Error> {
     let err = match sqlx::query!(r#"SELECT status FROM tokens WHERE token_id = $1"#, token_id)
         .fetch_one(pool)

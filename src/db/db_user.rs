@@ -166,7 +166,6 @@ pub async fn user_login(
     };
     let tokens = Settings::jwt_sign(&mut playload)?;
 
-    // TODO: use a message queue or a channel instead
     let mut token_record: TokenRecord = playload.into();
     (token_record.ip, token_record.device) = (ip, None); // TODO: device
 
