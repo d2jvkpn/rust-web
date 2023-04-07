@@ -20,7 +20,7 @@ services:
     - PGDATA=/var/lib/postgresql/data/pgdata
     - POSTGRES_USER=hello
     - POSTGRES_PASSWORD=world
-    - POSTGRES_DB=rust-web
+    - POSTGRES_DB=rust_web
 
   backend:
     image: registry.cn-shanghai.aliyuncs.com/d2jvkpn/rust-web:dev
