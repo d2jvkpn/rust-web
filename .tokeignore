@@ -1,2 +1,8 @@
+# backend
 sqlx-data.json
 Cargo.toml
+
+# frontend
+public/
+package.json
+package-lock.json
