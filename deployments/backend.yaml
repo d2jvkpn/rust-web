@@ -29,13 +29,13 @@ services:
     depends_on: ["database"]
     # network_mode: bridge
     networks: ["rust-web"]
-    ports: ["3000:3000"]
+    ports: ["3010:3010"]
     environment: ["TZ=Asia/Shanghai"]
     volumes:
     - ./configs/:/opt/rust-web/backend/configs/
     - ./logs/:/opt/rust-web/logs/
     working_dir: /opt/rust-web/backend
-    command: ["./backend", "--config=configs/prod.yaml", "--addr=0.0.0.0", "--port=3000", "--release"]
+    command: ["./backend", "--config=configs/prod.yaml", "--addr=0.0.0.0", "--port=3010", "--release"]
 
 networks:
   rust-web:

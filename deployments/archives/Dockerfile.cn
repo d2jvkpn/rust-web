@@ -29,7 +29,7 @@ WORKDIR /opt/rust-web
 COPY --from=rust-web_builder /opt/rust-web/target/x86_64-unknown-linux-musl/release/rust-web \
   /opt/rust-web/rust-web
 
-EXPOSE 3000
+EXPOSE 3010
 # ENTRYPOINT ["./rust-web"]
 #  "--threads=0"
-CMD ["./rust-web", "--config=configs/prod.yaml", "--addr=0.0.0.0", "--port=3000", "--release"]
+CMD ["./rust-web", "--config=configs/prod.yaml", "--addr=0.0.0.0", "--port=3010", "--release"]

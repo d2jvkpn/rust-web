@@ -30,7 +30,7 @@ COPY --from=rust-web-backend_builder /opt/rust-web/target/x86_64-unknown-linux-m
   ./backend
 # /opt/rust-web/backend/backend
 
-EXPOSE 3000
+EXPOSE 3010
 # ENTRYPOINT ["./backend/backend"]
 #  "--threads=0"
-CMD ["./backend", "--config=configs/prod.yaml", "--addr=0.0.0.0", "--port=3000", "--release"]
+CMD ["./backend", "--config=configs/prod.yaml", "--addr=0.0.0.0", "--port=3010", "--release"]
