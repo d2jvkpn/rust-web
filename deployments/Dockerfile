@@ -3,7 +3,7 @@ FROM rust:1-slim-buster as rust-web-backend_builder
 
 ENV SQLX_OFFLINE=true
 ENV TZ=Asia/Shanghai
-WORKDIR /opt/rust-web/backend
+WORKDIR /opt/rust-web
 
 RUN mkdir -p /root/.cargo
 ADD backend/Cargo.lock backend/Cargo.toml backend/sqlx-data.json ./
@@ -24,12 +24,13 @@ RUN rustup target add x86_64-unknown-linux-musl && \
 ####
 FROM alpine:latest AS rust-web_runtime
 ENV TZ=Asia/Shanghai
-WORKDIR /opt/rust-web
+WORKDIR /opt/rust-web/backend
 
 COPY --from=rust-web-backend_builder /opt/rust-web/target/x86_64-unknown-linux-musl/release/backend \
-  /opt/rust-web/backend/backend
+  ./backend
+# /opt/rust-web/backend/backend
 
 EXPOSE 3000
 # ENTRYPOINT ["./backend/backend"]
 #  "--threads=0"
-CMD ["./backend/backend", "--config=backend/configs/prod.yaml", "--addr=0.0.0.0", "--port=3000", "--release"]
+CMD ["./backend", "--config=configs/prod.yaml", "--addr=0.0.0.0", "--port=3000", "--release"]
