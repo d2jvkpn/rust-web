@@ -1,10 +1,10 @@
 #![allow(dead_code)]
 
-use log::LevelFilter;
 use backend::{
     internal::{load_config, settings::Settings, startup::run_with_listener, Database},
     utils::{init_logger, tcp_listener_with_random_port, LogOutput},
 };
+use log::LevelFilter;
 // use sqlx::{Connection, PgConnection};
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;

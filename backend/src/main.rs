@@ -61,7 +61,7 @@ async fn main() -> io::Result<()> {
         PgPool::connect(&dsn).await.expect("Failed to connect to Postgres.")
     };
 
-    // sqlx::migrate!("./migrations").run(&pool).await.expect("Failed to migrate the database");
+    sqlx::migrate!("./migrations").run(&pool).await.expect("Failed to migrate the database");
 
     utils::GitBuildInfo::set(include_str!("git-build-info.yaml")).unwrap();
     settings::Settings::set(config, pool.clone()).unwrap();
