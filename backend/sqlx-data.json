@@ -55,26 +55,6 @@
     },
     "query": "UPDATE users SET status = $1 WHERE id = $2 RETURNING id"
   },
-  "4eb1da360a1dd63ba54ffb3dbad15d2ecb30d30bed97b2718add146c3d4f2800": {
-    "describe": {
-      "columns": [
-        {
-          "name": "count",
-          "ordinal": 0,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        null
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      }
-    },
-    "query": "SELECT COUNT(1) FROM tokens WHERE token_id = $1"
-  },
   "602d9c4a75662e6eeb69a07970697e3fe2311e35b649e8b7b05c8d3c9a45d0df": {
     "describe": {
       "columns": [],
@@ -100,7 +80,7 @@
     },
     "query": "UPDATE users SET password = $1 WHERE id = $2"
   },
-  "8ca78691b90d6debfb3539edfb3be8cff3429d2c6bb36e48afc792172ef9c0cd": {
+  "924630c42af2bbf74cd4e8987e7ca8f6f3414b396a9e0684bc426af8c0e715fe": {
     "describe": {
       "columns": [
         {
@@ -218,7 +198,7 @@
         ]
       }
     },
-    "query": "INSERT INTO users\n          (status, role, phone, email, name, birthday, password)\n        VALUES ($1, $2, $3, $4, $5, $6, $7)\n        RETURNING\n          id, status AS \"status: Status\", role AS \"role: Role\",\n          phone, email, name, birthday, created_at, updated_at"
+    "query": "INSERT INTO users (status, role, phone, email, name, birthday, password)\n        VALUES ($1, $2, $3, $4, $5, $6, $7)\n        RETURNING\n          id, status AS \"status: Status\", role AS \"role: Role\",\n          phone, email, name, birthday, created_at, updated_at"
   },
   "a9f94a8b75179516e537c30e480f0928e5da59c430081e1f5f0d2123edddf9cc": {
     "describe": {
@@ -464,5 +444,25 @@
       }
     },
     "query": "SELECT id, status AS \"status: Status\", role AS \"role: Role\",\n        phone, email, name, birthday, created_at, updated_at\n        FROM users ORDER BY id ASC LIMIT $1 OFFSET $2"
+  },
+  "fc290bd9993c9ca70308951b36e8e7fcc370ec81742cfdf98bf7a8a29585ad66": {
+    "describe": {
+      "columns": [
+        {
+          "name": "status",
+          "ordinal": 0,
+          "type_info": "Bool"
+        }
+      ],
+      "nullable": [
+        true
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "SELECT status FROM tokens WHERE token_id = $1"
   }
 }

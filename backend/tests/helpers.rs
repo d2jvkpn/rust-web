@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use log::LevelFilter;
-use rust_web::{
+use backend::{
     internal::{load_config, settings::Settings, startup::run_with_listener, Database},
     utils::{init_logger, tcp_listener_with_random_port, LogOutput},
 };

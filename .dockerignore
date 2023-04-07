@@ -2,3 +2,5 @@ wk*/
 /.git
 target/
 logs/
+
+node_modules/

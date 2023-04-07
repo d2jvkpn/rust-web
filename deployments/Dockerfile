@@ -1,19 +1,19 @@
 ####
-FROM rust:1-slim-buster as rust-web_builder
+FROM rust:1-slim-buster as rust-web-backend_builder
 
 ENV SQLX_OFFLINE=true
 ENV TZ=Asia/Shanghai
-WORKDIR /opt/rust-web
+WORKDIR /opt/rust-web/backend
 
 RUN mkdir -p /root/.cargo
-ADD Cargo.lock Cargo.toml sqlx-data.json ./
+ADD backend/Cargo.lock backend/Cargo.toml backend/sqlx-data.json ./
 ADD .git-build-info.yaml ./src/git-build-info.yaml
-COPY src ./src
-COPY static ./static
-COPY migrations ./migrations
+ADD deployments/cargo_config.toml /root/.cargo/config
+COPY backend/src ./src
+COPY backend/static ./static
+COPY backend/migrations ./migrations
 
-# ADD deployments/cargo_config.toml /root/.cargo/config
-# RUN sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' /etc/apt/sources.list
+RUN sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' /etc/apt/sources.list
 
 RUN apt -y update && apt -y upgrade && apt install -y musl-tools
 # tzdata is already the newest version
@@ -26,10 +26,10 @@ FROM alpine:latest AS rust-web_runtime
 ENV TZ=Asia/Shanghai
 WORKDIR /opt/rust-web
 
-COPY --from=rust-web_builder /opt/rust-web/target/x86_64-unknown-linux-musl/release/rust-web \
-  /opt/rust-web/rust-web
+COPY --from=rust-web-backend_builder /opt/rust-web/target/x86_64-unknown-linux-musl/release/backend \
+  /opt/rust-web/backend/backend
 
 EXPOSE 3000
-# ENTRYPOINT ["./rust-web"]
+# ENTRYPOINT ["./backend/backend"]
 #  "--threads=0"
-CMD ["./rust-web", "--config=configs/prod.yaml", "--addr=0.0.0.0", "--port=3000", "--release"]
+CMD ["./backend/backend", "--config=backend/configs/prod.yaml", "--addr=0.0.0.0", "--port=3000", "--release"]

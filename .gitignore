@@ -10,9 +10,15 @@
 **/*.rs.bk
 
 
-####
+#### rust
 configs/
 logs/
 wk*/
 .env
 .git-build-info.yaml
+target
+
+#### javascript
+node_modules/
+build/
+

@@ -1,11 +1,11 @@
 [package]
-name = "rust-web"
+name = "backend"
 version = "0.2.0"
 edition = "2021"
 description = "A rust web app"
 repository = "https://github.com/d2jvkpn/rust-web"
 license = "GPL v3"
-default-run = "rust-web"
+default-run = "backend"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

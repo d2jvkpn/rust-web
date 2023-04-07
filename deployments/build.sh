@@ -10,14 +10,16 @@ tag=dev
 bash deployments/git-build-info.sh > .git-build-info.yaml
 
 for base in $(awk '/^FROM/{print $2}' ${_path}/Dockerfile); do
+    echo ">>> docker pull $base"
     docker pull --quiet $base
     bn=$(echo $base | awk -F ":" '{print $1}')
     if [[ -z "$bn" ]]; then continue; fi
     docker images --filter "dangling=true" --quiet "$bn" | xargs -i docker rmi {}
-done &> /dev/null
+done
+# &> /dev/null
 
 docker build --no-cache -f ${_path}/Dockerfile --tag $name:$tag ./
-docker image prune --force --filter label=stage=rust-web_builder &> /dev/null
+docker image prune --force --filter label=stage=rust-web-backend_builder &> /dev/null
 
 docker push $name:$tag
 

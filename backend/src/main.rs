@@ -13,7 +13,7 @@ use structopt::StructOpt;
 use utils::{init_logger, LogOutput};
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "rust-web", about = "a rust web app")]
+#[structopt(name = "rust-backend", about = "a rust web backend app")]
 pub struct Opts {
     #[structopt(long, default_value = "configs/local.yaml", help = "configuration file path")]
     config: String,
