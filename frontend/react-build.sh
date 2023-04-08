@@ -26,7 +26,7 @@ if [ ! -z "$PUBLIC_URL" ]; then
   mkdir -p build/$PUBLIC_URL
   mv $rand_string/* build/$PUBLIC_URL
   rm -r $rand_string
-  cp build/$PUBLIC_URL/index.html build/ # make sure "serve -s build" works
+  mv build/$PUBLIC_URL/index.html build/ # make sure "serve -s build" works
 fi
 
 # PORT=$PORT serve -s ./build"
