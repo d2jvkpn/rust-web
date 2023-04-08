@@ -7,7 +7,7 @@ services:
     container_name: rust-web-db_dev
     restart: always
     # network_mode: bridge
-    networks: ["rust-web"]
+    networks: ["net"]
     # ports: ["127.0.0.1:5432:5432"]
     volumes:
     - ./data:/var/lib/postgresql/data
@@ -38,7 +38,7 @@ services:
     command: ["./backend", "--config=configs/prod.yaml", "--addr=0.0.0.0", "--port=3010", "--release"]
 
 networks:
-  rust-web:
-    name: rust-web
+  net:
+    name: rust-web-backend_dev
     driver: bridge
     external: false
