@@ -3,17 +3,13 @@ set -eu -o pipefail
 _wd=$(pwd)
 _path=$(dirname $0 | xargs -i readlink -f {})
 
-# BRANCH="$1"
-# ENV_File="$2"
-# TAG=$3
-
-BRANCH=$1
 # "./configs/$APP_ENV.env"
-ENV_File="$2"
-TAG=$BRANCH
+ENV_File="$1"
 
-echo ">>> BRANCH: $BRANCH, TAG: $TAG, ENV_File: $ENV_File"
 . $ENV_File
+# BRANCH is defined in $ENV_File
+TAG=$BRANCH
+echo ">>> BRANCH: $BRANCH, TAG: $TAG, ENV_File: $ENV_File"
 
 function on_exit {
     git checkout dev
@@ -26,6 +22,7 @@ git pull --no-edit
 
 ####
 df=${_path}/Dockerfile
+now=$(date +'%FT%T%:z')
 
 name="registry.cn-shanghai.aliyuncs.com/d2jvkpn/rust-web-frontend"
 image="$name:$TAG"
@@ -37,13 +34,12 @@ for base in $(awk '/^FROM/{print $2}' $df); do
     bn=$(echo $base | awk -F ":" '{print $1}')
     if [[ -z "$bn" ]]; then continue; fi
 
-    docker images --filter "dangling=true" --quiet "$bn" |
-      xargs -i docker rmi {}
+    docker images --filter "dangling=true" --quiet "$bn" | xargs -i docker rmi {}
 done &> /dev/null
 
 docker build --no-cache -f $df -t $image  \
   --build-arg=ENV_File=$ENV_File          \
-  --build-arg=REACT_APP_BuildTime=$(date +'%FT%T%:z')  \
+  --build-arg=REACT_APP_BuildTime=$now    \
   ./
 
 docker image prune --force --filter label=stage=rust-web-frontend_builder &> /dev/null
