@@ -19,7 +19,7 @@ RUN apt -y update && apt -y upgrade && apt install -y musl-tools
 # tzdata is already the newest version
 
 RUN rustup target add x86_64-unknown-linux-musl && \
-  cargo build --target x86_64-unknown-linux-musl --release &&
+  cargo build --target x86_64-unknown-linux-musl --release && \
   mv target/x86_64-unknown-linux-musl/release/backend target/
 
 ####
@@ -28,7 +28,6 @@ ENV TZ=Asia/Shanghai
 WORKDIR /opt/rust-web-backend
 
 COPY --from=rust-web-backend_builder /opt/rust-web-backend/target/backend ./backend
-# /opt/rust-web-backend/backend
 
 EXPOSE 3010
 # ENTRYPOINT ["./backend"]
