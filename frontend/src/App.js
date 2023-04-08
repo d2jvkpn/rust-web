@@ -1,7 +1,14 @@
 import logo from './logo.svg';
 import './App.css';
 
+// import { sprintf } from "sprintf-js";
+// import packageJson from '../package.json';
+import 'antd/dist/reset.css';
+import { load } from "js/base.js";
+
 function App() {
+  load();
+
   return (
     <div className="App">
       <header className="App-header">

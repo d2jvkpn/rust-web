@@ -1,5 +1,0 @@
-{
-  "branch": "master",
-  "env": "prod",
-  "apiServer": "http://www.rust-web.prod"
-}

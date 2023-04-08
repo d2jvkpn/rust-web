@@ -1,0 +1,5 @@
+{
+  "branch": "master",
+  "env": "prod",
+  "apiAddress": "http://www.rust-web-backend.prod"
+}
