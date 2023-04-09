@@ -28,7 +28,7 @@ services:
     restart: always
     depends_on: ["database"]
     # network_mode: bridge
-    networks: ["rust-web"]
+    networks: ["net"]
     ports: ["3010:3010"]
     environment: ["TZ=Asia/Shanghai"]
     volumes:
