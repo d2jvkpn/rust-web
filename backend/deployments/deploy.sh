@@ -10,7 +10,7 @@ PORT="$3"
 
 #### deploy
 export TAG="${TAG}" APP_ENV="${APP_ENV}" PORT="${PORT}"
-envsubst < ${_path}/frontend.yaml > docker-compose.yaml
+envsubst < ${_path}/backend.yaml > docker-compose.yaml
 
 docker-compose pull
 docker-compose up -d

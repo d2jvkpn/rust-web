@@ -1,4 +1,4 @@
 {
-  "branch": "master",
-  "apiAddress": "http://www.rust-web-backend.prod"
+  "branch": "undefined",
+  "apiAddress": "https://www.example.com"
 }
