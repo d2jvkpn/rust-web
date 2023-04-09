@@ -1,15 +1,19 @@
-import logo from './logo.svg';
+// import logo from './logo.svg';
 import './App.css';
+import 'antd/dist/reset.css';
+
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import LoginPage from "pages/login_page.jsx";
 
 import { sprintf } from "sprintf-js";
 import packageJson from '../package.json';
-import 'antd/dist/reset.css';
 import { load } from "js/base.js";
 import { loadLang, getSet } from "locales/index.js";
 
 function App() {
   init();
 
+  /*
   return (
     <div className="App">
       <header className="App-header">
@@ -28,6 +32,14 @@ function App() {
       </header>
     </div>
   );
+  */
+
+  return (<Router>
+    <Routes>
+      <Route exact path="/" element={<LoginPage/>}/>
+      <Route path="*" element={<LoginPage/>}/>
+    </Routes>
+  </Router>);
 }
 
 function init() {
