@@ -36,6 +36,6 @@ COPY --from=builder /opt/rust-web/build ./
 # }
 RUN sed -i '/worker_processes/s#auto#4#' /etc/nginx/nginx.conf
 RUN mv /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.bk
-COPY frontend/deployments/nginx-web.conf /etc/nginx/conf.d/nginx-web.conf
+COPY deployments/nginx-web.conf /etc/nginx/conf.d/nginx-web.conf
 
 EXPOSE 80
