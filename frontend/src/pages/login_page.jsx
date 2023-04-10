@@ -3,7 +3,7 @@ import "./login_page.css";
 import React, { Component } from 'react';
 import { Navigate } from "react-router-dom";
 import { authed, getPublicUrl } from "js/base.js";
-import { login } from "js/login.js";
+import { login } from "js/auth.js";
 
 class LoginPage extends Component {
   constructor(props) {

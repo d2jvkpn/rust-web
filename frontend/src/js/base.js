@@ -50,12 +50,13 @@ function getTokens() {
 
 export function authed() {
   let tokens = getTokens(); // authentication
-  if (!tokens) {
+  if (!tokens || !tokens.accessToken) {
     return false;
   }
 
-  let now = new Date();
-  if (tokens.refresh_exp <= Math.round(now.getTime())) {
+  let delta = tokens.refresh_exp*1000 - new Date().getTime();
+
+  if (delta < 10*1000) {
     return false;
   }
 

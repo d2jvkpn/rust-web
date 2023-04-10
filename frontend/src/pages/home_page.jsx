@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Navigate } from "react-router-dom";
 import { authed, getPublicUrl } from 'js/base.js';
-import { getUser } from "js/login.js";
+import { getUser, setRefreshToken } from "js/auth.js";
 
 class HomePage extends Component {
   constructor(props) {
@@ -14,6 +14,7 @@ class HomePage extends Component {
       return <Navigate to={getPublicUrl() + "/login"} />;
     }
 
+    setRefreshToken();
     let user = getUser();
 
     return (<div className="home-container">

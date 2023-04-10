@@ -3,14 +3,17 @@ use actix_web::http::StatusCode;
 #[allow(dead_code)]
 #[derive(Debug, thiserror::Error)]
 pub enum HttpCode {
-    #[error("no changes")] // -3
-    NoChanges,
-
-    #[error("invalid token")] // -2
-    InvalidToken,
-
     #[error("no route")] // -1
     NoRoute,
+
+    #[error("bad request")] // -2
+    BadRequest,
+
+    #[error("invalid token")] // -3
+    InvalidToken,
+
+    #[error("no changes")] // -4
+    NoChanges,
 
     #[error("canceled")] // 1
     Canceled,
@@ -52,9 +55,10 @@ impl HttpCode {
     // grpc codes: go doc google.golang.org/grpc/codes.Internal
     pub fn code(&self) -> i32 {
         match self {
-            Self::NoChanges => -3,
-            Self::InvalidToken => -2,
             Self::NoRoute => -1,
+            Self::InvalidToken => -2,
+            Self::BadRequest => -3,
+            Self::NoChanges => -4,
             Self::Canceled => 1,
             Self::Unknown => 2,
             Self::InvalidArgument => 3,
@@ -70,9 +74,10 @@ impl HttpCode {
 
     pub fn status_code(&self) -> StatusCode {
         match self {
-            Self::NoChanges => StatusCode::BAD_REQUEST,
-            Self::InvalidToken => StatusCode::BAD_REQUEST,
             Self::NoRoute => StatusCode::BAD_REQUEST,
+            Self::InvalidToken => StatusCode::BAD_REQUEST,
+            Self::BadRequest => StatusCode::BAD_REQUEST,
+            Self::NoChanges => StatusCode::BAD_REQUEST,
             Self::Canceled => StatusCode::NOT_ACCEPTABLE,
             Self::Unknown => StatusCode::INTERNAL_SERVER_ERROR,
             Self::InvalidArgument => StatusCode::BAD_REQUEST,

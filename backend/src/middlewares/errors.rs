@@ -86,8 +86,8 @@ impl Error {
     }
 
     #[track_caller]
-    pub fn no_changes() -> Self {
-        let mut err: Self = HttpCode::NoChanges.into();
+    pub fn no_route() -> Self {
+        let mut err: Self = HttpCode::NoRoute.into();
         err.loc = Some(loc!());
         err
     }
@@ -100,8 +100,15 @@ impl Error {
     }
 
     #[track_caller]
-    pub fn no_route() -> Self {
-        let mut err: Self = HttpCode::NoRoute.into();
+    pub fn bad_request() -> Self {
+        let mut err: Self = HttpCode::BadRequest.into();
+        err.loc = Some(loc!());
+        err
+    }
+
+    #[track_caller]
+    pub fn no_changes() -> Self {
+        let mut err: Self = HttpCode::NoChanges.into();
         err.loc = Some(loc!());
         err
     }
