@@ -6,12 +6,12 @@ ENV TZ=Asia/Shanghai
 WORKDIR /opt/rust-web
 
 RUN mkdir -p /root/.cargo
-ADD Cargo.lock Cargo.toml sqlx-data.json ./
-ADD .git-build-info.yaml ./src/git-build-info.yaml
-# ADD deployments/cargo_config.toml /root/.cargo/config
-COPY src ./src
-COPY static ./static
-COPY migrations ./migrations
+ADD backend/Cargo.lock Cargo.toml sqlx-data.json ./
+ADD backend/.git-build-info.yaml ./src/git-build-info.yaml
+# ADD backend/deployments/cargo_config.toml /root/.cargo/config
+COPY backend/src ./src
+COPY backend/static ./static
+COPY backend/migrations ./migrations
 
 # RUN sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' /etc/apt/sources.list
 
