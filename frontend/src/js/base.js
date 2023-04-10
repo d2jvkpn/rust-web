@@ -39,8 +39,17 @@ export function redirectTo(p) {
   window.location.href = `${Settings.publicUrl}${p}`;
 }
 
+function getTokens() {
+   let str = localStorage.getItem("tokens");
+   if (!str) {
+      return null;
+   }
+
+   return JSON.parse(str);
+}
+
 export function authed() {
-  let tokens = localStorage.getItem("tokens"); // authentication
+  let tokens = getTokens(); // authentication
   if (!tokens) {
     return false;
   }
@@ -146,7 +155,9 @@ export function request(path, options, callback=null) {
         }
       }
 
-      if (callback) callback(res);
+      if (callback) {
+        callback(res);
+      }
     })
     .catch(function (err) {
       console.error(`!!! http ${options.method} ${path}: ${err}`);
@@ -164,11 +175,4 @@ function handleFetchErr(err) {
   } else {
     console.error(`UnexpectedError: ${err}`);
   }
-}
-
-export function login(data) {
-  post("/api/open/user/login", data, function(data) {
-    localStorage.setItem("tokens", data.tokens);
-    redirectTo("/home");
-  })
 }

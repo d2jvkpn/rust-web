@@ -2,7 +2,8 @@ import "./login_page.css";
 
 import React, { Component } from 'react';
 import { Navigate } from "react-router-dom";
-import { authed, login, getPublicUrl } from "js/base.js";
+import { authed, getPublicUrl } from "js/base.js";
+import { login } from "js/login.js";
 
 class LoginPage extends Component {
   constructor(props) {
@@ -23,7 +24,7 @@ class LoginPage extends Component {
 
   handleSubmit = (event) => {
     event.preventDefault();
-    console.log(`~~~ login: ${JSON.stringify(this.state)}`);
+    // console.log(`~~~ login: ${JSON.stringify(this.state)}`);
 
     if (!this.state.emailOrPhone || !this.state.password) {
       return;
