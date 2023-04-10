@@ -21,7 +21,7 @@ git checkout $BRANCH
 git pull --no-edit
 
 ####
-df=${_path}/Dockerfile
+dfile=${_path}/Dockerfile.frontend
 now=$(date +'%FT%T%:z')
 
 name="registry.cn-shanghai.aliyuncs.com/d2jvkpn/rust-web-frontend"
@@ -29,7 +29,7 @@ image="$name:$TAG"
 echo ">>> building image: $image..."
 
 echo ">>> Pull base images..."
-for base in $(awk '/^FROM/{print $2}' $df); do
+for base in $(awk '/^FROM/{print $2}' $dfile); do
     docker pull --quiet $base
     bn=$(echo $base | awk -F ":" '{print $1}')
     if [[ -z "$bn" ]]; then continue; fi
@@ -37,7 +37,7 @@ for base in $(awk '/^FROM/{print $2}' $df); do
     docker images --filter "dangling=true" --quiet "$bn" | xargs -i docker rmi {}
 done &> /dev/null
 
-docker build --no-cache -f $df -t $image  \
+docker build --no-cache -f $dfile -t $image  \
   --build-arg=ENV_File=$ENV_File          \
   --build-arg=REACT_APP_BuildTime=$now    \
   ./
