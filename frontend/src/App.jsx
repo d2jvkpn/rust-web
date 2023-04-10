@@ -4,10 +4,11 @@ import 'antd/dist/reset.css';
 
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import LoginPage from "pages/login_page.jsx";
+import HomePage from "pages/home_page.jsx";
 
 import { sprintf } from "sprintf-js";
 import packageJson from '../package.json';
-import { load } from "js/base.js";
+import { load, getPublicUrl } from "js/base.js";
 import { loadLang, getSet } from "locales/index.js";
 
 function App() {
@@ -34,9 +35,13 @@ function App() {
   );
   */
 
+  let basename = getPublicUrl();
+
+  // return (<Router basename={basename}>
   return (<Router>
     <Routes>
-      <Route exact path="/" element={<LoginPage/>}/>
+      <Route exact path={basename + "/login"} element={<LoginPage/>}/>
+      <Route exact path={basename + "/home"} element={<HomePage/>}/>
       <Route path="*" element={<LoginPage/>}/>
     </Routes>
   </Router>);
@@ -48,7 +53,7 @@ function init() {
   window.UILanguage = loadLang(localStorage.getItem("Language") || navigator.language);
   let langCommon = getSet("common"); // let langCommon = window.UILanguage.common;
   let welcome = sprintf(langCommon["welcome"], "d2jvkpn");
-  console.log(`${welcome}, rust-web-frontend version: ${packageJson.version}`);
+  console.log(`~~~ ${welcome}, rust-web-frontend version: ${packageJson.version}`);
 }
 
 export default App;

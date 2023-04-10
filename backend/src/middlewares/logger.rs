@@ -2,7 +2,8 @@
 use super::{record::Record, Res};
 use actix_web::{
     dev::{self, Service, ServiceRequest, ServiceResponse, Transform},
-    HttpMessage,
+    http::Method,
+    HttpMessage, HttpResponse,
 };
 use futures_util::future::LocalBoxFuture;
 use std::future::{ready, Ready};
@@ -47,6 +48,7 @@ where
     dev::forward_ready!(service);
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
+        let is_options = req.method() == Method::OPTIONS;
         let mut record = Record::from_request(req.request());
         req.extensions_mut().insert(record.request_id);
 
@@ -60,16 +62,13 @@ where
                 Ok(v) => v,
                 Err(e) => {
                     // dbg!(&e);
-                    let mut res = e.error_response();
-                    record.msg = "UNEXPECTED ERROR".into();
-                    record.code = -1000;
-                    record.status = res.status().as_u16();
-                    record.cause = Some(format!("{:}", e));
-                    let exts = res.extensions_mut();
-                    record.user_id = exts.get::<i32>().copied();
+                    if !is_options {
+                        record.cause = Some(format!("{:}", e));
+                        let mut res = e.error_response();
+                        handle_unexpectd(&mut record, &mut res);
+                    }
 
-                    record.log();
-                    return Err(e);
+                    return Err(e.into());
                 }
             };
 
@@ -95,4 +94,15 @@ where
             Ok(sr)
         })
     }
+}
+
+fn handle_unexpectd(record: &mut Record, res: &mut HttpResponse) {
+    record.msg = "UNEXPECTED ERROR".into();
+    record.code = -1000;
+    record.status = res.status().as_u16();
+    // record.cause = Some(format!("{:}", e));
+    let exts = res.extensions_mut();
+    record.user_id = exts.get::<i32>().copied();
+
+    record.log();
 }

@@ -4,7 +4,6 @@ const Settings = {
   initAt: null,
   publicUrl: "",
   headers: {},
-  token: "",
   apiAddress: "",
 };
 
@@ -22,20 +21,37 @@ export function load() {
   let p = process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL}/configs.json` : "/configs.json";
 
   request(`${url}${p}`, {method: "GET", headers: {}}, function(d) {
-    if (!d) {
-      return;
-    }
-
     Settings.apiAddress = d.apiAddress;
     console.log(`==> Got configs: ${JSON.stringify(d)}`);
+
+    setHeader("X-TZ-Offset", Settings.initAt.getTimezoneOffset());
   });
 }
 
-//
-export function getApiAddress() {
-   return Settings.ApiAddress;
+export function getPublicUrl() {
+  return Settings.publicUrl;
 }
 
+export function redirectTo(p) {
+  if (!p) {
+    return;
+  }
+  window.location.href = `${Settings.publicUrl}${p}`;
+}
+
+export function authed() {
+  let tokens = localStorage.getItem("tokens"); // authentication
+  if (!tokens) {
+    return false;
+  }
+
+  let now = new Date();
+  if (tokens.refresh_exp <= Math.round(now.getTime())) {
+    return false;
+  }
+
+  return true;
+}
 
 export function setHeader(key, value) {
   if (key) {
@@ -51,7 +67,7 @@ export function post(path, data=null, callback=null) {
     options.body = JSON.stringify(data);
   }
 
-  request(`${Settings.api}${path}`, options, callback);
+  request(`${Settings.apiAddress}${path}`, options, callback);
 }
 
 export function get(path, parameters=null, callback=null) {
@@ -69,26 +85,32 @@ export function get(path, parameters=null, callback=null) {
     }
   }
 
-  request(`${Settings.api}${path}`, options, callback);
+  request(`${Settings.apiAddress}${path}`, options, callback);
 }
 
 export function request(path, options, callback=null) {
-  if (Settings.token) {
-    options.headers["Authorization"] = `Bearer ${Settings.token}`;
-  }
+  let tokens = localStorage.getItem("tokens"); // authentication
 
-  options.headers["X-TZ-Offset"] = Settings.initAt.getTimezoneOffset();
+  if (tokens && tokens.accessToken) {
+      let now = new Date();
+      if (tokens.refresh_exp <= Math.round(now.getTime())) {
+        redirectTo("/login");
+        return;
+      }
+
+    options.headers["Authorization"] = `Bearer ${tokens.accessToken}`;
+  }
 
   fetch(`${path}`, options)
     .then(response => {
-      // if (response.length === 0) {
-      //   return null;
-      // }
       let contentType = response.headers.get("Content-Type");
+      // console.log(`~~~ got response: ${response.status}, ${response.length}, ${contentType}`);
+
       if (!contentType || !contentType.startsWith("application/json")) {
         throw new TypeError("invalid response");
       }
 
+      /*
       if (response.action) {
         switch (response.action) {
           case "login":
@@ -100,6 +122,7 @@ export function request(path, options, callback=null) {
           default:
         }
       }
+      */
 
       return response.json();
     }).then(res => {
@@ -107,14 +130,13 @@ export function request(path, options, callback=null) {
         throw new TypeError("empty response");
       }
 
-
       if (res.code < 0) {
         message.warn(res.msg);
       } else if (res.code > 0) {
         message.error(res.msg);
       }
       if (res.code !== 0 && callback) {
-        callback(null, res);
+        callback(res);
         return;
       }
 
@@ -124,22 +146,29 @@ export function request(path, options, callback=null) {
         }
       }
 
-      if (callback) callback(res, null);
+      if (callback) callback(res);
     })
     .catch(function (err) {
-      console.error(`!!! http${options.method} ${path}: ${err}`);
-
-      if (err instanceof TypeError && err.message.startsWith("NetworkError")) {
-        message.error("NetworkError: request failed");
-        return;
-      } else if (err instanceof TypeError)  {
-        message.error(`TypeError: ${err.message}`);
-        return;
-      } else if (err instanceof SyntaxError)  {
-        message.error(`SyntaxError: invalid response data`);
-        return;
-      } else {
-        message.error(`UnexpectedError: ${err}`);
-      }
+      console.error(`!!! http ${options.method} ${path}: ${err}`);
+      handleFetchErr(err);
     });
+}
+
+function handleFetchErr(err) {
+  if (err instanceof TypeError && err.message.startsWith("NetworkError")) {
+    console.error("NetworkError: request failed");
+  } else if (err instanceof TypeError)  {
+    console.error(`TypeError: ${err.message}`);
+  } else if (err instanceof SyntaxError)  {
+    console.error(`SyntaxError: invalid response data`);
+  } else {
+    console.error(`UnexpectedError: ${err}`);
+  }
+}
+
+export function login(data) {
+  post("/api/open/user/login", data, function(data) {
+    localStorage.setItem("tokens", data.tokens);
+    redirectTo("/home");
+  })
 }

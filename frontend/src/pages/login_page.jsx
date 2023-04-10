@@ -1,6 +1,8 @@
 import "./login_page.css";
 
 import React, { Component } from 'react';
+import { Navigate } from "react-router-dom";
+import { authed, login, getPublicUrl } from "js/base.js";
 
 class LoginPage extends Component {
   constructor(props) {
@@ -16,14 +18,26 @@ class LoginPage extends Component {
     const value = target.value;
     const name = target.name;
 
-    this.setState({
-      [name]: value
-    });
+    this.setState({[name]: value});
   }
 
   handleSubmit = (event) => {
     event.preventDefault();
     console.log(`~~~ login: ${JSON.stringify(this.state)}`);
+
+    if (!this.state.emailOrPhone || !this.state.password) {
+      return;
+    }
+    // TODO: validator...
+
+    let data = {password: this.state.password};
+    if (this.state.emailOrPhone.includes("@")) {
+      data.email = this.state.emailOrPhone;
+    } else {
+      data.phone = this.state.emailOrPhone;
+    }
+
+    login(data)
 
     // Call backend API to validate user's email/phone and password
     // ...
@@ -33,6 +47,10 @@ class LoginPage extends Component {
   }
 
   render() {
+    if(authed()) {
+      return <Navigate to={getPublicUrl() + "/home"} />;
+    }
+
     return (<div className="login-container">
       <h2>Login</h2>
 

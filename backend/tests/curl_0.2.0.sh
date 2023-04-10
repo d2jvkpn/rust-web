@@ -4,7 +4,7 @@ _wd=$(pwd)
 _path=$(dirname $0 | xargs -i readlink -f {})
 
 
-address=http://localhost:3010
+address=http://localhost:3011
 
 ####
 curl -i -X POST -H "content-type: application/json" "$address/api/open/user/login" \
@@ -40,7 +40,7 @@ curl -i -X POST -H "content-type: application/json" "$address/api/open/user/logi
 
 refresh_token="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2Nzg4NDUxNDEsImV4cCI6MTY3ODkzMTU0MSwidG9rZW5JZCI6IjM1MDczMDdlLTQ1NTgtNGUyNy1iYTJhLWQwN2YxYWQ1MjQ3OSIsInRva2VuS2luZCI6InJlZnJlc2giLCJ1c2VySWQiOjEsInJvbGUiOiJhZG1pbiIsInBsYXRmb3JtIjoidW5rbm93biJ9.ysl6CFuMv_WV_ERB46HXC0Tf6Rzy7ojnrJ0lpYa7Irc"
 
-body=$(jq -cn --arg refresh_token $refresh_token '{refreshToken: $refresh_token, "password": "12QWas!@"}')
+body=$(jq -cn --arg refresh_token $refresh_token '{refreshToken: $refresh_token}')
 
 curl -i -X POST -H "content-type: application/json" "$address/api/open/user/refresh_token" \
   -d $body

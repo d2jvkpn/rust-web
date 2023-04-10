@@ -4,7 +4,7 @@ _wd=$(pwd)
 _path=$(dirname $0 | xargs -i readlink -f {})
 
 
-address=http://localhost:3010
+address=http://localhost:3011
 
 ####
 curl -i -X POST -H "content-type: application/json" $address/api/open/user/register \

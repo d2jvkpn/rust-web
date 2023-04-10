@@ -13,6 +13,7 @@ export REACT_APP_BuildTime=$(printenv REACT_APP_BuildTime || true)
 # fi
 awk '!/^#/{sub(" += +", "=", $0); print "export "$0}' $env_file > ./tmp.env
 . ./tmp.env
+rm ./tmp.env
 
 echo ">>> REACT_APP_BuildTime: $REACT_APP_BuildTime, PORT: $PORT, PUBLIC_URL: $PUBLIC_URL"
 

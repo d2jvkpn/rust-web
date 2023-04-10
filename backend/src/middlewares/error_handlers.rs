@@ -3,8 +3,9 @@ use super::Error;
 use actix_web::{
     dev::{self, ServiceResponse},
     http::header::{HeaderName, HeaderValue},
+    http::Method,
     middleware::ErrorHandlerResponse,
-    ResponseError,
+    HttpResponse, ResponseError,
 };
 
 // https://docs.rs/actix-web/latest/actix_web/middleware/struct.ErrorHandlers.html
@@ -24,6 +25,12 @@ pub fn no_route_error<B>(sr: ServiceResponse<B>) -> actix_web::Result<ErrorHandl
     // Ok(ErrorHandlerResponse::Response(sr))
 
     let (req, _) = sr.into_parts(); // (HttpRequest, HttpResponse<B>)
+    if req.method() == &Method::OPTIONS {
+        let res = HttpResponse::NoContent().finish();
+        let sr = ServiceResponse::new(req, res).map_into_boxed_body().map_into_right_body();
+        return Ok(ErrorHandlerResponse::Response(sr));
+    }
+
     let res = Error::no_route().error_response();
     let sr = ServiceResponse::new(req, res).map_into_boxed_body().map_into_right_body();
     Ok(ErrorHandlerResponse::Response(sr))

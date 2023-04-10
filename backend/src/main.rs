@@ -21,7 +21,7 @@ pub struct Opts {
     #[structopt(long = "addr", default_value = "127.0.0.1", help = "http server ip address")]
     addr: String,
 
-    #[structopt(long, default_value = "3010", help = "http server port")]
+    #[structopt(long, default_value = "3011", help = "http server port")]
     port: u16,
 
     #[structopt(long, default_value = "0", help = "threads limit")]

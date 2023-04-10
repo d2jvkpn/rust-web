@@ -1,4 +1,4 @@
 {
-  "branch": "undefined",
-  "apiAddress": "https://www.example.com"
+  "branch": "unknown",
+  "apiAddress": "http://127.0.0.1:3011"
 }
