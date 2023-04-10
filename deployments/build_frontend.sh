@@ -3,6 +3,7 @@ set -eu -o pipefail
 _wd=$(pwd)
 _path=$(dirname $0 | xargs -i readlink -f {})
 
+####
 # ENV_File="$1"
 cfg_name=$1
 ENV_File=configs/$cfg_name.env
@@ -17,14 +18,12 @@ function on_exit {
 }
 trap on_exit EXIT
 
-####
 git checkout $BRANCH
 git pull --no-edit
 
 ####
 dfile=${_path}/Dockerfile.frontend
 now=$(date +'%FT%T%:z')
-
 name="registry.cn-shanghai.aliyuncs.com/d2jvkpn/rust-web-frontend"
 image="$name:$TAG"
 echo ">>> building image: $image..."
@@ -35,12 +34,12 @@ for base in $(awk '/^FROM/{print $2}' $dfile); do
     bn=$(echo $base | awk -F ":" '{print $1}')
     if [[ -z "$bn" ]]; then continue; fi
 
-    docker images --filter "dangling=true" --quiet "$bn" | xargs -i docker rmi {}
+    docker images --filter "dangling=true" --quiet "$bn" | xargs -i docker rmi {} || true
 done &> /dev/null
 
-docker build --no-cache -f $dfile -t $image  \
-  --build-arg=ENV_File=$ENV_File          \
-  --build-arg=REACT_APP_BuildTime=$now    \
+docker build --no-cache -f $dfile -t $image \
+  --build-arg=ENV_File=$ENV_File            \
+  --build-arg=REACT_APP_BuildTime=$now      \
   ./
 
 docker image prune --force --filter label=stage=rust-web-frontend_builder &> /dev/null
