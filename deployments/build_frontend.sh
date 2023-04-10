@@ -3,10 +3,9 @@ set -eu -o pipefail
 _wd=$(pwd)
 _path=$(dirname $0 | xargs -i readlink -f {})
 
-# "./configs/$APP_ENV.env"
 # ENV_File="$1"
-APP_ENV=$1
-ENV_File=configs/$APP_ENV.env
+cfg_name=$1
+ENV_File=configs/$cfg_name.env
 
 . frontend/$ENV_File
 # BRANCH is defined in $ENV_File
