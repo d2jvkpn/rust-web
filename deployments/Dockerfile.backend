@@ -31,5 +31,5 @@ COPY --from=rust-web-backend_builder \
 
 EXPOSE 3010
 # ENTRYPOINT ["./backend"]
-#  "--threads=0"
+# "--threads=0"
 CMD ["./backend", "--config=configs/prod.yaml", "--addr=0.0.0.0", "--port=3010", "--release"]

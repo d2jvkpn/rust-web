@@ -4,9 +4,11 @@ _wd=$(pwd)
 _path=$(dirname $0 | xargs -i readlink -f {})
 
 # "./configs/$APP_ENV.env"
-ENV_File="$1"
+# ENV_File="$1"
+APP_ENV=$1
+ENV_File=configs/$APP_ENV.env
 
-. $ENV_File
+. frontend/$ENV_File
 # BRANCH is defined in $ENV_File
 TAG=$BRANCH
 echo ">>> BRANCH: $BRANCH, TAG: $TAG, ENV_File: $ENV_File"
