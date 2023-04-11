@@ -23,7 +23,7 @@
   background-color: #fff;
   padding: 10px;
   margin: 10px;
-  border-radius: 10px;
+  border-radius: 5px;
   max-width: 70%;
   word-break: break-word;
   box-shadow: 0px 1px 3px rgba(0,0,0,0.1);
@@ -35,6 +35,7 @@
   color: #fff;
   margin-left: auto;
   font-size: 12px;
+  padding: 5px;
 }
 
 .message-timestamp {

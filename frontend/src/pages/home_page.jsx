@@ -10,15 +10,6 @@ class HomePage extends Component {
     this.state = {messages: [], msg: ""};
   }
 
-  setMessage = (event) => {
-    let msg = event.target.value.trim();
-    if (!msg) {
-      return;
-    }
-    // console.log(`~~~ ${msg}`);
-    this.setState({msg: msg});
-  }
-
   handleSend = () => {
     let content = this.state.msg.trim();
     if (!content) {
@@ -52,7 +43,7 @@ class HomePage extends Component {
 
       <div className="chat-input">
         <input type="text" placeholder="Type message here..." value={this.state.msg}
-          onChange={this.setMessage.bind(this)}
+          onChange={(event) => this.setState({msg: event.target.value})}
         />
         <button onClick={() => this.handleSend()}>Send</button>
       </div>
