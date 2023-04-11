@@ -18,7 +18,7 @@ pub struct Opts {
     #[structopt(long, default_value = "configs/local.yaml", help = "configuration file path")]
     config: String,
 
-    #[structopt(long = "addr", default_value = "127.0.0.1", help = "http server ip address")]
+    #[structopt(long = "addr", default_value = "0.0.0.0", help = "http server ip address")]
     addr: String,
 
     #[structopt(long, default_value = "3011", help = "http server port")]

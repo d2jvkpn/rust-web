@@ -1,3 +1,4 @@
+import "./home_page.css";
 import React, { Component } from 'react';
 import { Navigate } from "react-router-dom";
 import { authed, getPublicUrl } from 'js/base.js';
@@ -12,7 +13,7 @@ class HomePage extends Component {
   setMessage = (event) => {
     let msg = event.target.value.trim();
     if (!msg) {
-       return;
+      return;
     }
     // console.log(`~~~ ${msg}`);
     this.setState({msg: msg});
@@ -44,7 +45,7 @@ class HomePage extends Component {
     */
 
     return (<div className="chat-container">
-      <div> Welcome, {user.name}... </div>
+      <div className="chat-header"> Welcome, {user.name}... </div>
       <div className="chat-window">
         {this.state.messages.map((msg, index) => <Message key={index} msg={msg} />)}
       </div>
@@ -68,8 +69,10 @@ class Message extends Component {
   render() {
     const {content, senderName, timestamp} = this.props.msg;
 
+    let cn = senderName === "user" ? "message-from-me" : "";
+
     return (
-      <div className="message-container" key={this.props.index}>
+      <div className={"message-container " + cn} key={this.props.index}>
         <div className="message-sender" style={{display:"none"}}>{senderName}</div>
         <div className="message-content">{content}</div>
         <div className="message-timestamp">{timestamp}</div>
