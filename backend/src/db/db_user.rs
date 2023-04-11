@@ -10,7 +10,7 @@ use crate::{
     utils,
 };
 use anyhow::anyhow;
-use chrono::Utc;
+// use chrono::Utc;
 use sqlx::{PgPool, QueryBuilder};
 use std::{net::SocketAddr, time::Duration};
 use uuid::Uuid;
@@ -227,9 +227,11 @@ pub async fn refresh_token(
     // step1
     let data = Settings::jwt_verify_token(&item.refresh_token, TokenKind::Refresh)?;
 
-    if data.exp - Utc::now().timestamp() > 10 {
+    /*
+    if data.exp - Utc::now().timestamp() < 15 {
         return Err(Error::bad_request());
     }
+    */
 
     // step2
     validate_token_in_table(pool, data.token_id).await?;

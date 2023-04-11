@@ -89,7 +89,8 @@ impl Settings {
         let refresh_token = encode(&Header::default(), &data, &key)
             .map_err(|e| Error::unexpected_error().cause(e.into()))?;
 
-        Ok(Tokens { access_token, alive_mins, access_exp, refresh_token, refresh_exp })
+        // alive_mins
+        Ok(Tokens { access_token, access_exp, refresh_token, refresh_exp })
     }
 
     pub fn jwt_verify_request(req: &HttpRequest) -> Result<JwtPayload, Error> {

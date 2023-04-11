@@ -1,7 +1,8 @@
 import { redirectTo, post } from "./base.js";
+import { datetime } from "./utils.js";
 
 var RresheToken = null;
-const Interval = 10*1000;
+const Interval = 15*1000; // 15s
 
 export function login(data) {
   post("/api/open/user/login", data, function(res) {
@@ -26,20 +27,22 @@ function refreshToken() {
   }
 
   let tokens = JSON.parse(str);
-  let ts = new Date().getTime();
+  let now = datetime();
+  let mts = now.getTime();
 
-  let delta = tokens.refreshExp*1000 - ts;
+  let delta = tokens.refreshExp*1000 - mts;
   if (delta < Interval) {
     clearInterval(RresheToken);
     redirectTo("/login");
     return;
   }
 
-  delta = tokens.accessExp*1000 - ts;
+  delta = tokens.accessExp*1000 - mts;
   if (delta > Interval) {
-    // console.log(`~~~ no need to refreshToken`);
+    console.log(`~~~ ${now.rfc3339} no need to call refreshToken`);
     return;
   }
+  console.log(`--> ${now.rfc3339} call refreshToken`);
 
   let data = {refreshToken: tokens.refreshToken};
 

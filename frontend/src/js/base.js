@@ -7,6 +7,8 @@ const Settings = {
   apiAddress: "",
 };
 
+const Interval = 15*1000; // 15s
+
 export function load() {
   if (Settings.initAt !== null) {
     return;
@@ -56,7 +58,7 @@ export function authed() {
 
   let delta = tokens.refresh_exp*1000 - new Date().getTime();
 
-  if (delta < 10*1000) {
+  if (delta < Interval) {
     return false;
   }
 
@@ -142,11 +144,9 @@ export function request(path, options, callback=null) {
 
       if (res.code < 0) {
         message.warn(res.msg);
+        return;
       } else if (res.code > 0) {
         message.error(res.msg);
-      }
-      if (res.code !== 0 && callback) {
-        callback(res);
         return;
       }
 

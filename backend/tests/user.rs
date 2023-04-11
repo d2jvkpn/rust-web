@@ -35,7 +35,7 @@ async fn users_basic() {
     let client = reqwest::Client::new();
 
     //
-    let body = r#"{"email": "d2jvkpn@users.noreply.github.com", "name": "Rover",
+    let body = r#"{"email": "d2jvkpn@noreply.local", "name": "Rover",
     "birthday": "2006-01-02", "password": "12QWas!@"}"#;
 
     let response = client
@@ -62,7 +62,7 @@ async fn users_basic() {
     let res_json = client
         .post(&format!("{}/api/open/user/login", &address))
         .header("Content-Type", "application/json")
-        .body(r#"{"email": "d2jvkpn@users.noreply.github.com", "password": "12QWas!@"}"#)
+        .body(r#"{"email": "d2jvkpn@noreply.local", "password": "12QWas!@"}"#)
         .send()
         .await
         .unwrap()
@@ -75,7 +75,7 @@ async fn users_basic() {
     let response = client
         .post(&format!("{}/api/open/user/login", &address))
         .header("Content-Type", "application/json")
-        .body(r#"{"email": "d2jvkpn@users.noreply.github.com", "password": "12QWas!@"}"#)
+        .body(r#"{"email": "d2jvkpn@noreply.local", "password": "12QWas!@"}"#)
         .send()
         .await
         .unwrap();
@@ -102,7 +102,7 @@ async fn users_refresh_token() {
     let client = reqwest::Client::new();
 
     //
-    let body = r#"{"email": "d2jvkpn@users.noreply.github.com", "name": "Rover",
+    let body = r#"{"email": "d2jvkpn@noreply.local", "name": "Rover",
     "birthday": "2006-01-02", "password": "12QWas!@"}"#;
 
     let response = client
@@ -118,7 +118,7 @@ async fn users_refresh_token() {
     let tokens1 = client
         .post(&format!("{}/api/open/user/login", &address))
         .header("Content-Type", "application/json")
-        .body(r#"{"email": "d2jvkpn@users.noreply.github.com", "password": "12QWas!@"}"#)
+        .body(r#"{"email": "d2jvkpn@noreply.local", "password": "12QWas!@"}"#)
         .send()
         .await
         .unwrap()
