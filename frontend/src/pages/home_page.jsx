@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import { Navigate } from "react-router-dom";
 import { authed, getPublicUrl } from 'js/base.js';
 import { getUser, setRefreshToken } from "js/auth.js";
+import { datetime } from "js/utils.js";
 
 class HomePage extends Component {
   constructor(props) {
@@ -38,7 +39,7 @@ class HomePage extends Component {
     return (<div className="chat-container">
       <div className="chat-header"> Welcome, {user.name}... </div>
       <div className="chat-window">
-        {this.state.messages.map((msg, index) => <Message key={index} msg={msg} />)}
+        {this.state.messages.reverse().map((msg, index) => <Message key={index} msg={msg} />)}
       </div>
 
       <div className="chat-input">
@@ -61,12 +62,13 @@ class Message extends Component {
     const {content, senderName, timestamp} = this.props.msg;
 
     let cn = senderName === "user" ? "message-from-me" : "";
+    let ts = datetime(new Date(timestamp));
 
     return (
       <div className={"message-container " + cn} key={this.props.index}>
         <div className="message-sender" style={{display:"none"}}>{senderName}</div>
         <div className="message-content">{content}</div>
-        <div className="message-timestamp">{timestamp}</div>
+        <div className="message-timestamp" title={ts.rfc3339ms}>{ts.date + " " + ts.time}</div>
       </div>
     );
   }
