@@ -4,6 +4,7 @@ import { Navigate } from "react-router-dom";
 import { authed, getPublicUrl } from 'js/base.js';
 import { getUser, setRefreshToken } from "js/auth.js";
 import { datetime } from "js/utils.js";
+import { sendMsg } from "js/chat.js";
 
 class HomePage extends Component {
   constructor(props) {
@@ -11,14 +12,39 @@ class HomePage extends Component {
     this.state = {messages: [], msg: ""};
   }
 
+  handleKeyPress = (event) => {
+    if (event.ctrlKey && event.keyCode === 0) {
+      // console.log(`~~~ Ctrl + Enter pressed`);
+      this.handleSend();
+    }
+  };
+
   handleSend = () => {
     let content = this.state.msg.trim();
     if (!content) {
       return;
     }
-    let msg = {senderName: "user", content: content, timestamp: new Date().getTime()};
+
+    let ts = datetime(new Date());
+    // let now = datetime();
+    // let at = now.date === ts.date ? ts.time : ts.date + " " + ts.time;
+    let msg = {sender: "user", content: content, timestampMilli: ts.getTime(), at: ts.time};
+
     let messages = [...this.state.messages, msg];
     this.setState({messages: messages, msg: ""});
+
+    sendMsg(msg, (res) => {
+      let data = res.data;
+
+      let ts = datetime(new Date(data.timestampMilli));
+      let got = {
+        sender: data.sender, content: data.content,
+        timestampMilli: ts.getTime(), at: ts.time,
+      };
+
+      let messages = [...this.state.messages, got];
+      this.setState({messages: messages, msg: ""});
+    })
   }
 
   render() {
@@ -45,6 +71,7 @@ class HomePage extends Component {
       <div className="chat-input">
         <input type="text" placeholder="Type message here..." value={this.state.msg}
           onChange={(event) => this.setState({msg: event.target.value})}
+          onKeyPress={this.handleKeyPress}
         />
         <button onClick={() => this.handleSend()}>Send</button>
       </div>
@@ -59,16 +86,14 @@ class Message extends Component {
   }
 
   render() {
-    const {content, senderName, timestamp} = this.props.msg;
-
-    let cn = senderName === "user" ? "message-from-me" : "";
-    let ts = datetime(new Date(timestamp));
+    const {content, sender, timestampMilli, at} = this.props.msg;
+    let ts = datetime(new Date(timestampMilli));
 
     return (
-      <div className={"message-container " + cn} key={this.props.index}>
-        <div className="message-sender" style={{display:"none"}}>{senderName}</div>
+      <div className={"message-container message-from-" +sender} key={this.props.index}>
+        <div className="message-sender" style={{display:"none"}}>{sender}</div>
         <div className="message-content">{content}</div>
-        <div className="message-timestamp" title={ts.rfc3339ms}>{ts.date + " " + ts.time}</div>
+        <div className="message-timestamp" title={ts.rfc3339ms}>{at}</div>
       </div>
     );
   }

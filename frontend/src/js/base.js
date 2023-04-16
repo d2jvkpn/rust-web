@@ -101,26 +101,28 @@ export function get(path, parameters=null, callback=null) {
 }
 
 export function request(path, options, callback=null) {
-  let tokens = localStorage.getItem("tokens"); // authentication
+  let tokens = getTokens(); // authentication
 
   if (tokens && tokens.accessToken) {
-      let now = new Date();
-      if (tokens.refresh_exp <= Math.round(now.getTime())) {
-        redirectTo("/login");
-        return;
-      }
+    let now = new Date();
+    if (tokens.refresh_exp <= Math.round(now.getTime())) {
+      redirectTo("/login");
+      return;
+    }
 
     options.headers["Authorization"] = `Bearer ${tokens.accessToken}`;
   }
 
   fetch(`${path}`, options)
     .then(response => {
-      let contentType = response.headers.get("Content-Type");
+      // let contentType = response.headers.get("Content-Type");
       // console.log(`~~~ got response: ${response.status}, ${response.length}, ${contentType}`);
 
+      /* TODO: backend
       if (!contentType || !contentType.startsWith("application/json")) {
         throw new TypeError("invalid response");
       }
+      */
 
       /*
       if (response.action) {
@@ -142,17 +144,15 @@ export function request(path, options, callback=null) {
         throw new TypeError("empty response");
       }
 
-      if (res.code < 0) {
-        message.warn(res.msg);
-        return;
-      } else if (res.code > 0) {
-        message.error(res.msg);
+      if (res.code && res.code !== 0) {
+        message.warning(res.msg);
+        console.log(`!!! response error: code=${res.code}, msg=${res.msg}`);
         return;
       }
 
       if (res.code === 0 && options.method === "GET" && res.data.hasOwnProperty("items")) {
         if (Array.isArray(res.data.items) && res.data.items.length === 0) {
-          console.warn("!!! Have no items");
+          console.warning("!!! Have no items");
         }
       }
 

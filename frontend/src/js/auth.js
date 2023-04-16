@@ -39,10 +39,10 @@ function refreshToken() {
 
   delta = tokens.accessExp*1000 - mts;
   if (delta > Interval) {
-    console.log(`~~~ ${now.rfc3339} no need to call refreshToken`);
+    // console.log(`~~~ ${now.rfc3339} no need to call refreshToken`);
     return;
   }
-  console.log(`--> ${now.rfc3339} call refreshToken`);
+  // console.log(`--> ${now.rfc3339} call refreshToken`);
 
   let data = {refreshToken: tokens.refreshToken};
 

@@ -24,6 +24,8 @@ pub fn no_route_error<B>(sr: ServiceResponse<B>) -> actix_web::Result<ErrorHandl
     // let sr = ServiceResponse::new(req, res).map_into_boxed_body().map_into_right_body();
     // Ok(ErrorHandlerResponse::Response(sr))
 
+    // HttpResponse::OK().insert_header(("CONTENT_TYPE", "application/json"))
+
     let (req, _) = sr.into_parts(); // (HttpRequest, HttpResponse<B>)
     if req.method() == &Method::OPTIONS {
         let res = HttpResponse::NoContent().finish();

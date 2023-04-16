@@ -25,6 +25,7 @@ fn open(cfg: &mut ServiceConfig) {
 
 pub fn auth_user(cfg: &mut ServiceConfig) {
     use super::auth_user::*;
+    use super::chat::*;
 
     let group = scope("/api/auth/user")
         .wrap(Blocker { block: |req| Ok(Settings::jwt_verify_request(req)?) })
@@ -32,7 +33,8 @@ pub fn auth_user(cfg: &mut ServiceConfig) {
         .route("/details", get().to(user_details))
         .route("/frozon", post().to(frozen_user_status))
         .route("/change_password", post().to(user_change_password))
-        .route("/logout", post().to(user_logout));
+        .route("/logout", post().to(user_logout))
+        .route("/chat/msg", post().to(handle_msg));
 
     cfg.service(group);
 }
@@ -48,7 +50,7 @@ pub fn auth_leader(cfg: &mut ServiceConfig) {
 pub fn auth_admin(cfg: &mut ServiceConfig) {
     use super::auth_admin::*;
 
-    let group_user = scope("/api/auth/admin/user")
+    let group_user = scope("/api/auth/admin")
         .wrap(auth_role::Auth { value: Role::Admin })
         .route("/query", post().to(query_users))
         .route("/find", get().to(find_user))
