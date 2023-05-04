@@ -68,7 +68,7 @@ where
                         handle_unexpectd(&mut record, &mut res);
                     }
 
-                    return Err(e.into());
+                    return Err(e);
                 }
             };
 
