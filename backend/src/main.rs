@@ -64,7 +64,11 @@ async fn main() -> io::Result<()> {
     sqlx::migrate!("./migrations").run(&pool).await.expect("Failed to migrate the database");
 
     utils::GitBuildInfo::set(include_str!("git-build-info.yaml")).unwrap();
-    settings::Settings::set(config, pool.clone()).unwrap();
+
+    settings::Settings::set(config).unwrap();
+    settings::set_pool(pool.clone()).unwrap();
+    settings::set_reqwest_cli().unwrap();
+
     internal::startup::run(&address, pool)?.await
 }
 

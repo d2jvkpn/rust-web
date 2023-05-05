@@ -13,20 +13,41 @@ use jsonwebtoken::{
     Validation,
 };
 use once_cell::sync::OnceCell;
+use reqwest::Client;
 use sha2::{Digest, Sha256};
 use sqlx::PgPool;
 use std::future::{ready, Ready};
 
 static OC_SETTINGS: OnceCell<Settings> = OnceCell::new();
+static OC_POOL: OnceCell<PgPool> = OnceCell::new();
+static OC_REQWEST_CLI: OnceCell<Client> = OnceCell::new();
 
 pub struct Settings {
     configuration: Configuration,
-    pool: PgPool,
+    // pool: PgPool,
     jwt_key: Vec<u8>,
 }
 
+pub fn set_pool(pool: PgPool) -> Result<(), &'static str> {
+    OC_POOL.set(pool).map_err(|_| "can't set global pool")
+}
+
+#[allow(dead_code)]
+pub fn get_pool() -> Option<&'static PgPool> {
+    OC_POOL.get()
+}
+
+pub fn set_reqwest_cli() -> Result<(), &'static str> {
+    OC_REQWEST_CLI.set(Client::new()).map_err(|_| "can't set global reqwest_cli")
+}
+
+#[allow(dead_code)]
+pub fn get_reqwest_cli() -> Option<&'static Client> {
+    OC_REQWEST_CLI.get()
+}
+
 impl Settings {
-    pub fn set(configuration: Configuration, pool: PgPool) -> Result<(), &'static str> {
+    pub fn set(configuration: Configuration) -> Result<(), &'static str> {
         let mut hasher = Sha256::new();
         hasher.update(configuration.jwt.key.as_bytes());
         let result = hasher.finalize();
@@ -36,15 +57,17 @@ impl Settings {
 
         // convert Result<(), Config>
         OC_SETTINGS
-            .set(Self { configuration, pool, jwt_key: result.to_vec() })
-            .map_err(|_| "can't set configuration")
+            .set(Self { configuration, jwt_key: result.to_vec() })
+            .map_err(|_| "can't set global configuration")
     }
 
+    /*
     #[allow(dead_code)]
     pub fn pool() -> Option<&'static PgPool> {
         let settings = OC_SETTINGS.get()?;
         Some(&settings.pool)
     }
+    */
 
     #[allow(dead_code)]
     fn configuration() -> Option<&'static Configuration> {
