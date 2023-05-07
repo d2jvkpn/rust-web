@@ -28,18 +28,28 @@ class HomePage extends Component {
     let ts = datetime(new Date());
     // let now = datetime();
     // let at = now.date === ts.date ? ts.time : ts.date + " " + ts.time;
-    let msg = {sender: "user", content: content, timestampMilli: ts.getTime(), at: ts.time};
+    let msg = {
+      sender: "user",
+      role: "user",
+      content: content,
+      timestampMilli: ts.getTime(),
+      at: ts.time,
+    };
 
     let messages = [...this.state.messages, msg];
     this.setState({messages: messages, msg: ""});
 
     sendMsg(msg, (res) => {
       let data = res.data;
+      let ts = datetime(new Date(data.created*1000));
+      let choice = data.choices[0];
 
-      let ts = datetime(new Date(data.timestampMilli));
       let got = {
-        sender: data.sender, content: data.content,
-        timestampMilli: ts.getTime(), at: ts.time,
+        sender: "system",
+        role: choice.role,
+        content: choice.message.content,
+        timestampMilli: ts.getTime(),
+        at: ts.time,
       };
 
       let messages = [...this.state.messages, got];

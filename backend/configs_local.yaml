@@ -1,3 +1,4 @@
+# example of config: configs/local.yaml
 database:
   conn: postgres://hello:world@127.0.0.1:5432
   db: rust_web
@@ -6,3 +7,6 @@ jwt:
   key: 1234567890
   alive_mins: 10
   refresh_hrs: 24
+
+chatgpt:
+  api_key: sk-XXXXXXXX

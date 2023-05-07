@@ -50,7 +50,7 @@ impl Settings {
         OC_POOL.set(pool).map_err(|_| "can't set global pool")?;
 
         //
-        let client = ChatGPTClient::new(&configuration.chat_gpt)?;
+        let client = ChatGPTClient::new(&configuration.chatgpt)?;
         OC_CHATGPT.set(client).map_err(|_| "can't set global ChatGPT client")?;
 
         //

@@ -15,7 +15,7 @@ pub struct Configuration {
     // load from yaml file or use default
     pub database: Database,
     pub jwt: JwtConf,
-    pub chat_gpt: ChatGPTConf,
+    pub chatgpt: ChatGPTConf,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
@@ -38,7 +38,7 @@ impl Default for Configuration {
 
             database: Database::default(),
             jwt: JwtConf::default(),
-            chat_gpt: ChatGPTConf::default(),
+            chatgpt: ChatGPTConf::default(),
         }
     }
 }

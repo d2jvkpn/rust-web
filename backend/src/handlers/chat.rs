@@ -1,6 +1,8 @@
 use crate::{
+    internal::settings::get_chatgpt,
     middlewares::{Error, IntoResult},
     models::chat::Message,
+    models::chatgpt::ChatCompletionsResponse,
 };
 use actix_web::{error::Error as ActixError, web, HttpRequest, HttpResponse};
 
@@ -10,12 +12,16 @@ pub async fn handle_msg(
 ) -> Result<HttpResponse, ActixError> {
     // Ok(HttpResponse::Ok(Message::new("HELLO".into())).json())
 
-    handle(msg.into_inner()).into_result(&mut request)
+    handle(msg.into_inner()).await.into_result(&mut request)
 }
 
-fn handle(msg: Message) -> Result<Message, Error> {
-    println!("~~~ got message: {:?}", msg);
-    let ans = Message::new("HELLO".into());
+async fn handle(msg: Message) -> Result<ChatCompletionsResponse, Error> {
+    // println!("~~~ got message: {:?}", msg);
+    // let ans = Message::new("HELLO".into());
 
-    Ok(ans)
+    let client = get_chatgpt().ok_or(Error::unexpected_error())?;
+    let req = msg.into();
+
+    // TODO: handler error
+    client.chat_completions(&req).await.map_err(|_| Error::unexpected_error())
 }
