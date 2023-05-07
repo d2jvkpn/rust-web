@@ -52,11 +52,12 @@ function getTokens() {
 
 export function authed() {
   let tokens = getTokens(); // authentication
+  // console.log(`~~~ authed tokens: ${JSON.stringify(tokens)}`);
   if (!tokens || !tokens.accessToken) {
     return false;
   }
 
-  let delta = tokens.refresh_exp*1000 - new Date().getTime();
+  let delta = tokens.refreshExp*1000 - Math.round(new Date().getTime());
 
   if (delta < Interval) {
     return false;
@@ -105,7 +106,7 @@ export function request(path, options, callback=null) {
 
   if (tokens && tokens.accessToken) {
     let now = new Date();
-    if (tokens.refresh_exp <= Math.round(now.getTime())) {
+    if (tokens.refreshExp*1000 <= Math.round(now.getTime())) {
       redirectTo("/login");
       return;
     }
