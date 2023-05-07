@@ -14,8 +14,8 @@ pub struct ChatGPTClient {
     org_id: Option<String>,
     client: reqwest::Client,
 
-    url_chat_completions: String,
     token: String,
+    url_chat_completions: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -80,7 +80,7 @@ impl ChatGPTClient {
     // TODO: handle error
     pub async fn chat_completions(
         &self,
-        req: &ChatCompletionsRequest,
+        ccr: &ChatCompletionsRequest,
     ) -> Result<ChatCompletionsResponse, reqwest::Error> {
         /*
         let res = self
@@ -94,15 +94,15 @@ impl ChatGPTClient {
             .await?;
          */
 
-        let res = match self
-            .client
-            .post(&self.url_chat_completions)
-            .header("authorization", &self.token)
-            // .header("Content-Type", "application/json")
-            .json(req)
-            .send()
-            .await
-        {
+        let mut req =
+            self.client.post(&self.url_chat_completions).header("Authorization", &self.token);
+
+        if let Some(v) = &self.org_id {
+            req = req.header("OpenAI-Organization", v);
+        }
+
+        // .header("Content-Type", "application/json")
+        let res = match req.json(ccr).send().await {
             Ok(v) => v,
             Err(e) => {
                 println!("!!! chat_completions request: {:?}\n", e);

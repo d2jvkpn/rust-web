@@ -20,8 +20,8 @@ async fn handle(msg: Message) -> Result<ChatCompletionsResponse, Error> {
     // let ans = Message::new("HELLO".into());
 
     let client = get_chatgpt().ok_or(Error::unexpected_error())?;
-    let req = msg.into();
+    let ccr = msg.into();
 
     // TODO: handler error
-    client.chat_completions(&req).await.map_err(|_| Error::unexpected_error())
+    client.chat_completions(&ccr).await.map_err(|_| Error::unexpected_error())
 }
