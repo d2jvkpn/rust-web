@@ -5,13 +5,6 @@ use serde::{Deserialize, Serialize};
 use std::{net::SocketAddr, str::FromStr};
 use uuid::Uuid;
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub enum TokenKind {
-    Access,
-    Refresh,
-}
-
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct JwtConf {
     pub key: String,
@@ -75,6 +68,13 @@ impl FromStr for Platform {
 
         Ok(val)
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum TokenKind {
+    Access,
+    Refresh,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, sqlx::FromRow)]
