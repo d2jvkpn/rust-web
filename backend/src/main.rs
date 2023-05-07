@@ -65,9 +65,7 @@ async fn main() -> io::Result<()> {
 
     utils::GitBuildInfo::set(include_str!("git-build-info.yaml")).unwrap();
 
-    settings::Settings::set(config).unwrap();
-    settings::set_pool(pool.clone()).unwrap();
-    settings::set_reqwest_cli().unwrap();
+    settings::Settings::set(config, pool.clone()).unwrap();
 
     internal::startup::run(&address, pool)?.await
 }

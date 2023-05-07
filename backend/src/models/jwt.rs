@@ -12,6 +12,13 @@ pub enum TokenKind {
     Refresh,
 }
 
+#[derive(Serialize, Deserialize, Debug, Default)]
+pub struct JwtConf {
+    pub key: String,
+    pub alive_mins: u32,
+    pub refresh_hrs: u32,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct JwtPayload {

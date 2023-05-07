@@ -5,7 +5,7 @@ use super::{
 use crate::{
     internal::settings::Settings,
     middlewares::Error,
-    models::token::{JwtPayload, Platform, TokenKind, TokenRecord},
+    models::jwt::{JwtPayload, Platform, TokenKind, TokenRecord},
     models::user::*,
     utils,
 };

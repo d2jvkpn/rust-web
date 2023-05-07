@@ -4,7 +4,7 @@ use crate::{
     db::db_user,
     internal::AppState,
     middlewares::{empty_data, IntoResult},
-    models::{token::JwtPayload, user::*},
+    models::{jwt::JwtPayload, user::*},
 };
 use actix_web::{
     error::Error as ActixError,

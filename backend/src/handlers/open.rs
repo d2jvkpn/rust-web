@@ -2,7 +2,7 @@ use crate::{
     db::db_user,
     internal::AppState,
     middlewares::{Data, IntoResult},
-    models::{self, token::Platform, user::*},
+    models::{self, jwt::Platform, user::*},
     utils,
 };
 use actix_web::{

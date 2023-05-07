@@ -1,3 +1,4 @@
+use crate::models::{chatgpt::ChatGPTConf, jwt::JwtConf};
 use config::{self, Config, ConfigError};
 use serde::{Deserialize, Serialize};
 use std::{env, fmt};
@@ -13,14 +14,8 @@ pub struct Configuration {
 
     // load from yaml file or use default
     pub database: Database,
-    pub jwt: Jwt,
-}
-
-#[derive(Serialize, Deserialize, Debug, Default)]
-pub struct Jwt {
-    pub key: String,
-    pub alive_mins: u32,
-    pub refresh_hrs: u32,
+    pub jwt: JwtConf,
+    pub chat_gpt: ChatGPTConf,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
@@ -42,7 +37,8 @@ impl Default for Configuration {
             release: false,
 
             database: Database::default(),
-            jwt: Jwt::default(),
+            jwt: JwtConf::default(),
+            chat_gpt: ChatGPTConf::default(),
         }
     }
 }

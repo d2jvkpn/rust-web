@@ -1,7 +1,8 @@
-use super::configuration::{Configuration, Jwt};
+use super::configuration::Configuration;
 use crate::{
     middlewares::Error,
-    models::token::{JwtPayload, TokenKind},
+    models::chatgpt::ChatGPTClient,
+    models::jwt::{JwtConf, JwtPayload, TokenKind},
     models::user::Tokens,
 };
 use actix_web::{dev::Payload, http::header::AUTHORIZATION, FromRequest, HttpMessage, HttpRequest};
@@ -13,14 +14,13 @@ use jsonwebtoken::{
     Validation,
 };
 use once_cell::sync::OnceCell;
-use reqwest::Client;
 use sha2::{Digest, Sha256};
 use sqlx::PgPool;
 use std::future::{ready, Ready};
 
 static OC_SETTINGS: OnceCell<Settings> = OnceCell::new();
 static OC_POOL: OnceCell<PgPool> = OnceCell::new();
-static OC_REQWEST_CLI: OnceCell<Client> = OnceCell::new();
+static OC_CHATGPT: OnceCell<ChatGPTClient> = OnceCell::new();
 
 pub struct Settings {
     configuration: Configuration,
@@ -28,26 +28,29 @@ pub struct Settings {
     jwt_key: Vec<u8>,
 }
 
+/*
 pub fn set_pool(pool: PgPool) -> Result<(), &'static str> {
     OC_POOL.set(pool).map_err(|_| "can't set global pool")
 }
+*/
 
 #[allow(dead_code)]
 pub fn get_pool() -> Option<&'static PgPool> {
     OC_POOL.get()
 }
 
-pub fn set_reqwest_cli() -> Result<(), &'static str> {
-    OC_REQWEST_CLI.set(Client::new()).map_err(|_| "can't set global reqwest_cli")
-}
-
 #[allow(dead_code)]
-pub fn get_reqwest_cli() -> Option<&'static Client> {
-    OC_REQWEST_CLI.get()
+pub fn get_chatgpt() -> Option<&'static ChatGPTClient> {
+    OC_CHATGPT.get()
 }
 
 impl Settings {
-    pub fn set(configuration: Configuration) -> Result<(), &'static str> {
+    pub fn set(configuration: Configuration, pool: PgPool) -> Result<(), &'static str> {
+        OC_POOL.set(pool).map_err(|_| "can't set global pool")?;
+
+        let client = ChatGPTClient::new(&configuration.chat_gpt)?;
+        OC_CHATGPT.set(client).map_err(|_| "can't set global ChatGPT client")?;
+
         let mut hasher = Sha256::new();
         hasher.update(configuration.jwt.key.as_bytes());
         let result = hasher.finalize();
@@ -58,7 +61,9 @@ impl Settings {
         // convert Result<(), Config>
         OC_SETTINGS
             .set(Self { configuration, jwt_key: result.to_vec() })
-            .map_err(|_| "can't set global configuration")
+            .map_err(|_| "can't set global configuration")?;
+
+        Ok(())
     }
 
     /*
@@ -76,7 +81,7 @@ impl Settings {
     }
 
     // not use settings.configuration.jwt.key as jwt_key
-    fn jwt() -> Option<(&'static [u8], &'static Jwt)> {
+    fn jwt() -> Option<(&'static [u8], &'static JwtConf)> {
         let settings = OC_SETTINGS.get()?;
         // Some((settings.jwt_key.as_bytes(), settings.configuration.jwt.alive_mins))
         Some((&settings.jwt_key, &settings.configuration.jwt))
@@ -119,7 +124,7 @@ impl Settings {
     pub fn jwt_verify_request(req: &HttpRequest) -> Result<JwtPayload, Error> {
         let prefix = "Bearer ";
 
-        let err_msg = "not logged in, please provide token";
+        let err_msg = "login required";
         let value =
             req.headers().get(AUTHORIZATION).ok_or(Error::unauthenticated().msg(err_msg))?;
 
@@ -128,7 +133,7 @@ impl Settings {
             value.to_str().map_err(|e| Error::unauthenticated().msg(err_msg).cause(e.into()))?;
 
         if !token.starts_with(prefix) {
-            return Err(Error::unauthenticated().msg("invalid token format"));
+            return Err(Error::unauthenticated().msg("invalid token"));
         }
         // TokenData<JwtPayload>: TokenData{ header, claims }
 

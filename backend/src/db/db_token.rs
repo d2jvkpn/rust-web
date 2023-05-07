@@ -1,6 +1,6 @@
 use crate::{
     middlewares::Error,
-    models::token::{Platform, TokenRecord},
+    models::jwt::{Platform, TokenRecord},
     utils::{self, socket_addr_to_ip_network},
 };
 use chrono::Utc;
