@@ -1,6 +1,8 @@
 import "./home_page.css";
 import React, { Component } from 'react';
+import { message } from "antd";
 import { Navigate } from "react-router-dom";
+
 import { authed, getPublicUrl } from 'js/base.js';
 import { getUser, setRefreshToken } from "js/auth.js";
 import { datetime } from "js/utils.js";
@@ -42,6 +44,11 @@ class HomePage extends Component {
     sendMsg(msg, (res) => {
       let data = res.data;
       let ts = datetime(new Date(data.created*1000));
+
+      if (!data.choices || data.choices.length() === 0) {
+        message.warn("no response!");
+        return;
+      }
       let choice = data.choices[0];
 
       let got = {

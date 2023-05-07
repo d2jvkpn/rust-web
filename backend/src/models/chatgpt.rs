@@ -110,18 +110,16 @@ impl ChatGPTClient {
             }
         };
 
-        if res.status().is_success() {
+        if !res.status().is_success() {
             println!("!!! chat_completions status: {}", res.status());
         }
 
-        let res = match res.json::<ChatCompletionsResponse>().await {
-            Ok(v) => v,
+        match res.json::<ChatCompletionsResponse>().await {
+            Ok(v) => Ok(v),
             Err(e) => {
                 println!("!!! chat_completions unmarshal: {:?}\n", e);
-                return Err(e);
+                Err(e)
             }
-        };
-
-        Ok(res)
+        }
     }
 }
