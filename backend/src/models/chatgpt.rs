@@ -110,7 +110,9 @@ impl ChatGPTClient {
             }
         };
 
-        println!("~~~ chat_completions status: {}", res.status());
+        if res.status().is_success() {
+            println!("!!! chat_completions status: {}", res.status());
+        }
 
         let res = match res.json::<ChatCompletionsResponse>().await {
             Ok(v) => v,
@@ -120,7 +122,6 @@ impl ChatGPTClient {
             }
         };
 
-        println!("==> 3");
         Ok(res)
     }
 }
