@@ -3,6 +3,8 @@ set -eu -o pipefail
 _wd=$(pwd)
 _path=$(dirname $0 | xargs -i readlink -f {})
 
+[ $# -lt 3 ] && { echo "Arguments {tag}, {app_env} and {port} are required!"; exit 1; }
+
 TAG="$1"
 APP_ENV="$2"
 # APP_ENV="$TAG"
