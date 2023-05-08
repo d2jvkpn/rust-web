@@ -4,6 +4,8 @@ _wd=$(pwd)
 _path=$(dirname $0 | xargs -i readlink -f {})
 
 ####
+[ $# -eq 0 ] && { >&2 echo "Argument {branch} is required!"; exit 1; }
+
 branch=$1
 tag=$branch
 

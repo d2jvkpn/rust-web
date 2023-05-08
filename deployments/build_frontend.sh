@@ -3,6 +3,9 @@ set -eu -o pipefail
 _wd=$(pwd)
 _path=$(dirname $0 | xargs -i readlink -f {})
 
+
+[ $# -eq 0 ] && { >&2 echo "Argument {cfg_name} is required!"; exit 1; }
+
 ####
 # ENV_File="$1"
 cfg_name=$1
