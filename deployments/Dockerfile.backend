@@ -15,8 +15,8 @@ ADD backend/src/.git-build-info.yaml  ./src/git-build-info.yaml
 # ADD deployments/cargo_config.toml  /root/.cargo/config
 # RUN sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' /etc/apt/sources.list
 
-RUN apt -y update && apt -y upgrade && apt install -y musl-tools openssl1.0 libssl1.0.0 libssl1.0-dev
-# tzdata is already the newest version
+RUN apt -y update && apt -y upgrade && apt install -y musl-tools libssl-dev
+# openssl, tzdata is already the newest version
 ENV OPENSSL_LIB_DIR="/usr/lib/x86_64-linux-gnu" 
 ENV OPENSSL_INCLUDE_DIR="/usr/include/openssl" 
 
