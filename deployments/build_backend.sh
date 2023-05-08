@@ -22,7 +22,7 @@ git pull --no-edit
 name=registry.cn-shanghai.aliyuncs.com/d2jvkpn/rust-web-backend
 dfile=${_path}/Dockerfile.backend
 
-bash deployments/git-build-info.sh > .git-build-info.yaml
+bash deployments/git-build-info.sh > backend/src/.git-build-info.yaml
 
 for base in $(awk '/^FROM/{print $2}' $dfile); do
     echo ">>> docker pull $base"
