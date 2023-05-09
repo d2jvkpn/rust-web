@@ -1,5 +1,5 @@
 ####
-FROM rust:1-alpine as rust-web_builder
+FROM rust:1-slim-buster as rust-web-backend_builder
 
 ENV SQLX_OFFLINE=true
 ENV TZ=Asia/Shanghai
@@ -12,19 +12,24 @@ COPY backend/migrations  ./migrations
 ADD backend/Cargo.lock  backend/Cargo.toml  backend/sqlx-data.json ./
 ADD backend/src/.git-build-info.yaml  ./src/git-build-info.yaml
 
-ADD deployments/cargo_config.toml /root/.cargo/config
+ADD deployments/cargo_config.toml  /root/.cargo/config
 RUN sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' /etc/apt/sources.list
 
 RUN apt -y update && apt -y upgrade && apt install -y musl-tools libssl-dev
+# openssl, tzdata is already the newest version
+ENV OPENSSL_LIB_DIR="/usr/lib/x86_64-linux-gnu" 
+ENV OPENSSL_INCLUDE_DIR="/usr/include/openssl" 
 
-RUN cargo build --release
+RUN rustup target add x86_64-unknown-linux-musl && \
+  cargo build --target x86_64-unknown-linux-musl --release
 
 ####
 FROM alpine:latest AS rust-web_runtime
 ENV TZ=Asia/Shanghai
 WORKDIR /opt/rust-web
 
-COPY --from=rust-web-backend_builder /opt/rust-web/target/release/backend ./backend
+COPY --from=rust-web-backend_builder \
+  /opt/rust-web/target/x86_64-unknown-linux-musl/release/backend ./backend
 
 EXPOSE 3010
 # ENTRYPOINT ["./backend"]
