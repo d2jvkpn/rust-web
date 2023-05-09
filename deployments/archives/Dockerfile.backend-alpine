@@ -1,0 +1,31 @@
+####
+FROM rust:1-alpine as rust-web_builder
+
+ENV SQLX_OFFLINE=true
+ENV TZ=Asia/Shanghai
+WORKDIR /opt/rust-web
+
+RUN mkdir -p /root/.cargo
+COPY backend/src         ./src
+COPY backend/static      ./static
+COPY backend/migrations  ./migrations
+ADD backend/Cargo.lock  backend/Cargo.toml  backend/sqlx-data.json ./
+ADD backend/src/.git-build-info.yaml  ./src/git-build-info.yaml
+
+ADD deployments/cargo_config.toml /root/.cargo/config
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+RUN { apk --no-cache update && apk --no-cache upgrade; apk add tzdata musl-dev; } &> /dev/null
+
+RUN cargo build --release
+
+####
+FROM alpine:latest AS rust-web_runtime
+ENV TZ=Asia/Shanghai
+WORKDIR /opt/rust-web
+
+COPY --from=rust-web-backend_builder /opt/rust-web/target/release/backend ./backend
+
+EXPOSE 3010
+# ENTRYPOINT ["./backend"]
+# "--threads=0"
+CMD ["./backend", "--config=configs/prod.yaml", "--addr=0.0.0.0", "--port=3010", "--release"]
