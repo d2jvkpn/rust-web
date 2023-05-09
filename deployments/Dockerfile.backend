@@ -14,8 +14,7 @@ ADD backend/src/.git-build-info.yaml  ./src/git-build-info.yaml
 
 ADD deployments/cargo_config.toml /root/.cargo/config
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
-
-RUN apt -y update && apt -y upgrade && apt install -y musl-tools libssl-dev
+RUN { apk --no-cache update && apk --no-cache upgrade; apk add tzdata musl-dev; } &> /dev/null
 
 RUN cargo build --release
 
