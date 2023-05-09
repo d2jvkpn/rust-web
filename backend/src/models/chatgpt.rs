@@ -14,7 +14,7 @@ pub struct ChatGPTClient {
     org_id: Option<String>,
     client: reqwest::Client,
 
-    token: String,
+    auth: String,
     url_chat_completions: String,
 }
 
@@ -73,7 +73,7 @@ impl ChatGPTClient {
             client: reqwest::Client::new(),
 
             url_chat_completions: url.clone() + "/v1/chat/completions",
-            token: "Bearer ".to_owned() + &conf.api_key,
+            auth: "Bearer ".to_owned() + &conf.api_key,
         })
     }
 
@@ -95,7 +95,7 @@ impl ChatGPTClient {
          */
 
         let mut req =
-            self.client.post(&self.url_chat_completions).header("Authorization", &self.token);
+            self.client.post(&self.url_chat_completions).header("Authorization", &self.auth);
 
         if let Some(v) = &self.org_id {
             req = req.header("OpenAI-Organization", v);
