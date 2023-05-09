@@ -13,7 +13,7 @@ ADD backend/Cargo.lock  backend/Cargo.toml  backend/sqlx-data.json ./
 ADD backend/src/.git-build-info.yaml  ./src/git-build-info.yaml
 
 ADD deployments/cargo_config.toml /root/.cargo/config
-RUN sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' /etc/apt/sources.list
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 
 RUN apt -y update && apt -y upgrade && apt install -y musl-tools libssl-dev
 
