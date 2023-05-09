@@ -24,9 +24,9 @@ FROM alpine:latest AS rust-web_runtime
 ENV TZ=Asia/Shanghai
 WORKDIR /opt/rust-web
 
-COPY --from=rust-web_builder /opt/rust-web/target/release/rust-web /opt/rust-web/rust-web
+COPY --from=rust-web_builder /opt/rust-web/target/release/backend ./backend
 
 EXPOSE 3010
 # ENTRYPOINT ["./rust-web"]
 # "--threads=0"
-CMD ["./rust-web", "--config=configs/prod.yaml", "--addr=0.0.0.0", "--port=3010", "--release"]
+CMD ["./backend", "--config=configs/prod.yaml", "--addr=0.0.0.0", "--port=3010", "--release"]
