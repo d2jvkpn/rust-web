@@ -9,7 +9,7 @@ RUN mkdir -p /root/.cargo
 COPY backend/src         ./src
 COPY backend/static      ./static
 COPY backend/migrations  ./migrations
-ADD backend/Cargo.lock  backend/Cargo.toml  backend/sqlx-data.json ./
+ADD backend/Cargo.lock   backend/Cargo.toml  backend/sqlx-data.json ./
 ADD backend/src/.git-build-info.yaml  ./src/git-build-info.yaml
 
 ADD deployments/cargo_config.toml  /root/.cargo/config
@@ -17,8 +17,8 @@ RUN sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' 
 
 RUN apt update && \
   apt -y upgrade && \
-  apt install -y libssl-dev lzma-dev musl-tools && \
   apt install -y pkg-config && \
+  apt install -y libssl-dev musl-tools && \
   apt-get clean
 # openssl, tzdata is already the newest version
 
