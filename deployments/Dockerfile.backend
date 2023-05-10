@@ -10,21 +10,19 @@ WORKDIR /opt/rust-web
 
 RUN apt update && \
   apt -y upgrade && \
-  apt install -y libssl-dev pkg-config musl-tools && \
+  apt install -y pkg-config libssl-dev musl-tools && \
   apt-get clean
 # ?? libudev-dev librust-openssl-sys-dev
 # openssl, tzdata is already the newest version
 
-ENV OPENSSL_DIR=/usr/include/x86_64-linux-gnu/openssl
+RUN apt-get install -y ca-certificates wget libfindbin-libs-perl make && \
+  wget https://www.openssl.org/source/openssl-1.1.1t.tar.gz && \
+  tar -xzvf openssl-1.1.1t.tar.gz && cd openssl-1.1.1t && \
+  ./config --prefix=/usr/local/openssl --openssldir=/usr/local/openssl && \
+  make && \
+  make install
 
-# RUN apt-get install -y ca-certificates wget libfindbin-libs-perl make && \
-#   wget https://www.openssl.org/source/openssl-1.1.1t.tar.gz && \
-#   tar -xzvf openssl-1.1.1t.tar.gz && cd openssl-1.1.1t && \
-#   ./config --prefix=/usr/local/openssl --openssldir=/usr/local/openssl && \
-#   make && \
-#   make install
-
-# ENV OPENSSL_DIR=/usr/local/openssl
+ENV OPENSSL_DIR=/usr/local/openssl
 
 RUN mkdir -p /root/.cargo
 COPY backend/src         ./src
