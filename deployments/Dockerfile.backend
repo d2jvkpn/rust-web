@@ -5,13 +5,6 @@ ENV SQLX_OFFLINE=true
 ENV TZ=Asia/Shanghai
 WORKDIR /opt/rust-web
 
-RUN mkdir -p /root/.cargo
-COPY backend/src         ./src
-COPY backend/static      ./static
-COPY backend/migrations  ./migrations
-ADD backend/Cargo.lock   backend/Cargo.toml  backend/sqlx-data.json ./
-ADD backend/src/.git-build-info.yaml  ./src/git-build-info.yaml
-
 # ADD deployments/cargo_config.toml  /root/.cargo/config
 # RUN sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' /etc/apt/sources.list
 
@@ -22,14 +15,23 @@ RUN apt update && \
 # ?? libudev-dev librust-openssl-sys-dev
 # openssl, tzdata is already the newest version
 
-RUN apt-get install -y ca-certificates wget libfindbin-libs-perl make && \
-  wget https://www.openssl.org/source/openssl-1.1.1t.tar.gz && \
-  tar -xzvf openssl-1.1.1t.tar.gz && cd openssl-1.1.1t && \
-  ./config --prefix=/usr/local/openssl --openssldir=/usr/local/openssl && \
-  make && \
-  make install
+ENV OPENSSL_DIR=/usr/include/x86_64-linux-gnu/openssl
 
-ENV OPENSSL_DIR=/usr/local/openssl
+# RUN apt-get install -y ca-certificates wget libfindbin-libs-perl make && \
+#   wget https://www.openssl.org/source/openssl-1.1.1t.tar.gz && \
+#   tar -xzvf openssl-1.1.1t.tar.gz && cd openssl-1.1.1t && \
+#   ./config --prefix=/usr/local/openssl --openssldir=/usr/local/openssl && \
+#   make && \
+#   make install
+
+# ENV OPENSSL_DIR=/usr/local/openssl
+
+RUN mkdir -p /root/.cargo
+COPY backend/src         ./src
+COPY backend/static      ./static
+COPY backend/migrations  ./migrations
+ADD backend/Cargo.lock   backend/Cargo.toml  backend/sqlx-data.json ./
+ADD backend/src/.git-build-info.yaml  ./src/git-build-info.yaml
 
 RUN rustup target add x86_64-unknown-linux-musl && \
   cargo build --target x86_64-unknown-linux-musl --release
