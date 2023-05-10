@@ -1,7 +1,7 @@
 wk*/
 /.git
-target/
+backend/target/
 logs/
 
-node_modules/
-build/
+frontend/node_modules/
+frontend/build/
