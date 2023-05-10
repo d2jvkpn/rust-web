@@ -24,7 +24,7 @@ RUN apt update && \
 
 RUN apt-get install -y ca-certificates wget libfindbin-libs-perl make && \
   wget https://www.openssl.org/source/openssl-1.1.1t.tar.gz && \
-  tar -xzvf openssl-1.1.1t.tar.gz && cd openssl-1.1.1t &&
+  tar -xzvf openssl-1.1.1t.tar.gz && cd openssl-1.1.1t && \
   ./config --prefix=/usr/local/openssl --openssldir=/usr/local/openssl && \
   make && \
   make install
