@@ -1,30 +1,9 @@
 ####
-FROM rust:1-slim-buster as rust-web-backend_builder
+FROM registry.cn-shanghai.aliyuncs.com/d2jvkpn/rust-musl:1 as rust-web-backend_builder
 
 ENV SQLX_OFFLINE=true
 ENV TZ=Asia/Shanghai
 WORKDIR /opt/rust-web
-
-# ADD deployments/cargo_config.toml  /root/.cargo/config
-# RUN sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' /etc/apt/sources.list
-
-RUN apt update && \
-  apt -y upgrade && \
-  apt install -y pkg-config libssl-dev musl-tools && \
-  apt install -y librust-openssl-dev librust-openssl-sys-dev \
-    librust-cargo+openssl-dev librust-cargo+vendored-openssl-dev librust-openssl-probe-dev && \
-  apt-get clean
-# ?? libudev-dev librust-openssl-sys-dev
-# openssl, tzdata is already the newest version
-
-# RUN apt-get install -y ca-certificates wget libfindbin-libs-perl make && \
-#   wget https://www.openssl.org/source/openssl-1.1.1t.tar.gz && \
-#   tar -xzvf openssl-1.1.1t.tar.gz && cd openssl-1.1.1t && \
-#   ./config --prefix=/usr/local/openssl --openssldir=/usr/local/openssl && \
-#   make && \
-#   make install
-
-# ENV OPENSSL_DIR=/usr/local/openssl
 
 RUN mkdir -p /root/.cargo
 COPY backend/src         ./src
@@ -33,16 +12,22 @@ COPY backend/migrations  ./migrations
 ADD backend/Cargo.lock   backend/Cargo.toml  backend/sqlx-data.json ./
 ADD backend/src/.git-build-info.yaml  ./src/git-build-info.yaml
 
-RUN rustup target add x86_64-unknown-linux-musl && \
-  cargo build --target x86_64-unknown-linux-musl --release
+RUN cargo build --target x86_64-unknown-linux-musl --release
 
 ####
 FROM alpine:latest AS rust-web_runtime
 ENV TZ=Asia/Shanghai
-WORKDIR /opt/rust-web
+
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+RUN { apk --no-cache update && apk --no-cache upgrade && apk --no-cache add tzdata; } &> /dev/null
+
+RUN adduser -D -u 1000 hello
+USER hello
+WORKDIR /home/hello/rust-web
 
 COPY --from=rust-web-backend_builder \
-  /opt/rust-web/target/x86_64-unknown-linux-musl/release/backend ./backend
+  /opt/rust-web/target/x86_64-unknown-linux-musl/release/backend \
+  ./backend
 
 EXPOSE 3010
 # ENTRYPOINT ["./backend"]
