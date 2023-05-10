@@ -18,7 +18,7 @@ ADD backend/src/.git-build-info.yaml  ./src/git-build-info.yaml
 RUN apt update && \
   apt -y upgrade && \
   apt install -y libssl-dev && \
-  apt install pkg-config musl-tools && \
+  apt install -y pkg-config musl-tools && \
   apt-get clean
 
 # ?? libudev-dev librust-openssl-sys-dev
