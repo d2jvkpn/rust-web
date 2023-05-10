@@ -19,6 +19,7 @@ RUN apt update && \
   apt -y upgrade && \
   apt install -y pkg-config libssl-dev libudev-dev librust-openssl-sys-dev musl-tools && \
   apt-get clean
+
 # openssl, tzdata is already the newest version
 
 RUN rustup target add x86_64-unknown-linux-musl && \
