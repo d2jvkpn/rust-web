@@ -371,8 +371,6 @@ dependencies = [
  "log4rs",
  "num_cpus",
  "once_cell",
- "openssl",
- "openssl-sys",
  "regex",
  "reqwest",
  "serde",

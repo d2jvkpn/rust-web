@@ -17,8 +17,7 @@ ADD backend/src/.git-build-info.yaml  ./src/git-build-info.yaml
 
 RUN apt update && \
   apt -y upgrade && \
-  apt install -y pkg-config && \
-  apt install -y libssl-dev musl-tools && \
+  apt install -y pkg-config libssl-dev libudev-dev librust-openssl-sys-dev musl-tools && \
   apt-get clean
 # openssl, tzdata is already the newest version
 
