@@ -45,11 +45,12 @@ class HomePage extends Component {
       let data = res.data;
       let ts = datetime(new Date(data.created*1000));
 
-      if (!data.choices || data.choices.length() === 0) {
+      if (!data.choices || data.choices.length === 0) {
         message.warn("no response!");
         return;
       }
       let choice = data.choices[0];
+      console.log(`~~~ response: ${choice.message.content}`);
 
       let got = {
         sender: "system",

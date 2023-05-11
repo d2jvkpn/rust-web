@@ -1,6 +1,6 @@
 mod auth_admin;
 mod auth_user;
-mod chat;
+mod chatgpt;
 mod open;
 mod route;
 
