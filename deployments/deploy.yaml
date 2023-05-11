@@ -10,10 +10,9 @@ services:
     networks: ["net"]
     # ports: ["127.0.0.1:5432:5432"]
     volumes:
-    - ./data:/var/lib/postgresql/data
-    # - postgres_data:/var/lib/postgresql/data
-    # - ./postgresql.conf:/var/lib/postgresql/data/pgdata/postgresql.conf
-    # - ./log:/var/log/postgresql/
+    - ./data/postgres:/var/lib/postgresql/data
+    # - ./data/postgresql.conf:/var/lib/postgresql/data/pgdata/postgresql.conf
+    # - ./data/postgresql_log:/var/log/postgresql/
     environment:
     - TZ=Asia/Shanghai
     - PGTZ=Asia/Shanghai
@@ -29,12 +28,12 @@ services:
     depends_on: ["database"]
     # network_mode: bridge
     networks: ["net"]
-    ports: ["${PORT}:${PORT}"]
+    ports: ["127.0.0.1:${PORT}:${PORT}"]
     environment: ["TZ=Asia/Shanghai"]
     volumes:
-    - ./configs/:/opt/rust-web/configs/
-    - ./logs/:/opt/rust-web/logs/
-    working_dir: /opt/rust-web
+    - ./configs/:/home/hello/rust-web/configs/
+    - ./logs/:/home/hello/rust-web/logs/
+    working_dir: /home/hello/rust-web
     command:
     - ./backend
     - "--config=configs/prod.yaml"
@@ -42,8 +41,21 @@ services:
     - "--port=${PORT}"
     - "--release"
 
+  frontend:
+    image: registry.cn-shanghai.aliyuncs.com/d2jvkpn/rust-web-frontend:${TAG}
+    container_name: rust-web-frontend_${APP_ENV}
+    restart: always
+    # network_mode: bridge
+    # network_mode: host
+    networks: ["net"]
+    ports: ["${PORT}:80"]
+    volumes:
+    # ./configs/configs.json:/opt/nginx-web/configs.json
+    - ./configs/configs.json:/opt/nginx-web/dev/configs.json
+    environment: ["TZ=Asia/Shanghai", "NGINX_PORT=80"]
+
 networks:
   net:
-    name: rust-web-backend_${APP_ENV}
+    name: rust-web_${APP_ENV}
     driver: bridge
     external: false
