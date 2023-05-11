@@ -8,6 +8,7 @@ WORKDIR /opt/rust-web
 RUN mkdir -p /root/.cargo
 COPY backend/src         ./src
 COPY backend/static      ./static
+COPY backend/migrations  ./migrations
 ADD backend/Cargo.lock   backend/Cargo.toml  backend/sqlx-data.json ./
 ADD backend/src/.git-build-info.yaml  ./src/git-build-info.yaml
 
