@@ -26,18 +26,18 @@ RUN rustup default nightly && cargo build --release
 FROM debian:buster-slim AS rust-web_runtime
 ENV TZ=Asia/Shanghai
 
-# apline
-# RUN adduser -D -u 1000 hello
-RUN useradd -m -u 1000 -s /bin/bash hello
-USER hello
-WORKDIR /home/hello/rust-web
-
 # RUN sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' /etc/apt/sources.list
 
 RUN apt update && \
   apt -y upgrade && \
   apt install -y pkg-config libssl-dev && \
   apt-get clean
+
+# apline
+# RUN adduser -D -u 1000 hello
+RUN useradd -m -u 1000 -s /bin/bash hello
+USER hello
+WORKDIR /home/hello/rust-web
 
 COPY backend/migrations  ./migrations
 COPY --from=rust-web-backend_builder /opt/rust-web/target/release/backend ./backend
