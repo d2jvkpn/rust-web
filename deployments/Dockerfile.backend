@@ -1,5 +1,5 @@
 ####
-FROM rust:1-slim-buster
+FROM rust:1-slim-buster AS rust-web-backend_builder
 
 RUN sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' \
   /etc/apt/sources.list
