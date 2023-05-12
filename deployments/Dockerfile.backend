@@ -1,8 +1,7 @@
 ####
 FROM rust:1-slim-buster AS rust-web-backend_builder
 
-RUN sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' \
-  /etc/apt/sources.list
+# RUN sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' /etc/apt/sources.list
 
 RUN apt update && \
   apt -y upgrade && \
@@ -14,7 +13,7 @@ ENV TZ=Asia/Shanghai
 WORKDIR /opt/rust-web
 
 RUN mkdir -p /root/.cargo
-ADD deployments/cargo_config.toml  /root/.cargo/config
+# ADD deployments/cargo_config.toml  /root/.cargo/config
 COPY backend/src         ./src
 COPY backend/static      ./static
 COPY backend/migrations  ./migrations
@@ -32,6 +31,13 @@ ENV TZ=Asia/Shanghai
 RUN useradd -m -u 1000 -s /bin/bash hello
 USER hello
 WORKDIR /home/hello/rust-web
+
+# RUN sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' /etc/apt/sources.list
+
+RUN apt update && \
+  apt -y upgrade && \
+  apt install -y pkg-config libssl-dev && \
+  apt-get clean
 
 COPY backend/migrations  ./migrations
 COPY --from=rust-web-backend_builder /opt/rust-web/target/release/backend ./backend
