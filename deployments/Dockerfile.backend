@@ -24,7 +24,7 @@ ADD backend/src/.git-build-info.yaml  ./src/git-build-info.yaml
 RUN rustup default nightly && cargo build --release
 
 ####
-FROM debian:slim-buster AS rust-web_runtime
+FROM debian:buster-slim AS rust-web_runtime
 ENV TZ=Asia/Shanghai
 
 RUN adduser -D -u 1000 hello
