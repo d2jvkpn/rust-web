@@ -38,7 +38,7 @@ class HomePage extends Component {
       at: ts.time,
     };
 
-    let messages = [...this.state.messages, msg];
+    let messages = [msg, ...this.state.messages];
     this.setState({messages: messages, msg: ""});
 
     sendMsg(msg, (res) => {
@@ -60,7 +60,7 @@ class HomePage extends Component {
         at: ts.time,
       };
 
-      let messages = [...this.state.messages, got];
+      let messages = [got, ...this.state.messages];
       this.setState({messages: messages});
     })
   }
@@ -83,7 +83,7 @@ class HomePage extends Component {
     return (<div className="chat-container">
       <div className="chat-header"> Welcome, {user.name}... </div>
       <div className="chat-window">
-        {this.state.messages.reverse().map((msg, index) => <Message key={index} msg={msg} />)}
+        {this.state.messages.map((msg, index) => <Message key={index} msg={msg} />)}
       </div>
 
       <div className="chat-input">
