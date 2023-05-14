@@ -61,7 +61,7 @@ class HomePage extends Component {
       };
 
       let messages = [...this.state.messages, got];
-      this.setState({messages: messages, msg: ""});
+      this.setState({messages: messages});
     })
   }
 
