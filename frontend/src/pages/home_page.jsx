@@ -87,7 +87,7 @@ class HomePage extends Component {
       </div>
 
       <div className="chat-input">
-        <input type="text" placeholder="Type message here..." value={this.state.msg}
+        <textArea placeholder="Type message here..." value={this.state.msg}
           onChange={(event) => this.setState({msg: event.target.value})}
           onKeyPress={this.handleKeyPress}
         />
