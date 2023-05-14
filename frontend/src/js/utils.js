@@ -31,7 +31,11 @@ export function fixStringLength(str, len=12) {
 
 // time
 export function datetime(at=null) {
-  if (!at) at = new Date();
+  if (!at) {
+    at = new Date();
+  } else {
+    at = new Date(at);
+  }
   function padH0 (value, len=2) { return value.toString().padStart(len, '0')}
 
   function timezoneOffset(offset) {

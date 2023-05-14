@@ -1,5 +1,5 @@
 use super::chatgpt::{ChatCompletionsRequest, RoleMessage};
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -11,6 +11,7 @@ pub struct Message {
     pub content: String,
 }
 
+#[allow(dead_code)]
 impl Message {
     pub fn new(content: String) -> Self {
         Self {
@@ -30,4 +31,15 @@ impl Into<ChatCompletionsRequest> for Message {
             messages: vec![RoleMessage { role: self.role, content: self.content }],
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ChatRecord {
+    pub request_id: uuid::Uuid,
+    pub user_id: i32,
+    pub query: String,
+    pub query_at: DateTime<Utc>,
+    pub response: Option<String>,
+    pub response_at: Option<DateTime<Utc>>,
 }

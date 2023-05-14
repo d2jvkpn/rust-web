@@ -34,7 +34,8 @@ pub fn auth_user(cfg: &mut ServiceConfig) {
         .route("/frozon", post().to(frozen_user_status))
         .route("/change_password", post().to(user_change_password))
         .route("/logout", post().to(user_logout))
-        .route("/chatgpt/chat/completions", post().to(chat_completions));
+        .route("/chat/completions", post().to(chat_completions))
+        .route("/chat/query", get().to(query_chat_records));
 
     cfg.service(group);
 }

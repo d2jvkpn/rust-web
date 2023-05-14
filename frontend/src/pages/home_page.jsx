@@ -6,7 +6,7 @@ import { Navigate } from "react-router-dom";
 import { authed, getPublicUrl } from 'js/base.js';
 import { getUser, setRefreshToken } from "js/auth.js";
 import { datetime } from "js/utils.js";
-import { sendMsg } from "js/chat.js";
+import { chatQuery, sendMsg, chatItems2Msgs } from "js/chat.js";
 
 class HomePage extends Component {
   constructor(props) {
@@ -14,7 +14,23 @@ class HomePage extends Component {
     this.state = {messages: [], msg: ""};
   }
 
+  componentDidMount() {
+  }
+
   handleKeyPress = (event) => {
+    if (this.state.messages.length === 0) {
+      chatQuery((res) => {
+        let data = res.data;
+        if (!data.items || data.items.length === 0 ) {
+          return;
+        }
+
+        let messages = chatItems2Msgs(data.items);
+        console.log(`~~~ ${JSON.stringify(messages)}`);
+        this.setState({messages: messages});
+      });
+    }
+
     if (event.ctrlKey && event.keyCode === 0) {
       // console.log(`~~~ Ctrl + Enter pressed`);
       this.handleSend();
@@ -40,7 +56,6 @@ class HomePage extends Component {
 
     let messages = [msg, ...this.state.messages];
     this.setState({messages: messages, msg: ""});
-
     sendMsg(msg, (res) => {
       let data = res.data;
       let ts = datetime(new Date(data.created*1000));
@@ -62,7 +77,7 @@ class HomePage extends Component {
 
       let messages = [got, ...this.state.messages];
       this.setState({messages: messages, msg: ""});
-    })
+    });
   }
 
   render() {
@@ -87,7 +102,7 @@ class HomePage extends Component {
       </div>
 
       <div className="chat-input">
-        <textArea placeholder="Type message here..." value={this.state.msg}
+        <textarea placeholder="Type message here..." value={this.state.msg}
           onChange={(event) => this.setState({msg: event.target.value})}
           onKeyPress={this.handleKeyPress}
         />
