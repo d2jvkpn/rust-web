@@ -20,7 +20,7 @@ export function load() {
   let url = new URL(window.location.href);
   url = `${url.protocol}//${url.host}`;
 
-  let p = process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL}/config.json` : "/config.json";
+  let p = process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL}/frontend.json` : "/frontend.json";
 
   request(`${url}${p}`, {method: "GET", headers: {}}, function(d) {
     Settings.apiAddress = d.apiAddress;

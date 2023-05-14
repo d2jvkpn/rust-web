@@ -50,8 +50,8 @@ services:
     networks: ["net"]
     ports: ["${PORT}:80"]
     volumes:
-    # ./configs/configs.json:/opt/nginx-web/configs.json
-    - ./configs/configs.json:/opt/nginx-web/dev/configs.json
+    # ./configs/frontend.json:/opt/nginx-web/frontend.json
+    - ./configs/frontend.json:/opt/nginx-web/dev/frontend.json
     environment: ["TZ=Asia/Shanghai", "NGINX_PORT=80"]
 
 networks:
