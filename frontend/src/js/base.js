@@ -1,4 +1,5 @@
 import { message } from "antd";
+import { refreshToken } from "./auth.js";
 
 const Settings = {
   initAt: null,
@@ -57,10 +58,15 @@ export function authed() {
     return false;
   }
 
-  let delta = tokens.refreshExp*1000 - Math.round(new Date().getTime());
+  let ts = Math.round(new Date().getTime());
+  let delta = tokens.refreshExp*1000 - ts;
 
   if (delta < Interval) {
     return false;
+  }
+
+  if (tokens.accessExp*1000 <= ts) {
+    refreshToken();
   }
 
   return true;

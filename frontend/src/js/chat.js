@@ -10,12 +10,27 @@ export function chatQuery(callback) {
 }
 
 export function chatItems2Msgs(items) {
-  let messages = [];
+  let messages = []
 
   items.forEach((e) => {
-    var at = datetime(e.queryAt);
+    let at, msg;
 
-    var msg = {
+    if (e.response) {
+      at = datetime(e.responseAt);
+
+      msg = {
+        sender: "system",
+        role: "assistant",
+        content: e.response,
+        timestampMilli: at.getTime(),
+        at: at.time,
+      };
+      messages.push(msg);
+    }
+
+    at = datetime(e.queryAt);
+
+    msg = {
       sender: "user",
       role: "user",
       content: e.query,
@@ -23,21 +38,6 @@ export function chatItems2Msgs(items) {
       at: at.time,
     };
 
-    messages.push(msg);
-
-    if (!e.response) {
-      return messages;
-    }
-
-    at = datetime(e.responseAt);
-
-    msg = {
-      sender: "system",
-      role: "assistant",
-      content: e.response,
-      timestampMilli: at.getTime(),
-      at: at.time,
-    };
     messages.push(msg);
   });
 

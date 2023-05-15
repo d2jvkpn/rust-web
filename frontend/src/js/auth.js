@@ -20,7 +20,7 @@ export function setRefreshToken() {
   RresheToken = setInterval(refreshToken, Interval);
 }
 
-function refreshToken() {
+export function refreshToken() {
   var str = localStorage.getItem("tokens");
   if (!str) {
     return;

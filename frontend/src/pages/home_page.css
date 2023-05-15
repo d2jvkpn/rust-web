@@ -8,8 +8,11 @@
 }
 
 .chat-header {
-  text-align: center;
-  margin-bottom: 10px;
+  /*text-align: center;
+  margin-bottom: 10px;*/
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
 }
 
 .chat-window {
@@ -75,6 +78,7 @@
   resize: none;
   font-size: 14px;
   outline: none;
+  resize: vertical;
 }
 
 .chat-input button {

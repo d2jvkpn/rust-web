@@ -95,8 +95,15 @@ class HomePage extends Component {
     </div>);
     */
 
+    let userTitle = `${user.email || user.phone} (id: ${user.id})`;
+
     return (<div className="chat-container">
-      <div className="chat-header"> Welcome, {user.name}... </div>
+      <div className="chat-header">
+        <div></div>
+        <div>Chatting with AI...</div>
+        <div title={userTitle}> {user.name} </div>
+      </div>
+
       <div className="chat-window">
         {this.state.messages.map((msg, index) => <Message key={index} msg={msg} />)}
       </div>
