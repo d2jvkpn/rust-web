@@ -15,7 +15,7 @@
 logs/
 wk*/
 .env
-.git-build-info.yaml
+_git-build-info.yaml
 target
 
 #### javascript

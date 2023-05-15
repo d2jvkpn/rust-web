@@ -26,7 +26,7 @@ trap on_exit EXIT
 name=registry.cn-shanghai.aliyuncs.com/d2jvkpn/rust-web-backend
 dfile=${_path}/Dockerfile.backend
 
-bash deployments/git-build-info.sh > backend/src/.git-build-info.yaml
+bash deployments/git-build-info.sh > backend/src/_git-build-info.yaml
 
 [[ "$BuildLocal" != "true" ]] && \
 for base in $(awk '/^FROM/{print $2}' $dfile); do

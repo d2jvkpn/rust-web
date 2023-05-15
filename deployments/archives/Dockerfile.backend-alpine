@@ -10,7 +10,7 @@ COPY backend/src         ./src
 COPY backend/static      ./static
 COPY backend/migrations  ./migrations
 ADD backend/Cargo.lock  backend/Cargo.toml  backend/sqlx-data.json ./
-ADD backend/src/.git-build-info.yaml  ./src/git-build-info.yaml
+ADD backend/src/_git-build-info.yaml  ./src/git-build-info.yaml
 
 ADD deployments/cargo_config.toml /root/.cargo/config
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories

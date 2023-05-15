@@ -8,3 +8,4 @@
 #### 2023-05-15
 - frontend: change password
 - backend and frontend: Makefile (docker, env, migrate, up, down, build, release)
+- frontend: generate public/build.json

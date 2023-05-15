@@ -7,7 +7,7 @@ WORKDIR /opt/rust-web
 
 RUN mkdir -p /root/.cargo
 ADD Cargo.lock Cargo.toml sqlx-data.json ./
-ADD .git-build-info.yaml ./src/git-build-info.yaml
+ADD _git-build-info.yaml ./src/git-build-info.yaml
 COPY src ./src
 COPY static ./static
 COPY migrations ./migrations
