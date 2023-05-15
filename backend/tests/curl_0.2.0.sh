@@ -43,3 +43,8 @@ body=$(jq -cn --arg refresh_token $refresh_token '{refreshToken: $refresh_token}
 
 curl -i -X POST -H "content-type: application/json" "$address/api/open/user/refresh_token" \
   -d $body
+
+####
+curl -i -X POST -H "content-type: application/json" "$address/api/auth/user/chat/completions" \
+  -H "Authorization: Bearer $token" \
+  --data-raw '{"sender":"user","role":"user","content":"hello","timestampMilli":1684134598566,"at":"15:09:58"}'

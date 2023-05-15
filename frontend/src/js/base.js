@@ -159,7 +159,8 @@ export function request(path, options, callback=null) {
 
       if (res.code === 0 && options.method === "GET" && res.data.hasOwnProperty("items")) {
         if (Array.isArray(res.data.items) && res.data.items.length === 0) {
-          console.warning("!!! Have no items");
+          message.warning("!!! Have no items");
+          console.warn("!!! Have no items");
         }
       }
 

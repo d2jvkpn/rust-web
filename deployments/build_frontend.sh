@@ -21,8 +21,11 @@ function on_exit {
 }
 trap on_exit EXIT
 
-git checkout $BRANCH
-git pull --no-edit
+[[ "$BuildLocal" != "true" ]] && \
+{
+  git checkout $BRANCH
+  git pull --no-edit
+}
 
 ####
 dfile=${_path}/Dockerfile.frontend
@@ -32,6 +35,8 @@ image="$name:$TAG"
 echo ">>> building image: $image..."
 
 echo ">>> Pull base images..."
+
+[[ "$BuildLocal" != "true" ]] && \
 for base in $(awk '/^FROM/{print $2}' $dfile); do
     docker pull --quiet $base
     bn=$(echo $base | awk -F ":" '{print $1}')
@@ -42,6 +47,7 @@ done &> /dev/null
 
 docker build --no-cache -f $dfile -t $image \
   --build-arg=ENV_File=$ENV_File            \
+  --build-arg=BuildLocal="$BuildLocal"      \
   --build-arg=REACT_APP_BuildTime=$now      \
   ./
 

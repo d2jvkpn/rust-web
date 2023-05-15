@@ -6,9 +6,10 @@ LABEL stage=rust-web-frontend_builder
 
 ARG ENV_File=${ENV_File}
 ARG REACT_APP_BuildTime=${REACT_APP_BuildTime}
+ARG BuildLocal=${BuildLocal}
 ENV TZ=Asia/Shanghai
 
-# RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+RUN if [ "$BuildLocal" = "true" ]; then sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; fi
 # RUN { apk --no-cache update && apk --no-cache upgrade && apk --no-cache add tzdata; } &> /dev/null
 
 WORKDIR /opt/rust-web
@@ -17,7 +18,7 @@ COPY  frontend/configs/  ./configs
 COPY  frontend/public/   ./public
 COPY  frontend/src/      ./src
 
-# RUN npm install --global yarn --registry=https://registry.npm.taobao.org
+RUN if [ "$BuildLocal" = "true" ]; then npm install --global yarn --registry=https://registry.npm.taobao.org; fi
 # RUN npm config set registry https://registry.npm.taobao.org
 # RUN yarn install --registry=https://registry.npm.taobao.org &> /dev/null
 
