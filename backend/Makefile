@@ -1,4 +1,4 @@
-install-sqlx:
+install_sqlx:
 	cargo add sqlx --features=runtime-actix-rustls,macros,postgres,uuid,chrono,migrate,offline,ipnetwork
 
 init_db:
@@ -19,6 +19,9 @@ migrate:
 	# sqlx database drop
 	# sqlx database reset
 	sqlx migrate run
+
+prepare_data:
+	cargo sqlx prepare -- --lib
 
 release:
 	cargo build --release

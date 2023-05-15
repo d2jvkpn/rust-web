@@ -22,6 +22,58 @@
     },
     "query": "UPDATE users SET name = $1, birthday = $2 WHERE id = $3 RETURNING id"
   },
+  "236ed785c79cac7d41ece24fd5ef50098f7742b65c962010591e540bead7ada4": {
+    "describe": {
+      "columns": [
+        {
+          "name": "request_id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 1,
+          "type_info": "Int4"
+        },
+        {
+          "name": "query",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "query_at",
+          "ordinal": 3,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "response",
+          "ordinal": 4,
+          "type_info": "Text"
+        },
+        {
+          "name": "response_at",
+          "ordinal": 5,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true,
+        true
+      ],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int8",
+          "Int8"
+        ]
+      }
+    },
+    "query": "SELECT request_id, user_id, query, query_at, response, response_at\n        FROM chats WHERE user_id = $1 AND response IS NOT NULL\n        ORDER BY query_at DESC LIMIT $2 OFFSET $3"
+  },
   "2690cc1614d0a7d7183c903d6431fedfd23fed8d477e5d52559b875f5c386011": {
     "describe": {
       "columns": [
@@ -54,6 +106,23 @@
       }
     },
     "query": "UPDATE users SET status = $1 WHERE id = $2 RETURNING id"
+  },
+  "2c961891294e474fe4fb9ffc37b12c2fabf86ed42ad65c099b9b3729dd5295d3": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Int4",
+          "Text",
+          "Timestamptz",
+          "Text",
+          "Timestamptz"
+        ]
+      }
+    },
+    "query": "INSERT INTO chats (request_id, user_id, query, query_at, response, response_at)\n        VALUES ($1, $2, $3, $4, $5, $6)"
   },
   "602d9c4a75662e6eeb69a07970697e3fe2311e35b649e8b7b05c8d3c9a45d0df": {
     "describe": {

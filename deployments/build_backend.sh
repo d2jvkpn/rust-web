@@ -8,14 +8,18 @@ _path=$(dirname $0 | xargs -i readlink -f {})
 
 branch=$1
 tag=$branch
+BuildLocal=$(printenv BuildLocal)
 
 function on_exit {
     git checkout dev
 }
 trap on_exit EXIT
 
-git checkout $branch
-git pull --no-edit
+[[ "$BuildLocal" != "true" ]] && \
+{
+  git checkout $branch
+  git pull --no-edit
+}
 
 ####
 # --network=host
@@ -24,6 +28,7 @@ dfile=${_path}/Dockerfile.backend
 
 bash deployments/git-build-info.sh > backend/src/.git-build-info.yaml
 
+[[ "$BuildLocal" != "true" ]] && \
 for base in $(awk '/^FROM/{print $2}' $dfile); do
     echo ">>> docker pull $base"
     docker pull --quiet $base
@@ -33,7 +38,8 @@ for base in $(awk '/^FROM/{print $2}' $dfile); do
 done
 # &> /dev/null
 
-docker build --no-cache -f $dfile --tag $name:$tag ./
+docker build --no-cache --build-arg=BuildLocal="$BuildLocal" -f $dfile --tag $name:$tag ./
+
 docker image prune --force --filter label=stage=rust-web-backend_builder &> /dev/null
 
 docker push $name:$tag
