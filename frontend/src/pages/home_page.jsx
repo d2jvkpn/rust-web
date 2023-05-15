@@ -1,6 +1,6 @@
 import "./home_page.css";
 import React, { Component } from 'react';
-import { message, Dropdown, Menu, Space } from "antd";
+import { message, Dropdown, Space } from "antd";
 import { DownOutlined } from '@ant-design/icons';
 import { Navigate } from "react-router-dom";
 
@@ -112,18 +112,19 @@ class HomePage extends Component {
       {label: "Settings", key: "settings"},
     ];
 
-    // Dropdown onVisibleChange={this.setVisible} visible={this.state.visible} */
+    // <Dropdown onVisibleChange={this.setVisible} visible={this.state.visible}> </Dropdown>
+    // <a onClick={(e) => e.preventDefault()}> </a>
     return (<div className="chat-container">
       <div className="chat-header">
-        <div></div>
+        <div> </div>
+
         <div>Chatting with AI...</div>
+
         <div>
           <Dropdown menu={{items: items, onClick: this.menuClick}}>
-            <a onClick={(e) => e.preventDefault()}>
-              <Space cursor="pointer" title={userTitle}>
-                {user.name} <DownOutlined />
-              </Space>
-            </a>
+            <Space title={userTitle}>
+              {user.name} <DownOutlined />
+            </Space>
           </Dropdown>
         </div>
       </div>

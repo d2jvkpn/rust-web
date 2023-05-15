@@ -15,9 +15,9 @@ connect_db:
 migrate:
 	# sqlx migrate add create_users_table
 	# sqlx migrate add alter_users_table
-	# database create
-	# database drop
-	# database reset
+	# sqlx database create
+	# sqlx database drop
+	# sqlx database reset
 	sqlx migrate run
 
 release:
