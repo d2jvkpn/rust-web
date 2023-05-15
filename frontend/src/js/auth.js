@@ -12,6 +12,13 @@ export function login(data) {
   });
 }
 
+export function logout() {
+  post("/api/auth/user/logout", null, function(res) {
+    localStorage.clear();
+    redirectTo("/login");
+  });
+}
+
 export function setRefreshToken() {
   if (RresheToken) {
     return;

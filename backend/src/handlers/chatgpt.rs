@@ -39,7 +39,7 @@ pub async fn chat_completions(
     let ccr: ChatCompletionsRequest = msg.into();
 
     // TODO: log error
-    let res = client.chat_completions(&ccr).await.map_err(|_| Error::unexpected_error())?;
+    let res = client.chat_completions(&ccr).await.map_err(|e| Error::unavailable(e.into()))?;
 
     // TODO: ?? res.choices.len()
     record.response = Some(res.choices[0].message.content.clone());

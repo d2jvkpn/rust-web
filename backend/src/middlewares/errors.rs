@@ -54,7 +54,7 @@ impl ResponseError for Error {
 
     fn error_response(&self) -> HttpResponse {
         HttpResponse::build(self.status).json(
-            json!({"code": self.code,"msg":self.msg, "requestId": self.request_id, "data": {}}),
+            json!({"code": self.code, "msg":self.msg, "requestId": self.request_id, "data": {}}),
         )
     }
 }
@@ -211,6 +211,14 @@ impl Error {
     #[track_caller]
     pub fn unauthenticated() -> Self {
         let mut err: Self = HttpCode::Unauthenticated.into();
+        err.loc = Some(loc!());
+        err
+    }
+
+    #[track_caller]
+    pub fn unavailable(e: AE) -> Self {
+        let mut err: Self = HttpCode::Unavailable.into();
+        err.cause = Some(e);
         err.loc = Some(loc!());
         err
     }

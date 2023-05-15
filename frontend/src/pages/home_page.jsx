@@ -1,10 +1,11 @@
 import "./home_page.css";
 import React, { Component } from 'react';
-import { message } from "antd";
+import { message, Dropdown, Menu, Space } from "antd";
+import { DownOutlined } from '@ant-design/icons';
 import { Navigate } from "react-router-dom";
 
 import { authed, getPublicUrl } from 'js/base.js';
-import { getUser, setRefreshToken } from "js/auth.js";
+import { getUser, setRefreshToken, logout } from "js/auth.js";
 import { datetime } from "js/utils.js";
 import { chatQuery, sendMsg, chatItems2Msgs } from "js/chat.js";
 
@@ -80,6 +81,14 @@ class HomePage extends Component {
     });
   }
 
+  menuClick = (e) => {
+    if (e.key === "logout") {
+      logout();
+    } else {
+      console.log(`!!! Todo menuClick: ${e.key}`);
+    }
+  }
+
   render() {
     if(!authed()) {
       return <Navigate to={getPublicUrl() + "/login"} />;
@@ -97,11 +106,26 @@ class HomePage extends Component {
 
     let userTitle = `${user.email || user.phone} (id: ${user.id})`;
 
+    const items = [
+      {label: "Logout", key: "logout"},
+      {label: "Change password", key: "change-password"},
+      {label: "Settings", key: "settings"},
+    ];
+
+    // Dropdown onVisibleChange={this.setVisible} visible={this.state.visible} */
     return (<div className="chat-container">
       <div className="chat-header">
         <div></div>
         <div>Chatting with AI...</div>
-        <div title={userTitle}> {user.name} </div>
+        <div>
+          <Dropdown menu={{items: items, onClick: this.menuClick}}>
+            <a onClick={(e) => e.preventDefault()}>
+              <Space cursor="pointer" title={userTitle}>
+                {user.name} <DownOutlined />
+              </Space>
+            </a>
+          </Dropdown>
+        </div>
       </div>
 
       <div className="chat-window">

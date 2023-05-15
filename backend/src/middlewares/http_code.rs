@@ -49,6 +49,9 @@ pub enum HttpCode {
     // ActixError,
     #[error("unauthenticated")] // 16
     Unauthenticated,
+
+    #[error("service unavailable")] // 1001
+    Unavailable,
 }
 
 impl HttpCode {
@@ -69,6 +72,7 @@ impl HttpCode {
             Self::Aborted => 10,
             Self::UnexpectedError | Self::DBError => 13,
             Self::Unauthenticated => 16,
+            Self::Unavailable => 1001,
         }
     }
 
@@ -88,6 +92,7 @@ impl HttpCode {
             Self::Aborted => StatusCode::NOT_ACCEPTABLE,
             Self::UnexpectedError | Self::DBError => StatusCode::INTERNAL_SERVER_ERROR,
             Self::Unauthenticated => StatusCode::UNAUTHORIZED,
+            Self::Unavailable => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }

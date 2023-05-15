@@ -72,7 +72,7 @@ impl ChatGPTClient {
             org_id: conf.org_id.clone(),
             client: reqwest::Client::new(),
 
-            url_chat_completions: url.clone() + "/v1/chat/completions",
+            url_chat_completions: url + "/v1/chat/completions",
             auth: "Bearer ".to_owned() + &conf.api_key,
         })
     }
@@ -102,24 +102,13 @@ impl ChatGPTClient {
         }
 
         // .header("Content-Type", "application/json")
-        let res = match req.json(ccr).send().await {
-            Ok(v) => v,
-            Err(e) => {
-                println!("!!! chat_completions request: {:?}\n", e);
-                return Err(e);
-            }
-        };
+        let res = req.json(ccr).send().await?;
 
         if !res.status().is_success() {
+            // TODO: return an reqwest error
             println!("!!! chat_completions status: {}", res.status());
         }
 
-        match res.json::<ChatCompletionsResponse>().await {
-            Ok(v) => Ok(v),
-            Err(e) => {
-                println!("!!! chat_completions unmarshal: {:?}\n", e);
-                Err(e)
-            }
-        }
+        res.json::<ChatCompletionsResponse>().await
     }
 }

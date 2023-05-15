@@ -23,12 +23,12 @@ impl Message {
     }
 }
 
-impl Into<ChatCompletionsRequest> for Message {
-    fn into(self) -> ChatCompletionsRequest {
+impl From<Message> for ChatCompletionsRequest {
+    fn from(msg: Message) -> ChatCompletionsRequest {
         ChatCompletionsRequest {
             model: "gpt-3.5-turbo".to_string(),
             temperature: 1.0,
-            messages: vec![RoleMessage { role: self.role, content: self.content }],
+            messages: vec![RoleMessage { role: msg.role, content: msg.content }],
         }
     }
 }
