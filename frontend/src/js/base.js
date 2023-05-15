@@ -151,6 +151,13 @@ export function request(path, options, callback=null) {
         throw new TypeError("empty response");
       }
 
+      // redirect to login
+      if (res.code && res.code === 16) {
+        localStorage.clear();
+        redirectTo("/login");
+        return;
+      }
+
       if (res.code && res.code !== 0) {
         message.warning(res.msg);
         console.log(`!!! response error: code=${res.code}, msg=${res.msg}`);
