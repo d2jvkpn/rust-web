@@ -10,6 +10,7 @@ _path=$(dirname $0 | xargs -i readlink -f {})
 # ENV_File="$1"
 cfg_name=$1
 ENV_File=configs/$cfg_name.env
+BuildLocal=$(printenv BuildLocal || true)
 
 . frontend/$ENV_File
 # BRANCH is defined in $ENV_File

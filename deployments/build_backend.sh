@@ -8,7 +8,7 @@ _path=$(dirname $0 | xargs -i readlink -f {})
 
 branch=$1
 tag=$branch
-BuildLocal=$(printenv BuildLocal)
+BuildLocal=$(printenv BuildLocal || true)
 
 function on_exit {
     git checkout dev

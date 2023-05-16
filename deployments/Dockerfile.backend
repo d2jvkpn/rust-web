@@ -1,14 +1,10 @@
 ####
-FROM rust:1-slim-buster AS rust-web-backend_builder
+FROM rust:1-alpine as rust-web_builder
 
 ARG BuildLocal=${BuildLocal}
 
-RUN if [ "$BuildLocal" = "true" ]; then sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' /etc/apt/sources.list; fi
-
-RUN apt update && \
-  apt -y upgrade && \
-  apt install -y pkg-config libssl-dev ca-certificates && \
-  apt-get clean
+RUN if [ "$BuildLocal" = "true" ]; then sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; fi
+RUN { apk --no-cache update && apk --no-cache upgrade; apk --no-cache add tzdata musl-dev libressl-dev; } &> /dev/null
 
 ENV SQLX_OFFLINE=true
 ENV TZ=Asia/Shanghai
@@ -24,27 +20,26 @@ ADD backend/src/_git-build-info.yaml  ./src/git-build-info.yaml
 
 RUN if [ "$BuildLocal" = "true" ]; then mv /root/.cargo/cargo_config.toml /root/.cargo/config; fi
 
-RUN rustup default nightly && cargo build --release
+RUN rustup target add x86_64-unknown-linux-musl && \
+  cargo build --target x86_64-unknown-linux-musl --release
 
 ####
-FROM debian:buster-slim AS rust-web_runtime
+FROM alpine:latest AS rust-web_runtime
 ENV TZ=Asia/Shanghai
 
-RUN if [ "$BuildLocal" = "true" ]; then sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' /etc/apt/sources.list; fi
+RUN if [ "$BuildLocal" = "true" ]; then sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; fi
+RUN { apk --no-cache update && apk --no-cache upgrade; apk --no-cache add tzdata; } &> /dev/null
 
-RUN apt update && \
-  apt -y upgrade && \
-  apt install -y pkg-config libssl-dev ca-certificates && \
-  apt-get clean
-
-# apline
-# RUN adduser -D -u 1000 hello
-RUN useradd -m -u 1000 -s /bin/bash hello
+RUN adduser -D -u 1000 hello
 USER hello
 WORKDIR /home/hello/rust-web
 
+COPY --from=rust-web_builder /opt/rust-web/target/release/backend ./backend
 COPY backend/migrations  ./migrations
-COPY --from=rust-web-backend_builder /opt/rust-web/target/release/backend ./backend
+
+COPY --from=rust-web-backend_builder \
+  /opt/rust-web/target/x86_64-unknown-linux-musl/release/backend \
+  ./backend
 
 EXPOSE 3010
 # ENTRYPOINT ["./backend"]
