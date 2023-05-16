@@ -1,5 +1,5 @@
 init-npm:
-	command -v awk && exit 0
+	command -v nvm && exit 0
 	curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
 	nvm install --lts
 	npm config set registry https://registry.npm.taobao.org

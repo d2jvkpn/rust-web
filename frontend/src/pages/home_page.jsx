@@ -1,9 +1,9 @@
-import "./home_page.css";
 import React, { Component } from 'react';
-import { message, Dropdown, Space } from "antd";
+import { message, Dropdown, Space, Modal } from "antd";
 import { DownOutlined } from '@ant-design/icons';
 import { Navigate } from "react-router-dom";
 
+import "./home_page.css";
 import { authed, getPublicUrl } from 'js/base.js';
 import { getUser, setRefreshToken, logout } from "js/auth.js";
 import { datetime } from "js/utils.js";
@@ -12,7 +12,12 @@ import { chatQuery, sendMsg, chatItems2Msgs } from "js/chat.js";
 class HomePage extends Component {
   constructor(props) {
     super(props);
-    this.state = {messages: [], msg: ""};
+    this.state = {
+      messages: [],
+      msg: "",
+      logoutVisible: false,
+      changePasswordVisible: false,
+    };
   }
 
   componentDidMount() {
@@ -22,12 +27,13 @@ class HomePage extends Component {
     if (this.state.messages.length === 0) {
       chatQuery((res) => {
         let data = res.data;
+
         if (!data.items || data.items.length === 0 ) {
           return;
         }
 
         let messages = chatItems2Msgs(data.items);
-        console.log(`~~~ ${JSON.stringify(messages)}`);
+        // console.log(`~~~ ${JSON.stringify(messages)}`);
         this.setState({messages: messages});
       });
     }
@@ -40,6 +46,7 @@ class HomePage extends Component {
 
   handleSend = () => {
     let content = this.state.msg.trim();
+
     if (!content) {
       return;
     }
@@ -57,6 +64,7 @@ class HomePage extends Component {
 
     let messages = [msg, ...this.state.messages];
     this.setState({messages: messages, msg: ""});
+
     sendMsg(msg, (res) => {
       let data = res.data;
       let ts = datetime(new Date(data.created*1000));
@@ -65,6 +73,7 @@ class HomePage extends Component {
         message.warn("no response!");
         return;
       }
+
       let choice = data.choices[0];
       console.log(`~~~ response: ${choice.message.content}`);
 
@@ -83,9 +92,12 @@ class HomePage extends Component {
 
   menuClick = (e) => {
     if (e.key === "logout") {
-      logout();
+      // logout();
+      this.setState({logoutVisible: true});
+    } else if (e.key === "change-password") {
+      this.setState({changePasswordVisible: true});
     } else {
-      console.log(`!!! Todo menuClick: ${e.key}`);
+      console.log(`!!! TODO menuClick: ${e.key}`);
     }
   }
 
@@ -106,22 +118,23 @@ class HomePage extends Component {
 
     let userTitle = `${user.email || user.phone} (id: ${user.id})`;
 
-    const items = [
-      {label: "Logout", key: "logout"},
-      {label: "Change password", key: "change-password"},
+    const menuItems = [
       {label: "Settings", key: "settings"},
+      {label: "Change password", key: "change-password"},
+      {label: "Logout", key: "logout"},
     ];
 
     // <Dropdown onVisibleChange={this.setVisible} visible={this.state.visible}> </Dropdown>
     // <a onClick={(e) => e.preventDefault()}> </a>
-    return (<div className="chat-container">
+    return (<>
+    <div className="chat-container">
       <div className="chat-header">
         <div> </div>
 
         <div>Chatting with AI...</div>
 
         <div>
-          <Dropdown menu={{items: items, onClick: this.menuClick}}>
+          <Dropdown menu={{items: menuItems, onClick: this.menuClick}}>
             <Space title={userTitle}>
               {user.name} <DownOutlined />
             </Space>
@@ -140,7 +153,31 @@ class HomePage extends Component {
         />
         <button onClick={() => this.handleSend()}>Send</button>
       </div>
-    </div>);
+    </div>
+
+    <Modal title="Logout" visible={this.state.logoutVisible}
+      onOk={() => logout() }
+      onCancel={() => this.setState({logoutVisible: false})}
+      okText="confirm"
+      cancelText="cancel"
+    >
+      <p style={{paddingLeft: "2rem", fontSize: "1rem"}} textIndent="2rem">
+        Are you sure you want to exit?
+      </p>
+    </Modal>
+
+    <Modal title="Change password" visible={this.state.changePasswordVisible}
+      onOk={() => {
+        console.log(`!!! TODO: Change password`);
+        this.setState({changePasswordVisible: false});
+      }}
+      onCancel={() => this.setState({changePasswordVisible: false})}
+      okText="confirm"
+      cancelText="cancel"
+    >
+      TODO: Change password
+    </Modal>
+    </>);
   }
 }
 

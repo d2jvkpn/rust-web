@@ -55,6 +55,7 @@ export function refreshToken() {
 
   post("/api/open/user/refresh_token", data, function(res) {
     localStorage.setItem("tokens", JSON.stringify(res.data));
+    console.log(`~~~ ${now.rfc3339} refreshed token`);
   });
 }
 

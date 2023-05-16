@@ -1,7 +1,7 @@
-import "./login_page.css";
-
 import React, { Component } from 'react';
 import { Navigate } from "react-router-dom";
+
+import "./login_page.css";
 import { authed, getPublicUrl } from "js/base.js";
 import { login } from "js/auth.js";
 
@@ -32,6 +32,7 @@ class LoginPage extends Component {
     // TODO: validator...
 
     let data = {password: this.state.password};
+
     if (this.state.emailOrPhone.includes("@")) {
       data.email = this.state.emailOrPhone;
     } else {
@@ -58,6 +59,7 @@ class LoginPage extends Component {
       <form onSubmit={this.handleSubmit}>
         <div>
           <label htmlFor="emailOrPhone">Email or Phone:</label>
+
           <input
             type="text"
             id="emailOrPhone"
@@ -66,6 +68,7 @@ class LoginPage extends Component {
             onChange={this.handleInputChange}
           />
         </div>
+
         <div>
           <label htmlFor="password">Password:</label>
           <input
