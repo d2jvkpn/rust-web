@@ -1,11 +1,7 @@
 ####
-FROM rust:1-alpine as rust-web_builder
+FROM rust:1-alpine AS rust-web-backend_builder
 
 ARG BuildLocal=${BuildLocal}
-
-RUN if [ "$BuildLocal" = "true" ]; then sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; fi
-RUN { apk --no-cache update && apk --no-cache upgrade; apk --no-cache add tzdata musl-dev libressl-dev; } &> /dev/null
-
 ENV SQLX_OFFLINE=true
 ENV TZ=Asia/Shanghai
 WORKDIR /opt/rust-web
@@ -18,17 +14,27 @@ COPY backend/migrations  ./migrations
 ADD backend/Cargo.lock   backend/Cargo.toml  backend/sqlx-data.json ./
 ADD backend/src/_git-build-info.yaml  ./src/git-build-info.yaml
 
-RUN if [ "$BuildLocal" = "true" ]; then mv /root/.cargo/cargo_config.toml /root/.cargo/config; fi
+RUN if [ "$BuildLocal" = "true" ]; then \
+  sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
+  mv /root/.cargo/cargo_config.toml /root/.cargo/config; \
+  fi
 
-RUN rustup target add x86_64-unknown-linux-musl && \
+RUN { apk --no-cache update && apk --no-cache upgrade; \
+  apk --no-cache add tzdata musl-dev libressl-dev; } &> /dev/null
+
+RUN rustup default nightly && \
+  rustup target add x86_64-unknown-linux-musl && \
   cargo build --target x86_64-unknown-linux-musl --release
 
 ####
 FROM alpine:latest AS rust-web_runtime
 ENV TZ=Asia/Shanghai
 
-RUN if [ "$BuildLocal" = "true" ]; then sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; fi
-RUN { apk --no-cache update && apk --no-cache upgrade; apk --no-cache add tzdata; } &> /dev/null
+RUN if [ "$BuildLocal" = "true" ]; then \
+  sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; fi
+
+RUN { apk --no-cache update && apk --no-cache upgrade; \
+  apk --no-cache add tzdata; } &> /dev/null
 
 RUN adduser -D -u 1000 hello
 USER hello
