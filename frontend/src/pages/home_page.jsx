@@ -158,11 +158,11 @@ class HomePage extends Component {
     <Modal title="Logout" visible={this.state.logoutVisible}
       onOk={() => logout() }
       onCancel={() => this.setState({logoutVisible: false})}
-      okText="confirm"
-      cancelText="cancel"
+      okText="Confirm"
+      cancelText="Cancel"
     >
       <p style={{paddingLeft: "2rem", fontSize: "1rem"}} textIndent="2rem">
-        Are you sure you want to exit?
+        Are you sure you want to logout?
       </p>
     </Modal>
 
@@ -172,10 +172,10 @@ class HomePage extends Component {
         this.setState({changePasswordVisible: false});
       }}
       onCancel={() => this.setState({changePasswordVisible: false})}
-      okText="confirm"
-      cancelText="cancel"
+      okText="Confirm"
+      cancelText="Cancel"
     >
-      TODO: Change password
+      !!! TODO: Change password
     </Modal>
     </>);
   }
