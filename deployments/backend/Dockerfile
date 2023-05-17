@@ -1,5 +1,6 @@
-####
-FROM clux/muslrust AS rust-web-backend_builder
+#### stage 1
+# FROM rust:slim-buster AS rust-web-backend_builder
+FROM clux/muslrust:latest AS rust-web-backend_builder
 
 ARG BuildLocal=${BuildLocal}
 ENV SQLX_OFFLINE=true
@@ -16,12 +17,12 @@ ADD deployments/config_cargo.toml deployments/config_vendor.toml ./
 ADD backend/vendor  ./vendor
 
 RUN if [ "$BuildLocal" = "true" ]; then \
-  sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' \
-    /etc/apt/sources.list; \
-  mv /root/.cargo/cargo_config.toml /root/.cargo/config; \
+    sed -i 's#\(deb\|security\).debian.org#mirrors.aliyun.com#g' /etc/apt/sources.list; \
+    mkdir -p /root/.cargo && mv config_cargo.toml /root/.cargo/config; \
+    mkdir -p .cargo && mv config_vendor.toml .cargo/config.toml; \
   fi
 
-RUN {
+RUN { \
     apt update && \
     apt -y upgrade && \
     apt install -y pkg-config libssl-dev ca-certificates && \
@@ -32,7 +33,7 @@ RUN rustup default nightly && \
   rustup target add x86_64-unknown-linux-musl && \
   cargo build --target x86_64-unknown-linux-musl --release
 
-####
+#### stage 2
 FROM alpine:latest AS rust-web_runtime
 ENV TZ=Asia/Shanghai
 

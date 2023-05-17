@@ -1,5 +1,3 @@
-# Dockerfile
-
 #### stage 1
 FROM node:lts-alpine AS builder
 LABEL stage=rust-web-frontend_builder
