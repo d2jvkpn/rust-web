@@ -52,6 +52,7 @@ services:
     volumes:
     # ./configs/frontend.json:/opt/nginx-web/frontend.json
     - ./configs/frontend.json:/opt/nginx-web/dev/frontend.json
+    - ./logs:/opt/nginx-web/logs
     environment: ["TZ=Asia/Shanghai", "NGINX_PORT=80"]
 
 networks:

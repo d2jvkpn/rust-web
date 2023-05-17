@@ -28,3 +28,6 @@ release:
 
 run:
 	cargo run
+
+cargo-vendor:
+	cargo vendor --versioned-dirs

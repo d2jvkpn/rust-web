@@ -29,7 +29,7 @@ trap on_exit EXIT
 }
 
 ####
-dfile=${_path}/Dockerfile.frontend
+dfile=${_path}/frontend/Dockerfile
 now=$(date +'%FT%T%:z')
 name="registry.cn-shanghai.aliyuncs.com/d2jvkpn/rust-web-frontend"
 image="$name:$TAG"

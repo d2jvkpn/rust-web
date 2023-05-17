@@ -32,7 +32,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_yaml = "0.9"
 sha2 = "0.10"
-sqlx = { version = "0.6.3", features = ["runtime-actix-rustls", "macros", "postgres", "uuid", "chrono", "migrate", "offline", "ipnetwork"] }
+sqlx = { version = "0.6.3", features = ["runtime-actix-rustls", "macros", "postgres", "uuid", "chrono", "migrate", "offline", "ipnetwork", "json", "decimal"] }
 structopt = "0.3"
 thiserror = "1"
 tokio = { version = "1", features = ["full"] }

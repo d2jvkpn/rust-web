@@ -14,6 +14,7 @@ ADD   frontend/*.json    frontend/react-build.sh  frontend/yarn.lock ./
 COPY  frontend/configs/  ./configs
 COPY  frontend/public/   ./public
 COPY  frontend/src/      ./src
+RUN mkdir logs
 
 RUN if [ "$BuildLocal" = "true" ]; then \
   sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \

@@ -182,13 +182,18 @@ export function request(path, options, callback=null) {
 }
 
 function handleFetchErr(err) {
+  let msg;
+
   if (err instanceof TypeError && err.message.startsWith("NetworkError")) {
-    console.error("NetworkError: request failed");
+    msg = "NetworkError: request failed";
   } else if (err instanceof TypeError)  {
-    console.error(`TypeError: ${err.message}`);
+    msg = `TypeError: ${err.message}`;
   } else if (err instanceof SyntaxError)  {
-    console.error(`SyntaxError: invalid response data`);
+    msg = `SyntaxError: invalid response data`;
   } else {
-    console.error(`UnexpectedError: ${err}`);
+    msg = `UnexpectedError: ${err}`;
   }
+
+  console.error(`!!! ${msg}`);
+  message.error(msg);
 }

@@ -17,6 +17,7 @@ wk*/
 .env
 _git-build-info.yaml
 target
+vendor
 
 #### javascript
 tmp.env
