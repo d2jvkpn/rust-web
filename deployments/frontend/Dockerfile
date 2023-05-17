@@ -1,5 +1,5 @@
 #### stage 1
-FROM node:lts-alpine AS builder
+FROM node:lts-alpine AS rust-web-frontend_builder
 LABEL stage=rust-web-frontend_builder
 
 ARG ENV_File=${ENV_File}
@@ -31,7 +31,7 @@ FROM nginx:stable-alpine
 
 WORKDIR /opt/nginx-web
 # COPY /opt/rust-web/build  /usr/share/nginx/html
-COPY --from=builder /opt/rust-web/build ./
+COPY --from=rust-web-frontend_builder /opt/rust-web/build ./
 
 # events {
 # 	worker_connections  1024;

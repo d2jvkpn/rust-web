@@ -1,6 +1,7 @@
 #### stage 1
 # FROM rust:slim-buster AS rust-web-backend_builder
 FROM clux/muslrust:latest AS rust-web-backend_builder
+LABEL stage=rust-web-backend_builder
 
 ARG BuildLocal=${BuildLocal}
 ENV SQLX_OFFLINE=true
@@ -26,7 +27,7 @@ RUN { \
     apt update && \
     apt -y upgrade && \
     apt install -y pkg-config libssl-dev ca-certificates && \
-    apt-get clean; \
+    apt clean; \
   } &> /dev/null
 
 RUN rustup default nightly && \
@@ -44,8 +45,7 @@ RUN if [ "$BuildLocal" = "true" ]; then \
 RUN { \
     apk --no-cache update && \
     apk --no-cache upgrade && \
-    apk --no-cache add tzdata ca-certificates && \
-    apt-get clean; \
+    apk --no-cache add tzdata ca-certificates; \
   } &> /dev/null
 
 RUN adduser -D -u 1000 hello
