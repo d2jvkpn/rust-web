@@ -11,10 +11,13 @@ init-project:
 	npm install --global serve create-react-app yarn
 	create-react-app frontend
 	cd frontend
-	npm install --save-dev env-cmd
-	rm package-lock.json
+	# npm install --save-dev env-cmd
+	# rm package-lock.json
 	yarn add env-cmd --dev
 	yarn add sprintf-js antd @aws-sdk/client-s3 ali-oss
+
+install:
+	yarn install
 
 upgrade:
 	yarn upgrade

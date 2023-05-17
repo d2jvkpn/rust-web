@@ -1,5 +1,5 @@
 ####
-FROM clux/muslrust AS rust-web-backend_builder
+FROM rust:1-alpine AS rust-web-backend_builder
 
 ARG BuildLocal=${BuildLocal}
 ENV SQLX_OFFLINE=true
@@ -15,17 +15,17 @@ ADD backend/src/_git-build-info.yaml  ./src/git-build-info.yaml
 ADD deployments/config_cargo.toml deployments/config_vendor.toml ./
 ADD backend/vendor  ./vendor
 
-RUN if [ "$BuildLocal" = "true" ]; then \
-  sed -i 's#http://\(deb\|security\).debian.org#https://mirrors.aliyun.com#g' \
-    /etc/apt/sources.list; \
-  mv /root/.cargo/cargo_config.toml /root/.cargo/config; \
+RUN if [ "$BuildLocal" = "true" ]; \
+  then \
+    sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
+    mkdir -p /root/.cargo && mv config_cargo.toml /root/.cargo/config; \
+    mkdir -p .cargo && mv config_vendor.toml .cargo/config.toml; \
   fi
 
-RUN {
-    apt update && \
-    apt -y upgrade && \
-    apt install -y pkg-config libssl-dev ca-certificates && \
-    apt-get clean; \
+RUN { \
+    apk --no-cache update && \
+    apk --no-cache upgrade && \
+    apk --no-cache add tzdata musl-dev libressl-dev; \
   } &> /dev/null
 
 RUN rustup default nightly && \
@@ -41,10 +41,9 @@ RUN if [ "$BuildLocal" = "true" ]; then \
   fi
 
 RUN { \
-    apk --no-cache update && \
-    apk --no-cache upgrade && \
-    apk --no-cache add tzdata ca-certificates && \
-    apt-get clean; \
+  apk --no-cache update && \
+    apk --no-cache upgrade; \
+    apk --no-cache add tzdata ca-certificates; \
   } &> /dev/null
 
 RUN adduser -D -u 1000 hello
