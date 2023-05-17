@@ -24,7 +24,7 @@ RUN if [ "$BuildLocal" = "true" ]; \
 
 RUN { apk --no-cache update && \
     apk --no-cache upgrade; \
-    apk --no-cache add tzdata musl-dev libressl-dev;
+    apk --no-cache add tzdata musl-dev libressl-dev; \
   } &> /dev/null
 
 RUN rustup default nightly && \
