@@ -1,10 +1,11 @@
+import "./home_page.css";
+
 import React, { Component } from 'react';
 import { message, Dropdown, Space, Modal } from "antd";
 import { DownOutlined } from '@ant-design/icons';
 import { Navigate } from "react-router-dom";
 
-import "./home_page.css";
-import { authed, getPublicUrl } from 'js/base.js';
+import { authed, getPublicUrl, load } from 'js/base.js';
 import { getUser, setRefreshToken, logout } from "js/auth.js";
 import { datetime } from "js/utils.js";
 import { chatQuery, sendMsg, chatItems2Msgs } from "js/chat.js";
@@ -15,28 +16,33 @@ class HomePage extends Component {
     this.state = {
       messages: [],
       msg: "",
-      logoutVisible: false,
-      changePasswordVisible: false,
+      logoutOpen: false,
+      changePasswordOpen: false,
     };
   }
 
   componentDidMount() {
+    load(this.loadChatHistory)
+  }
+
+  loadChatHistory = () => {
+    chatQuery((res) => {
+      let data = res.data;
+
+      if (!data.items || data.items.length === 0 ) {
+        return;
+      }
+
+      let messages = chatItems2Msgs(data.items);
+      // console.log(`~~~ ${JSON.stringify(messages)}`);
+      this.setState({messages: messages});
+    });
   }
 
   handleKeyPress = (event) => {
-    if (this.state.messages.length === 0) {
-      chatQuery((res) => {
-        let data = res.data;
-
-        if (!data.items || data.items.length === 0 ) {
-          return;
-        }
-
-        let messages = chatItems2Msgs(data.items);
-        // console.log(`~~~ ${JSON.stringify(messages)}`);
-        this.setState({messages: messages});
-      });
-    }
+    // if (this.state.messages.length === 0) {
+    //   this.loadChatHistory()
+    // }
 
     if (event.ctrlKey && event.keyCode === 0) {
       // console.log(`~~~ Ctrl + Enter pressed`);
@@ -93,9 +99,9 @@ class HomePage extends Component {
   menuClick = (e) => {
     if (e.key === "logout") {
       // logout();
-      this.setState({logoutVisible: true});
+      this.setState({logoutOpen: true});
     } else if (e.key === "change-password") {
-      this.setState({changePasswordVisible: true});
+      this.setState({changePasswordOpen: true});
     } else {
       console.log(`!!! TODO menuClick: ${e.key}`);
     }
@@ -155,9 +161,9 @@ class HomePage extends Component {
       </div>
     </div>
 
-    <Modal title="Logout" visible={this.state.logoutVisible}
+    <Modal title="Logout" open={this.state.logoutOpen}
       onOk={() => logout() }
-      onCancel={() => this.setState({logoutVisible: false})}
+      onCancel={() => this.setState({logoutOpen: false})}
       okText="Confirm"
       cancelText="Cancel"
     >
@@ -166,12 +172,12 @@ class HomePage extends Component {
       </p>
     </Modal>
 
-    <Modal title="Change password" visible={this.state.changePasswordVisible}
+    <Modal title="Change password" open={this.state.changePasswordOpen}
       onOk={() => {
         console.log(`!!! TODO: Change password`);
-        this.setState({changePasswordVisible: false});
+        this.setState({changePasswordOpen: false});
       }}
-      onCancel={() => this.setState({changePasswordVisible: false})}
+      onCancel={() => this.setState({changePasswordOpen: false})}
       okText="Confirm"
       cancelText="Cancel"
     >

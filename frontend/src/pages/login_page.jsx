@@ -1,7 +1,8 @@
+import "./login_page.css";
+
 import React, { Component } from 'react';
 import { Navigate } from "react-router-dom";
 
-import "./login_page.css";
 import { authed, getPublicUrl } from "js/base.js";
 import { login } from "js/auth.js";
 

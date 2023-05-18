@@ -49,7 +49,7 @@ function App() {
 }
 
 function init() {
-  load();
+  load(null);
 
   window.UILanguage = loadLang(localStorage.getItem("Language") || navigator.language);
   let langCommon = getSet("common"); // let langCommon = window.UILanguage.common;

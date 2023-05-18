@@ -2,21 +2,20 @@ import { message } from "antd";
 import { refreshToken } from "./auth.js";
 
 const Settings = {
-  initAt: null,
-  publicUrl: "",
+  publicUrl: process.env.PUBLIC_URL || "",
   headers: {},
   apiAddress: "",
 };
 
 const Interval = 15*1000; // 15s
 
-export function load() {
-  if (Settings.initAt !== null) {
+export function load(callback) {
+  if (Settings.apiAddress !== "") {
+    if (callback) {
+      callback();
+    }
     return;
   }
-
-  Settings.publicUrl = process.env.PUBLIC_URL || "";
-  Settings.initAt = new Date();
 
   let url = new URL(window.location.href);
   url = `${url.protocol}//${url.host}`;
@@ -26,8 +25,11 @@ export function load() {
   request(`${url}${p}`, {method: "GET", headers: {}}, function(d) {
     Settings.apiAddress = d.apiAddress;
     console.log(`==> Got configs: ${JSON.stringify(d)}`);
+    setHeader("X-TZ-Offset", new Date().getTimezoneOffset());
 
-    setHeader("X-TZ-Offset", Settings.initAt.getTimezoneOffset());
+    if (callback) {
+      callback();
+    }
   });
 }
 
