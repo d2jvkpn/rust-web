@@ -18,13 +18,11 @@ export function load(callback) {
   }
 
   let url = new URL(window.location.href);
-  url = `${url.protocol}//${url.host}`;
+  let jsonUrl = `${url.protocol}//${url.host}${Settings.publicUrl}/frontend.json`
 
-  let p = process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL}/frontend.json` : "/frontend.json";
-
-  request(`${url}${p}`, {method: "GET", headers: {}}, function(d) {
+  request(jsonUrl, {method: "GET", headers: {}}, function(d) {
     Settings.apiAddress = d.apiAddress;
-    console.log(`==> Got configs: ${JSON.stringify(d)}`);
+    console.log(`==> Got configuration frontend.json: ${JSON.stringify(d)}`);
     setHeader("X-TZ-Offset", new Date().getTimezoneOffset());
 
     if (callback) {
