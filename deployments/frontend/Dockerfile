@@ -29,6 +29,9 @@ RUN sh react-build.sh $ENV_File # bash isn't installed in apline in default
 #### stage 2
 FROM nginx:stable-alpine
 
+ARG BuildLocal=${BuildLocal}
+ENV TZ=Asia/Shanghai
+
 WORKDIR /opt/nginx-web
 # COPY /opt/rust-web/build  /usr/share/nginx/html
 COPY --from=rust-web-frontend_builder /opt/rust-web/build ./

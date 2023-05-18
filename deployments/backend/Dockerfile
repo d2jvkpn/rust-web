@@ -36,6 +36,7 @@ RUN rustup default nightly && \
 
 #### stage 2
 FROM alpine:latest AS rust-web_runtime
+ARG BuildLocal=${BuildLocal}
 ENV TZ=Asia/Shanghai
 
 RUN if [ "$BuildLocal" = "true" ]; then \
