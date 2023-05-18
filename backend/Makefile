@@ -1,5 +1,5 @@
 install_sqlx:
-	cargo add sqlx --features=runtime-actix-rustls,macros,postgres,uuid,chrono,migrate,offline,ipnetwork
+	cargo add sqlx --features=runtime-actix-rustls,macros,postgres,uuid,chrono,migrate,offline,ipnetwork,json,decimal
 
 init_db:
 	echo TODO
