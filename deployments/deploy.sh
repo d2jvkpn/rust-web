@@ -12,9 +12,11 @@ PORT="$3"
 
 #### deploy
 export TAG="${TAG}" APP_ENV="${APP_ENV}" PORT="${PORT}"
-envsubst < ${_path}/deploy_backend.yaml > docker-compose.yaml
+envsubst < ${_path}/deploy.yaml > docker-compose.yaml
 
 docker-compose pull
 docker-compose up -d
 
+docker logs rust-web-db_${APP_ENV}
+docker logs rust-web-backend_${APP_ENV}
 docker logs rust-web-frontend_${APP_ENV}

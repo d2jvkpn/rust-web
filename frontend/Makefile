@@ -24,3 +24,6 @@ upgrade:
 
 run:
 	npm run local
+
+docker-build:
+	BuildLocal=true bash deployments/build.sh dev

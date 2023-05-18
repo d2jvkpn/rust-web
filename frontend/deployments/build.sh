@@ -12,7 +12,7 @@ cfg_name=$1
 ENV_File=configs/$cfg_name.env
 BuildLocal=$(printenv BuildLocal || true)
 
-. frontend/$ENV_File
+. $ENV_File
 # BRANCH is defined in $ENV_File
 TAG=$BRANCH
 echo ">>> BRANCH: $BRANCH, TAG: $TAG, ENV_File: $ENV_File"
@@ -29,7 +29,7 @@ trap on_exit EXIT
 }
 
 ####
-dfile=${_path}/frontend/Dockerfile
+dfile=${_path}/Dockerfile
 now=$(date +'%FT%T%:z')
 name="registry.cn-shanghai.aliyuncs.com/d2jvkpn/rust-web-frontend"
 image="$name:$TAG"

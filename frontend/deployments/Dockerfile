@@ -8,10 +8,10 @@ ARG BuildLocal=${BuildLocal}
 ENV TZ=Asia/Shanghai
 
 WORKDIR /opt/rust-web
-ADD frontend/*.json frontend/react-build.sh frontend/yarn.lock ./
-COPY frontend/configs/ ./configs
-COPY frontend/public/ ./public
-COPY frontend/src/ ./src
+ADD *.json react-build.sh yarn.lock ./
+COPY configs/ ./configs
+COPY public/ ./public
+COPY src/ ./src
 RUN mkdir logs
 
 RUN if [ "$BuildLocal" = "true" ]; then \

@@ -31,3 +31,6 @@ run:
 
 cargo-vendor:
 	cargo vendor --versioned-dirs
+
+docker-build:
+	BuildLocal=true bash deployments/build.sh dev

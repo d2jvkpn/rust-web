@@ -24,12 +24,12 @@ trap on_exit EXIT
 ####
 # --network=host
 name=registry.cn-shanghai.aliyuncs.com/d2jvkpn/rust-web-backend
-dfile=${_path}/backend/Dockerfile
+dfile=${_path}/Dockerfile
 
-bash deployments/git-build-info.sh > backend/src/_git-build-info.yaml
-mkdir -p backend/vendor
+bash ${_path}/git-build-info.sh > src/_git-build-info.yaml
+mkdir -p vendor
 
-[[ "$BuildLocal" == "true" ]] && cd backend && cargo vendor --versioned-dirs && cd -
+[[ "$BuildLocal" == "true" ]] && cargo vendor --versioned-dirs && cd -
 
 [[ "$BuildLocal" != "true" ]] && \
 for base in $(awk '/^FROM/{print $2}' $dfile); do
