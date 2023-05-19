@@ -4,7 +4,7 @@ version: '3'
 services:
   database:
     image: postgres:15-alpine
-    container_name: rust-web-db_${APP_ENV}
+    container_name: rust-web-database_${APP_ENV}
     restart: always
     # network_mode: bridge
     networks: ["net"]
