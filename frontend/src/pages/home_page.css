@@ -4,7 +4,19 @@
   align-items: center;
   background-color: #f0f0f0;
   padding: 20px;
-  border-radius: 10px;
+  max-width: 70%;
+  border-radius: 0px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+@media screen and (max-width:560px){
+  .chat-container {
+    max-width: 100%;
+    padding: 5px;
+    margin-right: none;
+    margin-left: none;
+  }
 }
 
 .chat-header {
@@ -28,11 +40,19 @@
   background-color: #fff;
   padding: 5px;
   margin: 5px;
-  border-radius: 5px;
+  border-radius: 3px;
   max-width: 70%;
   word-break: break-word;
   box-shadow: 0px 1px 3px rgba(0,0,0,0.1);
   white-space: pre-wrap;
+}
+
+@media screen and (max-width:560px){
+  .message-container {
+    padding: 3px;
+    margin: 5px 0px;
+    max-width: 90%;
+  }
 }
 
 .message-from-user {
