@@ -22,4 +22,4 @@ git_commit_time: $GIT_Commit_Time
 git_tree_state: $GIT_TreeState
 EOF
 
-# mv src/_git-build-info.yaml src/git-build-info.yaml
+# mv src/_build-info.yaml src/build-info.yaml

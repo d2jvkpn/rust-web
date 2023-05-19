@@ -15,8 +15,9 @@ COPY src/ ./src
 RUN mkdir logs
 
 RUN if [ "$BuildLocal" = "true" ]; then \
-  sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
-  npm config set registry https://registry.npm.taobao.org; \
+    echo "==> BuildLocal: true"; \
+    sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
+    npm config set registry https://registry.npm.taobao.org; \
   fi
 
 # RUN { apk --no-cache update && apk --no-cache upgrade && apk --no-cache add tzdata; } &> /dev/null

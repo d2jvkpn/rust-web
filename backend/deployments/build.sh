@@ -26,7 +26,7 @@ trap on_exit EXIT
 name=registry.cn-shanghai.aliyuncs.com/d2jvkpn/rust-web-backend
 dfile=${_path}/Dockerfile
 
-bash ${_path}/git-build-info.sh > src/_git-build-info.yaml
+bash ${_path}/build-info.sh > src/_build-info.yaml
 mkdir -p vendor
 
 [[ "$BuildLocal" == "true" ]] && cargo vendor --versioned-dirs && cd -
