@@ -46,6 +46,8 @@ for base in $(awk '/^FROM/{print $2}' $dfile); do
     docker images --filter "dangling=true" --quiet "$bn" | xargs -i docker rmi {} || true
 done &> /dev/null
 
+bash ${_path}/git-build-info.sh > public/git-build-info.yaml
+
 docker build --no-cache -f $dfile -t $image \
   --build-arg=ENV_File=$ENV_File            \
   --build-arg=BuildLocal="$BuildLocal"      \

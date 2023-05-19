@@ -23,3 +23,4 @@ yarn-debug.log*
 yarn-error.log*
 frontend.json
 local.env
+/public/git-build-info.yaml
