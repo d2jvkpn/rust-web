@@ -15,11 +15,8 @@ function on_exit {
 }
 trap on_exit EXIT
 
-[[ "$BuildLocal" != "true" ]] && \
-{
-  git checkout $branch
-  git pull --no-edit
-}
+git checkout $branch
+[[ "$BuildLocal" != "true" ]] && git pull --no-edit
 
 ####
 # --network=host

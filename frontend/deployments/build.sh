@@ -22,11 +22,8 @@ function on_exit {
 }
 trap on_exit EXIT
 
-[[ "$BuildLocal" != "true" ]] && \
-{
-  git checkout $BRANCH
-  git pull --no-edit
-}
+git checkout $BRANCH
+[[ "$BuildLocal" != "true" ]] && git pull --no-edit
 
 ####
 dfile=${_path}/Dockerfile
