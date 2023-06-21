@@ -29,3 +29,4 @@ build/
 build-temp_*/
 frontend.json
 public/build-info.yaml
+public/build-info.json

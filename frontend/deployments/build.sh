@@ -43,7 +43,7 @@ for base in $(awk '/^FROM/{print $2}' $dfile); do
     docker images --filter "dangling=true" --quiet "$bn" | xargs -i docker rmi {} || true
 done &> /dev/null
 
-bash ${_path}/build-info.sh > public/build-info.yaml
+bash ${_path}/build-info.sh json > public/build-info.json
 
 docker build --no-cache -f $dfile -t $image \
   --build-arg=ENV_File=$ENV_File            \
