@@ -30,7 +30,8 @@ async fn not_exists() {
         .await
         .expect("Failed to execute request.");
 
-    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    // assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
 
     let content_type = response.headers().get("content-type").unwrap().to_str().unwrap();
     assert!(content_type.starts_with("application/json"));

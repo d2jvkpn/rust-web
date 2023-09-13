@@ -3,7 +3,7 @@
 FROM clux/muslrust:latest AS rust-web-backend_builder
 LABEL stage=rust-web-backend_builder
 
-ARG BuildLocal=${BuildLocal}
+ARG BUILD_Vendor=${BUILD_Vendor}
 ENV SQLX_OFFLINE=true
 ENV TZ=Asia/Shanghai
 WORKDIR /opt/rust-web
@@ -12,16 +12,16 @@ COPY src         ./src
 COPY static      ./static
 COPY migrations  ./migrations
 ADD Cargo.lock   Cargo.toml  sqlx-data.json ./
-ADD src/_build-info.yaml  ./src/build-info.yaml
+ADD src/_build_info.yaml  ./src/build_info.yaml
 
-ADD deployments/config_cargo.toml deployments/config_vendor.toml ./
+ADD deployments/cargo_config.toml deployments/cargo_vendor.toml ./
 ADD vendor  ./vendor
 
-RUN if [ "$BuildLocal" = "true" ]; then \
-    echo "==> BuildLocal: true"; \
+RUN if [ "$BUILD_Vendor" = "true" ]; then \
+    echo "==> BUILD_Vendor: true"; \
     sed -i 's#\(deb\|security\).debian.org#mirrors.aliyun.com#g' /etc/apt/sources.list; \
-    mkdir -p /root/.cargo && mv config_cargo.toml /root/.cargo/config; \
-    mkdir -p .cargo && mv config_vendor.toml .cargo/config.toml; \
+    mkdir -p /root/.cargo && mv cargo_config.toml /root/.cargo/config; \
+    mkdir -p .cargo && mv cargo_vendor.toml .cargo/config.toml; \
   fi
 
 RUN { \
@@ -37,11 +37,11 @@ RUN rustup default nightly && \
 
 #### stage 2
 FROM alpine:latest AS rust-web_runtime
-ARG BuildLocal=${BuildLocal}
+ARG BUILD_Vendor=${BUILD_Vendor}
 ENV TZ=Asia/Shanghai
 
-RUN if [ "$BuildLocal" = "true" ]; then \
-    echo "==> BuildLocal: true"; \
+RUN if [ "$BUILD_Vendor" = "true" ]; then \
+    echo "==> BUILD_Vendor: true"; \
     sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
   fi
 

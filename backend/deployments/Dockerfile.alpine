@@ -1,7 +1,7 @@
 ####
 FROM rust:1-alpine AS rust-web-backend_builder
 
-ARG BuildLocal=${BuildLocal}
+ARG BUILD_Vendor=${BUILD_Vendor}
 ENV SQLX_OFFLINE=true
 ENV TZ=Asia/Shanghai
 WORKDIR /opt/rust-web
@@ -10,12 +10,12 @@ COPY src         ./src
 COPY static      ./static
 COPY migrations  ./migrations
 ADD Cargo.lock   Cargo.toml  sqlx-data.json ./
-ADD src/_git-build-info.yaml  ./src/git-build-info.yaml
+ADD src/_build_info.yaml  ./src/build_info.yaml
 
 ADD deployments/config_cargo.toml deployments/config_vendor.toml ./
 ADD vendor  ./vendor
 
-RUN if [ "$BuildLocal" = "true" ]; \
+RUN if [ "$BUILD_Vendor" = "true" ]; \
   then \
     sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
     mkdir -p /root/.cargo && mv config_cargo.toml /root/.cargo/config; \
@@ -35,10 +35,10 @@ RUN rustup default nightly && \
 ####
 FROM alpine:latest AS rust-web_runtime
 
-ARG BuildLocal=${BuildLocal}
+ARG BUILD_Vendor=${BUILD_Vendor}
 ENV TZ=Asia/Shanghai
 
-RUN if [ "$BuildLocal" = "true" ]; then \
+RUN if [ "$BUILD_Vendor" = "true" ]; then \
     sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
   fi
 

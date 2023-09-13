@@ -63,7 +63,7 @@ async fn main() -> io::Result<()> {
 
     sqlx::migrate!("./migrations").run(&pool).await.expect("Failed to migrate the database");
 
-    utils::GitBuildInfo::set(include_str!("build-info.yaml")).unwrap();
+    utils::GitBuildInfo::set(include_str!("build_info.yaml")).unwrap();
 
     settings::Settings::set(config, pool.clone()).unwrap();
 

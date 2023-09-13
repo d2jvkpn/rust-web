@@ -15,7 +15,7 @@ configs/
 logs/
 wk*/
 .env
-_build-info.yaml
-_build-info.json
+_build_info.yaml
+_build_info.json
 target
 vendor

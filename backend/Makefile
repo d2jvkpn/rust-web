@@ -46,11 +46,11 @@ prepare_data:
 cargo-vendor:
 	cargo vendor --versioned-dirs
 
-build-release:
+build_release:
 	cargo build --release
 
-docker-build:
-	BuildLocal=true bash deployments/build.sh dev
+docker_build:
+	BUILD_Vendor=true bash deployments/docker_build.sh dev
 
 run:
 	cargo run
