@@ -5,35 +5,36 @@ mod middlewares;
 mod models;
 mod utils;
 
-use internal::{load_config, settings, Configuration};
-use log::LevelFilter::{Debug, Info};
 use sqlx::{postgres::PgConnectOptions, ConnectOptions, PgPool};
 use std::{io, path::Path, str::FromStr};
-use structopt::StructOpt;
+use clap::Parser;
+use log::LevelFilter::{Debug, Info};
+
+use internal::{load_config, settings, Configuration};
 use utils::{init_logger, LogOutput};
 
-#[derive(Debug, StructOpt)]
-#[structopt(name = "rust-backend", about = "a rust web backend app")]
+#[derive(Parser, Debug)]
+#[command(name = "rust-backend", author, version, long_about = None, about = "a rust web backend app")]
 pub struct Opts {
-    #[structopt(long, default_value = "configs/local.yaml", help = "configuration file path")]
+    #[arg(long, default_value = "configs/local.yaml", help = "configuration file path")]
     config: String,
 
-    #[structopt(long = "addr", default_value = "0.0.0.0", help = "http server ip address")]
+    #[arg(long = "addr", default_value = "0.0.0.0", help = "http server ip address")]
     addr: String,
 
-    #[structopt(long, default_value = "3011", help = "http server port")]
+    #[arg(long, default_value = "3011", help = "http server port")]
     port: u16,
 
-    #[structopt(long, default_value = "0", help = "threads limit")]
+    #[arg(long, default_value = "0", help = "threads limit")]
     threads: usize,
 
-    #[structopt(long, help = "run in release mode")]
+    #[arg(long, help = "run in release mode")]
     release: bool,
 }
 
 #[actix_rt::main]
 async fn main() -> io::Result<()> {
-    let opts = Opts::from_args();
+    let opts = Opts::parse();
     let mut config = load_config(&opts.config).unwrap();
     read_opts(&mut config, opts);
 
